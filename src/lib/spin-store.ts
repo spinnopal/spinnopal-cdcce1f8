@@ -1,14 +1,24 @@
 import logoAsset from "@/assets/logo.png.asset.json";
-import tryagainAsset from "@/assets/tryagain.jpg.asset.json";
-import aeropodsAsset from "@/assets/aeropods.png.asset.json";
-import zeblazeAsset from "@/assets/zeblaze.png.asset.json";
-import earphonesAsset from "@/assets/earphones.png.asset.json";
-import cableAsset from "@/assets/cable.png.asset.json";
-import cash100Asset from "@/assets/cash100.jpg.asset.json";
+import cableAsset from "@/assets/cable2.png.asset.json";
+import earphonesAsset from "@/assets/earphones2.png.asset.json";
+import ultimaAsset from "@/assets/ultima.png.asset.json";
+import kickAsset from "@/assets/kick.png.asset.json";
+import cash2000Asset from "@/assets/cash2000.png.asset.json";
+import cash1000Asset from "@/assets/cash1000.png.asset.json";
+import tryagainAsset from "@/assets/tryagain2.png.asset.json";
+import cash100Asset from "@/assets/cash100b.png.asset.json";
 
 export const LOGO = logoAsset.url;
 
-export type PrizeId = "try-again" | "cable" | "earphones" | "cash100" | "aeropods" | "zeblaze";
+export type PrizeId =
+  | "cable"
+  | "earphones"
+  | "ultima"
+  | "kick"
+  | "cash2000"
+  | "cash1000"
+  | "try-again"
+  | "cash100";
 
 export interface Prize {
   id: PrizeId;
@@ -18,26 +28,30 @@ export interface Prize {
   isWin: boolean;
 }
 
-// Order matters: this is the visual order on the wheel (clockwise from top).
+// Order matters: visual order on the wheel (clockwise from top).
 export const PRIZES: Prize[] = [
-  { id: "try-again", name: "Try Again", short: "Try Again", image: tryagainAsset.url, isWin: false },
-  { id: "cable", name: "My Power Charging Cable", short: "Charging Cable", image: cableAsset.url, isWin: true },
+  { id: "cable", name: "Data Cable", short: "Data Cable", image: cableAsset.url, isWin: true },
   { id: "earphones", name: "Strong Bass Earphones", short: "Bass Earphones", image: earphonesAsset.url, isWin: true },
+  { id: "ultima", name: "Ultima Circle Smartwatch", short: "Ultima Watch", image: ultimaAsset.url, isWin: true },
+  { id: "kick", name: "KICK AirBuds", short: "Kick AirBuds", image: kickAsset.url, isWin: true },
+  { id: "cash2000", name: "Rs. 2000 Cash Back", short: "Rs.2000 Cash", image: cash2000Asset.url, isWin: true },
+  { id: "cash1000", name: "Rs. 1000 Cash Back", short: "Rs.1000 Cash", image: cash1000Asset.url, isWin: true },
+  { id: "try-again", name: "Try Again", short: "Try Again", image: tryagainAsset.url, isWin: false },
   { id: "cash100", name: "Rs. 100 Cash Back", short: "Rs.100 Cash", image: cash100Asset.url, isWin: true },
-  { id: "aeropods", name: "KICK AeroPods X3", short: "AeroPods X3", image: aeropodsAsset.url, isWin: true },
-  { id: "zeblaze", name: "Zeblaze BTalk 3 Plus Smartwatch", short: "Zeblaze BTalk 3+", image: zeblazeAsset.url, isWin: true },
 ];
 
 const DEFAULT_PROBS: Record<PrizeId, number> = {
-  "try-again": 20,
-  cable: 30,
-  earphones: 50,
-  cash100: 0,
-  aeropods: 0,
-  zeblaze: 0,
+  cable: 25,
+  earphones: 25,
+  ultima: 25,
+  kick: 0,
+  cash2000: 0,
+  cash1000: 0,
+  "try-again": 25,
+  cash100: 25,
 };
 
-const PROBS_KEY = "mmz_probs_v2";
+const PROBS_KEY = "mmz_probs_v3";
 const RECORDS_KEY = "mmz_records_v1";
 
 export function getProbs(): Record<PrizeId, number> {

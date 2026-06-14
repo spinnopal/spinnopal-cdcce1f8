@@ -5,7 +5,7 @@ import confetti from "canvas-confetti";
 import { PRIZES, type PrizeId } from "@/lib/spin-store";
 
 const search = z.object({
-  prize: z.enum(["try-again", "cable", "earphones", "cash100", "aeropods", "zeblaze"]),
+  prize: z.enum(["cable", "earphones", "ultima", "kick", "cash2000", "cash1000", "try-again", "cash100"]),
   name: z.string(),
   spins: z.number().int().min(1).max(10).optional().default(1),
   round: z.number().int().min(1).max(10).optional().default(1),
