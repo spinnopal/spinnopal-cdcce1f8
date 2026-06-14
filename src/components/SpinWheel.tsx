@@ -8,33 +8,34 @@ interface Props {
   onLogoLongPress?: () => void;
 }
 
-const SEG = 360 / PRIZES.length; // 72°
+const SEG = 360 / PRIZES.length;
 
 export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }: Props) {
   const [rotation, setRotation] = useState(0);
   const rotationRef = useRef(0);
   const pressTimer = useRef<number | null>(null);
+  const onCompleteRef = useRef(onComplete);
+  const startedRef = useRef(false);
+
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
   useEffect(() => {
-    if (spinning && targetIndex !== null) {
-      // Segment i is centered at angle (i*SEG + SEG/2) measured clockwise from top.
-      // Pointer is at top (0°). To land on segment center, wheel rotation must satisfy:
-      //   (rotation + segmentCenter) mod 360 === 0  (so segment center sits under pointer)
-      // => rotation = -segmentCenter mod 360
+    if (spinning && targetIndex !== null && !startedRef.current) {
+      startedRef.current = true;
       const center = targetIndex * SEG;
       const base = ((360 - center) % 360 + 360) % 360;
-      const turns = 6; // full rotations
+      const turns = 6;
       const current = rotationRef.current;
-      // next absolute rotation: current rounded up to next full + turns*360 + base offset
       const currentMod = ((current % 360) + 360) % 360;
       const delta = ((base - currentMod) + 360) % 360;
       const next = current + turns * 360 + delta;
       rotationRef.current = next;
       setRotation(next);
-      const t = window.setTimeout(() => onComplete(PRIZES[targetIndex]), 5200);
+      const t = window.setTimeout(() => onCompleteRef.current(PRIZES[targetIndex]), 5200);
       return () => clearTimeout(t);
     }
-  }, [spinning, targetIndex, onComplete]);
+    if (!spinning) startedRef.current = false;
+  }, [spinning, targetIndex]);
 
   const startPress = () => {
     if (!onLogoLongPress) return;
@@ -71,12 +72,12 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
               <defs>
                 {PRIZES.map((prize, i) => {
                   const centerAngle = i * SEG;
-                  const iconR = r * 0.62;
+                  const iconR = r * 0.6;
                   const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
                   const iy = cy + iconR * Math.sin((centerAngle - 90) * Math.PI / 180);
                   return (
                     <clipPath key={prize.id} id={`clip-${prize.id}`}>
-                      <circle cx={ix} cy={iy} r={28} />
+                      <circle cx={ix} cy={iy} r={44} />
                     </clipPath>
                   );
                 })}
@@ -91,22 +92,22 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
                 const y2 = cy + r * Math.sin(a2);
                 const fill = i % 2 === 0 ? "#1f242e" : "#FF7A00";
                 const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
-                const iconR = r * 0.62;
+                const iconR = r * 0.6;
                 const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
                 const iy = cy + iconR * Math.sin((centerAngle - 90) * Math.PI / 180);
-                const textR = r * 0.88;
+                const textR = r * 0.9;
                 const tx = cx + textR * Math.cos((centerAngle - 90) * Math.PI / 180);
                 const ty = cy + textR * Math.sin((centerAngle - 90) * Math.PI / 180);
                 return (
                   <g key={prize.id}>
                     <path d={path} fill={fill} stroke="#0F1115" strokeWidth="2" />
-                    <circle cx={ix} cy={iy} r={28} fill="#0F1115" stroke="#F5C542" strokeWidth="1.5" />
+                    <circle cx={ix} cy={iy} r={44} fill="#0F1115" stroke="#F5C542" strokeWidth="2" />
                     <image
                       href={prize.image}
-                      x={ix - 28}
-                      y={iy - 28}
-                      width="56"
-                      height="56"
+                      x={ix - 44}
+                      y={iy - 44}
+                      width="88"
+                      height="88"
                       preserveAspectRatio="xMidYMid slice"
                       clipPath={`url(#clip-${prize.id})`}
                       transform={`rotate(${centerAngle} ${ix} ${iy})`}
@@ -115,8 +116,8 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
                       x={tx}
                       y={ty}
                       fill="#FFFFFF"
-                      fontSize="10"
-                      fontWeight="700"
+                      fontSize="12"
+                      fontWeight="800"
                       textAnchor="middle"
                       transform={`rotate(${centerAngle} ${tx} ${ty})`}
                     >
