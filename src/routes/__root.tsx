@@ -77,14 +77,18 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Lovable App" },
-      { name: "description", content: "Lovable Generated Project" },
+      { title: "Mas Mobile spin the wheel" },
+      { name: "description", content: "Mas Mobile Zone Lucky Spin is a premium Android app for retail campaigns." },
       { name: "author", content: "Lovable" },
-      { property: "og:title", content: "Lovable App" },
-      { property: "og:description", content: "Lovable Generated Project" },
+      { property: "og:title", content: "Mas Mobile spin the wheel" },
+      { property: "og:description", content: "Mas Mobile Zone Lucky Spin is a premium Android app for retail campaigns." },
       { property: "og:type", content: "website" },
       { name: "twitter:card", content: "summary" },
       { name: "twitter:site", content: "@Lovable" },
+      { name: "twitter:title", content: "Mas Mobile spin the wheel" },
+      { name: "twitter:description", content: "Mas Mobile Zone Lucky Spin is a premium Android app for retail campaigns." },
+      { property: "og:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/067f423f-d2e8-4ee8-a8f4-23df754ed0db/id-preview-767a67b4--8fc16a30-25ba-49b5-ae16-7063a31156a6.lovable.app-1781439697846.png" },
+      { name: "twitter:image", content: "https://pub-bb2e103a32db4e198524a2e9ed8f35b4.r2.dev/067f423f-d2e8-4ee8-a8f4-23df754ed0db/id-preview-767a67b4--8fc16a30-25ba-49b5-ae16-7063a31156a6.lovable.app-1781439697846.png" },
     ],
     links: [
       {
