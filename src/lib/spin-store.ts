@@ -30,14 +30,14 @@ export const PRIZES: Prize[] = [
 
 const DEFAULT_PROBS: Record<PrizeId, number> = {
   "try-again": 20,
-  cable: 40,
-  earphones: 18,
-  cash100: 10,
-  aeropods: 8,
-  zeblaze: 4,
+  cable: 30,
+  earphones: 50,
+  cash100: 0,
+  aeropods: 0,
+  zeblaze: 0,
 };
 
-const PROBS_KEY = "mmz_probs_v1";
+const PROBS_KEY = "mmz_probs_v2";
 const RECORDS_KEY = "mmz_records_v1";
 
 export function getProbs(): Record<PrizeId, number> {
