@@ -15,6 +15,7 @@ export const Route = createFileRoute("/")({
 function Home() {
   const navigate = useNavigate();
   const [name, setName] = useState("");
+  const [spins, setSpins] = useState(1);
   const [error, setError] = useState("");
   const pressTimer = useRef<number | null>(null);
 
@@ -28,7 +29,8 @@ function Home() {
       setError("Name too long");
       return;
     }
-    navigate({ to: "/spin", search: { name: trimmed } });
+    const s = Math.max(1, Math.min(10, Math.floor(spins) || 1));
+    navigate({ to: "/spin", search: { name: trimmed, spins: s, round: 1, exclude: "" } });
   };
 
   const onPressStart = () => {
@@ -77,6 +79,31 @@ function Home() {
           className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
         />
         {error && <p className="text-destructive text-sm mt-2">{error}</p>}
+
+        <label className="text-xs uppercase tracking-widest text-muted-foreground block mt-4">
+          Number of Spins <span className="text-gold/70 normal-case tracking-normal">(for heavy buyers)</span>
+        </label>
+        <div className="mt-2 flex items-center gap-2">
+          <button
+            type="button"
+            onClick={() => setSpins((s) => Math.max(1, s - 1))}
+            className="w-12 h-12 rounded-xl bg-[#0F1115]/70 border border-white/10 text-xl font-bold active:scale-95"
+          >−</button>
+          <input
+            type="number"
+            min={1}
+            max={10}
+            value={spins}
+            onChange={(e) => setSpins(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
+            className="flex-1 bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-center text-lg font-bold outline-none focus:border-primary"
+          />
+          <button
+            type="button"
+            onClick={() => setSpins((s) => Math.min(10, s + 1))}
+            className="w-12 h-12 rounded-xl bg-[#0F1115]/70 border border-white/10 text-xl font-bold active:scale-95"
+          >+</button>
+        </div>
+        <p className="mt-2 text-[11px] text-muted-foreground">Each spin excludes prizes already won this round.</p>
 
         <button
           onClick={start}
