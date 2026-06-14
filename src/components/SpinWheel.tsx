@@ -68,9 +68,20 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
                   : "none",
               }}
             >
+              <defs>
+                {PRIZES.map((prize, i) => {
+                  const centerAngle = i * SEG;
+                  const iconR = r * 0.62;
+                  const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
+                  const iy = cy + iconR * Math.sin((centerAngle - 90) * Math.PI / 180);
+                  return (
+                    <clipPath key={prize.id} id={`clip-${prize.id}`}>
+                      <circle cx={ix} cy={iy} r={28} />
+                    </clipPath>
+                  );
+                })}
+              </defs>
               {PRIZES.map((prize, i) => {
-                const startAngle = i * SEG - 90 - SEG / 2; // start so segment i is centered at top when rotation=0... we offset below
-                // We want segment 0 centered at top. Compute path for segment with center at angle i*SEG.
                 const centerAngle = i * SEG; // 0 at top
                 const a1 = (centerAngle - SEG / 2 - 90) * Math.PI / 180;
                 const a2 = (centerAngle + SEG / 2 - 90) * Math.PI / 180;
@@ -80,7 +91,6 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
                 const y2 = cy + r * Math.sin(a2);
                 const fill = i % 2 === 0 ? "#1f242e" : "#FF7A00";
                 const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
-                // Position for icon/text along center radius
                 const iconR = r * 0.62;
                 const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
                 const iy = cy + iconR * Math.sin((centerAngle - 90) * Math.PI / 180);
@@ -90,24 +100,25 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
                 return (
                   <g key={prize.id}>
                     <path d={path} fill={fill} stroke="#0F1115" strokeWidth="2" />
+                    <circle cx={ix} cy={iy} r={28} fill="#0F1115" stroke="#F5C542" strokeWidth="1.5" />
                     <image
                       href={prize.image}
                       x={ix - 28}
                       y={iy - 28}
                       width="56"
                       height="56"
-                      style={{ transform: `rotate(${centerAngle}deg)`, transformOrigin: `${ix}px ${iy}px` }}
                       preserveAspectRatio="xMidYMid slice"
-                      clipPath={`circle(26px at ${ix}px ${iy}px)`}
+                      clipPath={`url(#clip-${prize.id})`}
+                      transform={`rotate(${centerAngle} ${ix} ${iy})`}
                     />
                     <text
                       x={tx}
                       y={ty}
                       fill="#FFFFFF"
-                      fontSize="11"
+                      fontSize="10"
                       fontWeight="700"
                       textAnchor="middle"
-                      style={{ transform: `rotate(${centerAngle}deg)`, transformOrigin: `${tx}px ${ty}px` }}
+                      transform={`rotate(${centerAngle} ${tx} ${ty})`}
                     >
                       {prize.short}
                     </text>
