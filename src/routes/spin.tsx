@@ -47,7 +47,7 @@ function SpinPage() {
         Good luck, <span className="text-foreground font-semibold">{name}</span>
       </p>
 
-      <div className="w-[85vw] max-w-[440px] mt-2">
+      <div className="w-[96vw] max-w-[560px] mt-2">
         <SpinWheel spinning={spinning} targetIndex={target} onComplete={handleComplete} />
       </div>
 
