@@ -1,10 +1,15 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useState } from "react";
 import { SpinWheel } from "@/components/SpinWheel";
-import { PRIZES, pickWinner, saveRecord, type Prize } from "@/lib/spin-store";
+import { PRIZES, pickWinner, saveRecord, type Prize, type PrizeId } from "@/lib/spin-store";
 import { z } from "zod";
 
-const search = z.object({ name: z.string().min(1).max(60) });
+const search = z.object({
+  name: z.string().min(1).max(60),
+  spins: z.number().int().min(1).max(10).optional().default(1),
+  round: z.number().int().min(1).max(10).optional().default(1),
+  exclude: z.string().optional().default(""),
+});
 
 export const Route = createFileRoute("/spin")({
   validateSearch: search,
@@ -13,15 +18,19 @@ export const Route = createFileRoute("/spin")({
 });
 
 function SpinPage() {
-  const { name } = Route.useSearch();
+  const { name, spins, round, exclude } = Route.useSearch();
   const navigate = useNavigate();
   const [spinning, setSpinning] = useState(false);
   const [target, setTarget] = useState<number | null>(null);
   const [done, setDone] = useState(false);
 
+  const excludedIds = exclude
+    ? (exclude.split(",").filter(Boolean) as PrizeId[])
+    : [];
+
   const handleSpin = () => {
     if (spinning || done) return;
-    const winner = pickWinner();
+    const winner = pickWinner(excludedIds);
     const idx = PRIZES.findIndex((p) => p.id === winner.id);
     setTarget(idx);
     setSpinning(true);
@@ -30,8 +39,18 @@ function SpinPage() {
   const handleComplete = (prize: Prize) => {
     setDone(true);
     saveRecord({ name, prizeId: prize.id, prizeName: prize.name, isWin: prize.isWin });
+    const nextExcluded = prize.isWin ? [...excludedIds, prize.id] : excludedIds;
     setTimeout(() => {
-      navigate({ to: "/result", search: { prize: prize.id, name } });
+      navigate({
+        to: "/result",
+        search: {
+          prize: prize.id,
+          name,
+          spins,
+          round,
+          exclude: nextExcluded.join(","),
+        },
+      });
     }, 600);
   };
 
@@ -43,9 +62,14 @@ function SpinPage() {
         <span className="w-10" />
       </div>
 
-      <p className="text-center text-muted-foreground text-sm mb-4">
+      <p className="text-center text-muted-foreground text-sm mb-1">
         Good luck, <span className="text-foreground font-semibold">{name}</span>
       </p>
+      {spins > 1 && (
+        <p className="text-center text-xs text-gold mb-3">
+          Spin {round} of {spins}
+        </p>
+      )}
 
       <div className="w-[96vw] max-w-[560px] mt-2">
         <SpinWheel spinning={spinning} targetIndex={target} onComplete={handleComplete} />
