@@ -6,10 +6,7 @@ import { PRIZES, type PrizeId } from "@/lib/spin-store";
 
 const search = z.object({
   prize: z.enum(["cable", "earphones", "ultima", "kick", "cash2000", "cash1000", "try-again", "cash100"]),
-  name: z.string(),
-  spins: z.number().int().min(1).max(10).optional().default(1),
-  round: z.number().int().min(1).max(10).optional().default(1),
-  exclude: z.string().optional().default(""),
+  code: z.string().min(1).max(64),
 });
 
 export const Route = createFileRoute("/result")({
@@ -19,10 +16,9 @@ export const Route = createFileRoute("/result")({
 });
 
 function ResultPage() {
-  const { prize, name, spins, round, exclude } = Route.useSearch();
+  const { prize, code } = Route.useSearch();
   const navigate = useNavigate();
   const p = PRIZES.find((x) => x.id === (prize as PrizeId))!;
-  const hasMoreSpins = round < spins;
 
   useEffect(() => {
     if (p.isWin) {
@@ -35,13 +31,6 @@ function ResultPage() {
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }
   }, [p.isWin]);
-
-  const nextSpin = () => {
-    navigate({
-      to: "/spin",
-      search: { name, spins, round: round + 1, exclude },
-    });
-  };
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10 text-center">
@@ -59,21 +48,14 @@ function ResultPage() {
         </p>
         {p.isWin && (
           <p className="mt-4 text-sm text-muted-foreground max-w-xs mx-auto">
-            {name}, claim your prize at <span className="text-foreground font-semibold">Mas Mobile Zone</span>.
+            Claim your prize at <span className="text-foreground font-semibold">Mas Mobile Zone</span>.
           </p>
         )}
+        <p className="mt-3 text-[11px] text-muted-foreground font-mono">Code: {code}</p>
 
-        {hasMoreSpins && (
-          <button
-            onClick={nextSpin}
-            className="mt-10 w-full max-w-sm gradient-primary text-[#0F1115] font-bold text-lg py-4 rounded-xl glow-orange"
-          >
-            Next Spin ({round + 1} of {spins})
-          </button>
-        )}
         <button
           onClick={() => navigate({ to: "/" })}
-          className={`${hasMoreSpins ? "mt-3 bg-secondary text-foreground" : "mt-10 gradient-primary text-[#0F1115] glow-orange"} w-full max-w-sm font-bold text-lg py-4 rounded-xl`}
+          className="mt-10 w-full max-w-sm gradient-primary text-[#0F1115] glow-orange font-bold text-lg py-4 rounded-xl"
         >
           Done
         </button>
