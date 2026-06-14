@@ -52,15 +52,18 @@ export function setProbs(p: Record<PrizeId, number>) {
   localStorage.setItem(PROBS_KEY, JSON.stringify(p));
 }
 
-export function pickWinner(): Prize {
+export function pickWinner(excludeIds: PrizeId[] = []): Prize {
   const probs = getProbs();
-  const total = PRIZES.reduce((s, p) => s + (probs[p.id] || 0), 0) || 1;
+  const pool = PRIZES.filter((p) => !excludeIds.includes(p.id) && (probs[p.id] || 0) > 0);
+  const candidates = pool.length > 0 ? pool : PRIZES.filter((p) => !excludeIds.includes(p.id));
+  if (candidates.length === 0) return PRIZES[0];
+  const total = candidates.reduce((s, p) => s + (probs[p.id] || 1), 0) || 1;
   let r = Math.random() * total;
-  for (const prize of PRIZES) {
-    r -= probs[prize.id] || 0;
+  for (const prize of candidates) {
+    r -= probs[prize.id] || 1;
     if (r <= 0) return prize;
   }
-  return PRIZES[0];
+  return candidates[0];
 }
 
 export interface SpinRecord {
