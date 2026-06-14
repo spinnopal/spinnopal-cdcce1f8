@@ -4,10 +4,11 @@ import aeropodsAsset from "@/assets/aeropods.png.asset.json";
 import zeblazeAsset from "@/assets/zeblaze.png.asset.json";
 import earphonesAsset from "@/assets/earphones.png.asset.json";
 import cableAsset from "@/assets/cable.png.asset.json";
+import cash100Asset from "@/assets/cash100.jpg.asset.json";
 
 export const LOGO = logoAsset.url;
 
-export type PrizeId = "try-again" | "cable" | "earphones" | "aeropods" | "zeblaze";
+export type PrizeId = "try-again" | "cable" | "earphones" | "cash100" | "aeropods" | "zeblaze";
 
 export interface Prize {
   id: PrizeId;
@@ -22,16 +23,18 @@ export const PRIZES: Prize[] = [
   { id: "try-again", name: "Try Again", short: "Try Again", image: tryagainAsset.url, isWin: false },
   { id: "cable", name: "My Power Charging Cable", short: "Charging Cable", image: cableAsset.url, isWin: true },
   { id: "earphones", name: "Strong Bass Earphones", short: "Bass Earphones", image: earphonesAsset.url, isWin: true },
+  { id: "cash100", name: "Rs. 100 Cash Back", short: "Rs.100 Cash", image: cash100Asset.url, isWin: true },
   { id: "aeropods", name: "KICK AeroPods X3", short: "AeroPods X3", image: aeropodsAsset.url, isWin: true },
   { id: "zeblaze", name: "Zeblaze BTalk 3 Plus Smartwatch", short: "Zeblaze BTalk 3+", image: zeblazeAsset.url, isWin: true },
 ];
 
 const DEFAULT_PROBS: Record<PrizeId, number> = {
   "try-again": 20,
-  cable: 50,
-  earphones: 20,
+  cable: 40,
+  earphones: 18,
+  cash100: 10,
   aeropods: 8,
-  zeblaze: 2,
+  zeblaze: 4,
 };
 
 const PROBS_KEY = "mmz_probs_v1";
