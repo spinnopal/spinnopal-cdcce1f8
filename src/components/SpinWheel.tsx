@@ -8,33 +8,34 @@ interface Props {
   onLogoLongPress?: () => void;
 }
 
-const SEG = 360 / PRIZES.length; // 72°
+const SEG = 360 / PRIZES.length;
 
 export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }: Props) {
   const [rotation, setRotation] = useState(0);
   const rotationRef = useRef(0);
   const pressTimer = useRef<number | null>(null);
+  const onCompleteRef = useRef(onComplete);
+  const startedRef = useRef(false);
+
+  useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
   useEffect(() => {
-    if (spinning && targetIndex !== null) {
-      // Segment i is centered at angle (i*SEG + SEG/2) measured clockwise from top.
-      // Pointer is at top (0°). To land on segment center, wheel rotation must satisfy:
-      //   (rotation + segmentCenter) mod 360 === 0  (so segment center sits under pointer)
-      // => rotation = -segmentCenter mod 360
+    if (spinning && targetIndex !== null && !startedRef.current) {
+      startedRef.current = true;
       const center = targetIndex * SEG;
       const base = ((360 - center) % 360 + 360) % 360;
-      const turns = 6; // full rotations
+      const turns = 6;
       const current = rotationRef.current;
-      // next absolute rotation: current rounded up to next full + turns*360 + base offset
       const currentMod = ((current % 360) + 360) % 360;
       const delta = ((base - currentMod) + 360) % 360;
       const next = current + turns * 360 + delta;
       rotationRef.current = next;
       setRotation(next);
-      const t = window.setTimeout(() => onComplete(PRIZES[targetIndex]), 5200);
+      const t = window.setTimeout(() => onCompleteRef.current(PRIZES[targetIndex]), 5200);
       return () => clearTimeout(t);
     }
-  }, [spinning, targetIndex, onComplete]);
+    if (!spinning) startedRef.current = false;
+  }, [spinning, targetIndex]);
 
   const startPress = () => {
     if (!onLogoLongPress) return;
