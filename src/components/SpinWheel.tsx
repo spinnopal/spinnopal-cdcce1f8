@@ -21,7 +21,7 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
       // Pointer is at top (0°). To land on segment center, wheel rotation must satisfy:
       //   (rotation + segmentCenter) mod 360 === 0  (so segment center sits under pointer)
       // => rotation = -segmentCenter mod 360
-      const center = targetIndex * SEG + SEG / 2;
+      const center = targetIndex * SEG;
       const base = ((360 - center) % 360 + 360) % 360;
       const turns = 6; // full rotations
       const current = rotationRef.current;
