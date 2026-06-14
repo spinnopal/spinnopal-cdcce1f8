@@ -14,7 +14,30 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      access_codes: {
+        Row: {
+          code: string
+          created_at: string
+          is_used: boolean
+          prize_won: string | null
+          spun_at: string | null
+        }
+        Insert: {
+          code: string
+          created_at?: string
+          is_used?: boolean
+          prize_won?: string | null
+          spun_at?: string | null
+        }
+        Update: {
+          code?: string
+          created_at?: string
+          is_used?: boolean
+          prize_won?: string | null
+          spun_at?: string | null
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
