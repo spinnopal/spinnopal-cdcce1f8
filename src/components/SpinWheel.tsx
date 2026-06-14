@@ -72,12 +72,12 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
               <defs>
                 {PRIZES.map((prize, i) => {
                   const centerAngle = i * SEG;
-                  const iconR = r * 0.62;
+                  const iconR = r * 0.6;
                   const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
                   const iy = cy + iconR * Math.sin((centerAngle - 90) * Math.PI / 180);
                   return (
                     <clipPath key={prize.id} id={`clip-${prize.id}`}>
-                      <circle cx={ix} cy={iy} r={28} />
+                      <circle cx={ix} cy={iy} r={44} />
                     </clipPath>
                   );
                 })}
@@ -92,22 +92,22 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
                 const y2 = cy + r * Math.sin(a2);
                 const fill = i % 2 === 0 ? "#1f242e" : "#FF7A00";
                 const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
-                const iconR = r * 0.62;
+                const iconR = r * 0.6;
                 const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
                 const iy = cy + iconR * Math.sin((centerAngle - 90) * Math.PI / 180);
-                const textR = r * 0.88;
+                const textR = r * 0.9;
                 const tx = cx + textR * Math.cos((centerAngle - 90) * Math.PI / 180);
                 const ty = cy + textR * Math.sin((centerAngle - 90) * Math.PI / 180);
                 return (
                   <g key={prize.id}>
                     <path d={path} fill={fill} stroke="#0F1115" strokeWidth="2" />
-                    <circle cx={ix} cy={iy} r={28} fill="#0F1115" stroke="#F5C542" strokeWidth="1.5" />
+                    <circle cx={ix} cy={iy} r={44} fill="#0F1115" stroke="#F5C542" strokeWidth="2" />
                     <image
                       href={prize.image}
-                      x={ix - 28}
-                      y={iy - 28}
-                      width="56"
-                      height="56"
+                      x={ix - 44}
+                      y={iy - 44}
+                      width="88"
+                      height="88"
                       preserveAspectRatio="xMidYMid slice"
                       clipPath={`url(#clip-${prize.id})`}
                       transform={`rotate(${centerAngle} ${ix} ${iy})`}
@@ -116,8 +116,8 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
                       x={tx}
                       y={ty}
                       fill="#FFFFFF"
-                      fontSize="10"
-                      fontWeight="700"
+                      fontSize="12"
+                      fontWeight="800"
                       textAnchor="middle"
                       transform={`rotate(${centerAngle} ${tx} ${ty})`}
                     >
