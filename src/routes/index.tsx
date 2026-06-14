@@ -1,12 +1,14 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useRef, useState } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { LOGO } from "@/lib/spin-store";
+import { validateAccessCode } from "@/lib/access-codes.functions";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
       { title: "Mas Mobile Zone — Lucky Spin Campaign" },
-      { name: "description", content: "Spin to win premium electronics from Mas Mobile Zone." },
+      { name: "description", content: "Enter your access code to spin and win at Mas Mobile Zone." },
     ],
   }),
   component: Home,
@@ -14,23 +16,36 @@ export const Route = createFileRoute("/")({
 
 function Home() {
   const navigate = useNavigate();
-  const [name, setName] = useState("");
-  const [spins, setSpins] = useState(1);
+  const validate = useServerFn(validateAccessCode);
+  const [code, setCode] = useState("");
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
   const pressTimer = useRef<number | null>(null);
 
-  const start = () => {
-    const trimmed = name.trim();
+  const submit = async () => {
+    const trimmed = code.trim().toUpperCase();
     if (!trimmed) {
-      setError("Please enter your name");
+      setError("Please enter your access code");
       return;
     }
-    if (trimmed.length > 60) {
-      setError("Name too long");
+    if (!/^[A-Z0-9-]+$/.test(trimmed)) {
+      setError("Code can only contain letters, numbers, and dashes");
       return;
     }
-    const s = Math.max(1, Math.min(10, Math.floor(spins) || 1));
-    navigate({ to: "/spin", search: { name: trimmed, spins: s, round: 1, exclude: "" } });
+    setLoading(true);
+    setError("");
+    try {
+      const res = await validate({ data: { code: trimmed } });
+      if (!res.ok) {
+        setError("This code is invalid or has already been used.");
+        setLoading(false);
+        return;
+      }
+      navigate({ to: "/spin", search: { code: res.code } });
+    } catch {
+      setError("Could not verify your code. Please try again.");
+      setLoading(false);
+    }
   };
 
   const onPressStart = () => {
@@ -67,50 +82,33 @@ function Home() {
       <p className="mt-2 text-sm tracking-[0.32em] text-gold uppercase">Lucky Spin Campaign</p>
 
       <div className="glass rounded-2xl p-5 mt-10 w-full max-w-sm animate-float-up">
-        <label className="text-xs uppercase tracking-widest text-muted-foreground">Customer Name</label>
+        <label className="text-xs uppercase tracking-widest text-muted-foreground">Access Code</label>
         <input
-          value={name}
+          value={code}
           onChange={(e) => {
-            setName(e.target.value);
+            setCode(e.target.value.toUpperCase());
             setError("");
           }}
-          placeholder="Enter your name"
-          maxLength={60}
-          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder="Enter your unique access code to spin"
+          maxLength={32}
+          autoCapitalize="characters"
+          autoCorrect="off"
+          spellCheck={false}
+          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base tracking-widest text-center font-mono outline-none focus:border-primary"
         />
-        {error && <p className="text-destructive text-sm mt-2">{error}</p>}
-
-        <label className="text-xs uppercase tracking-widest text-muted-foreground block mt-4">
-          Number of Spins <span className="text-gold/70 normal-case tracking-normal">(for heavy buyers)</span>
-        </label>
-        <div className="mt-2 flex items-center gap-2">
-          <button
-            type="button"
-            onClick={() => setSpins((s) => Math.max(1, s - 1))}
-            className="w-12 h-12 rounded-xl bg-[#0F1115]/70 border border-white/10 text-xl font-bold active:scale-95"
-          >−</button>
-          <input
-            type="number"
-            min={1}
-            max={10}
-            value={spins}
-            onChange={(e) => setSpins(Math.max(1, Math.min(10, Number(e.target.value) || 1)))}
-            className="flex-1 bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-center text-lg font-bold outline-none focus:border-primary"
-          />
-          <button
-            type="button"
-            onClick={() => setSpins((s) => Math.min(10, s + 1))}
-            className="w-12 h-12 rounded-xl bg-[#0F1115]/70 border border-white/10 text-xl font-bold active:scale-95"
-          >+</button>
-        </div>
-        <p className="mt-2 text-[11px] text-muted-foreground">Each spin excludes prizes already won this round.</p>
+        {error && <p className="text-destructive text-sm mt-2 text-center">{error}</p>}
 
         <button
-          onClick={start}
-          className="mt-5 w-full gradient-primary text-[#0F1115] font-bold text-lg py-4 rounded-xl glow-orange active:scale-[0.98] transition"
+          onClick={submit}
+          disabled={loading}
+          className="mt-5 w-full gradient-primary text-[#0F1115] font-bold text-lg py-4 rounded-xl glow-orange active:scale-[0.98] transition disabled:opacity-60"
         >
-          START SPIN
+          {loading ? "VERIFYING..." : "SUBMIT"}
         </button>
+        <p className="mt-3 text-[11px] text-muted-foreground text-center">
+          Each code can be used only once.
+        </p>
       </div>
 
       <p className="mt-8 text-xs text-muted-foreground/60">Premium retail experience</p>
