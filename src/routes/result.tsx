@@ -2,10 +2,11 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { z } from "zod";
 import confetti from "canvas-confetti";
-import { PRIZES, type PrizeId } from "@/lib/spin-store";
+import { usePrizes } from "@/lib/prizes-hook";
+import { playClick } from "@/lib/sounds";
 
 const search = z.object({
-  prize: z.enum(["cable", "earphones", "ultima", "kick", "cash2000", "cash1000", "try-again", "cash100"]),
+  pid: z.string().min(1).max(64),
   code: z.string().min(1).max(64),
 });
 
@@ -16,12 +17,13 @@ export const Route = createFileRoute("/result")({
 });
 
 function ResultPage() {
-  const { prize, code } = Route.useSearch();
+  const { pid, code } = Route.useSearch();
   const navigate = useNavigate();
-  const p = PRIZES.find((x) => x.id === (prize as PrizeId))!;
+  const { prizes, isLoading } = usePrizes();
+  const p = prizes.find((x) => x.id === pid);
 
   useEffect(() => {
-    if (p.isWin) {
+    if (p?.isWin) {
       const burst = () => {
         confetti({ particleCount: 80, spread: 75, origin: { y: 0.4 }, colors: ["#FF7A00", "#F5C542", "#ffffff"] });
       };
@@ -30,7 +32,11 @@ function ResultPage() {
       const t2 = setTimeout(burst, 900);
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }
-  }, [p.isWin]);
+  }, [p?.isWin]);
+
+  if (isLoading || !p) {
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
+  }
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10 text-center">
@@ -54,7 +60,7 @@ function ResultPage() {
         <p className="mt-3 text-[11px] text-muted-foreground font-mono">Code: {code}</p>
 
         <button
-          onClick={() => navigate({ to: "/" })}
+          onClick={() => { playClick(); navigate({ to: "/" }); }}
           className="mt-10 w-full max-w-sm gradient-primary text-[#0F1115] glow-orange font-bold text-lg py-4 rounded-xl"
         >
           Done

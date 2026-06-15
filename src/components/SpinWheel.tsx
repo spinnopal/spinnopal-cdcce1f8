@@ -1,26 +1,28 @@
 import { useEffect, useRef, useState } from "react";
-import { PRIZES, LOGO, type Prize } from "@/lib/spin-store";
+import { LOGO, type Prize } from "@/lib/spin-store";
+import { startSpinTicks, playWin, playLose } from "@/lib/sounds";
 
 interface Props {
+  prizes: Prize[];
   spinning: boolean;
   targetIndex: number | null;
   onComplete: (prize: Prize) => void;
   onLogoLongPress?: () => void;
 }
 
-const SEG = 360 / PRIZES.length;
-
-export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }: Props) {
+export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLongPress }: Props) {
+  const SEG = prizes.length > 0 ? 360 / prizes.length : 360;
   const [rotation, setRotation] = useState(0);
   const rotationRef = useRef(0);
   const pressTimer = useRef<number | null>(null);
   const onCompleteRef = useRef(onComplete);
   const startedRef = useRef(false);
+  const ticksCancelRef = useRef<(() => void) | null>(null);
 
   useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
   useEffect(() => {
-    if (spinning && targetIndex !== null && !startedRef.current) {
+    if (spinning && targetIndex !== null && !startedRef.current && prizes.length > 0) {
       startedRef.current = true;
       const center = targetIndex * SEG;
       const base = ((360 - center) % 360 + 360) % 360;
@@ -31,11 +33,22 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
       const next = current + turns * 360 + delta;
       rotationRef.current = next;
       setRotation(next);
-      const t = window.setTimeout(() => onCompleteRef.current(PRIZES[targetIndex]), 5200);
-      return () => clearTimeout(t);
+      ticksCancelRef.current = startSpinTicks(5200);
+      const t = window.setTimeout(() => {
+        const prize = prizes[targetIndex];
+        if (prize) {
+          if (prize.isWin) playWin(); else playLose();
+          onCompleteRef.current(prize);
+        }
+      }, 5200);
+      return () => {
+        clearTimeout(t);
+        ticksCancelRef.current?.();
+        ticksCancelRef.current = null;
+      };
     }
     if (!spinning) startedRef.current = false;
-  }, [spinning, targetIndex]);
+  }, [spinning, targetIndex, prizes, SEG]);
 
   const startPress = () => {
     if (!onLogoLongPress) return;
@@ -54,7 +67,6 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
 
   return (
     <div className="relative w-full aspect-square">
-      {/* Metallic outer ring */}
       <div className="absolute inset-0 rounded-full metallic-ring p-[3%] glow-orange">
         <div className="w-full h-full rounded-full bg-[#0F1115] p-[2%]">
           <div className="w-full h-full rounded-full relative overflow-hidden"
@@ -70,7 +82,7 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
               }}
             >
               <defs>
-                {PRIZES.map((prize, i) => {
+                {prizes.map((prize, i) => {
                   const centerAngle = i * SEG;
                   const iconR = r * 0.6;
                   const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
@@ -82,8 +94,8 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
                   );
                 })}
               </defs>
-              {PRIZES.map((prize, i) => {
-                const centerAngle = i * SEG; // 0 at top
+              {prizes.map((prize, i) => {
+                const centerAngle = i * SEG;
                 const a1 = (centerAngle - SEG / 2 - 90) * Math.PI / 180;
                 const a2 = (centerAngle + SEG / 2 - 90) * Math.PI / 180;
                 const x1 = cx + r * Math.cos(a1);
@@ -91,7 +103,8 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
                 const x2 = cx + r * Math.cos(a2);
                 const y2 = cy + r * Math.sin(a2);
                 const fill = i % 2 === 0 ? "#1f242e" : "#FF7A00";
-                const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
+                const largeArc = SEG > 180 ? 1 : 0;
+                const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
                 const iconR = r * 0.6;
                 const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
                 const iy = cy + iconR * Math.sin((centerAngle - 90) * Math.PI / 180);
@@ -126,11 +139,9 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
                   </g>
                 );
               })}
-              {/* inner ring */}
               <circle cx={cx} cy={cy} r={r * 0.22} fill="#0F1115" stroke="#F5C542" strokeWidth="2" />
             </svg>
 
-            {/* Center logo hub */}
             <button
               onPointerDown={startPress}
               onPointerUp={endPress}
@@ -145,7 +156,6 @@ export function SpinWheel({ spinning, targetIndex, onComplete, onLogoLongPress }
         </div>
       </div>
 
-      {/* Gold pointer */}
       <div className="absolute left-1/2 -top-2 -translate-x-1/2 z-10 drop-shadow-[0_4px_10px_rgba(245,197,66,0.6)]">
         <svg width="44" height="56" viewBox="0 0 44 56">
           <defs>

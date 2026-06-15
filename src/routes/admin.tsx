@@ -2,20 +2,20 @@ import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  PRIZES,
   deleteRecord,
   exportCsv,
-  getProbs,
   getRecords,
   resetCampaign,
-  setProbs,
-  type PrizeId,
+  type Prize,
 } from "@/lib/spin-store";
+import { usePrizes, useInvalidatePrizes } from "@/lib/prizes-hook";
+import { upsertPrize, deletePrize, updateProbabilities } from "@/lib/prizes.functions";
 import {
   deleteUnusedCodes,
   generateAccessCodes,
   listAccessCodes,
 } from "@/lib/access-codes.functions";
+import { playClick } from "@/lib/sounds";
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — Mas Mobile Zone" }] }),
@@ -30,13 +30,15 @@ type CodeRow = {
   created_at: string;
 };
 
+const ADMIN_PASSWORD = "mmz-admin-2024";
+
 function AdminPage() {
   const navigate = useNavigate();
-  const [tab, setTab] = useState<"stats" | "records" | "probs" | "codes">("codes");
+  const { prizes } = usePrizes();
+  const [tab, setTab] = useState<"stats" | "records" | "prizes" | "codes">("codes");
   const [query, setQuery] = useState("");
   const [tick, setTick] = useState(0);
   const records = useMemo(() => getRecords(), [tick]);
-  const probs = useMemo(() => getProbs(), [tick]);
 
   const filtered = records.filter((r) =>
     r.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -65,26 +67,20 @@ function AdminPage() {
     URL.revokeObjectURL(url);
   };
 
-  const updateProb = (id: PrizeId, value: number) => {
-    const next = { ...probs, [id]: Math.max(0, Math.min(100, value)) };
-    setProbs(next);
-    setTick((t) => t + 1);
-  };
-
   return (
     <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
-        <button onClick={() => navigate({ to: "/" })} className="text-sm text-muted-foreground">← Home</button>
+        <button onClick={() => { playClick(); navigate({ to: "/" }); }} className="text-sm text-muted-foreground">← Home</button>
         <h1 className="text-lg font-black tracking-widest">ADMIN PANEL</h1>
         <span className="w-10" />
       </div>
 
       <div className="glass rounded-2xl p-1 flex gap-1 mb-5">
-        {(["codes", "stats", "records", "probs"] as const).map((t) => (
+        {(["codes", "prizes", "stats", "records"] as const).map((t) => (
           <button
             key={t}
-            onClick={() => setTab(t)}
-            className={`flex-1 py-2 rounded-xl text-sm font-semibold uppercase tracking-wider transition ${
+            onClick={() => { playClick(); setTab(t); }}
+            className={`flex-1 py-2 rounded-xl text-xs font-semibold uppercase tracking-wider transition ${
               tab === t ? "gradient-primary text-[#0F1115]" : "text-muted-foreground"
             }`}
           >
@@ -94,6 +90,7 @@ function AdminPage() {
       </div>
 
       {tab === "codes" && <CodesTab />}
+      {tab === "prizes" && <PrizesTab />}
 
       {tab === "stats" && (
         <div className="space-y-4">
@@ -104,7 +101,7 @@ function AdminPage() {
           </div>
           <div className="glass rounded-2xl p-4">
             <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3">Prize Distribution</p>
-            {PRIZES.map((p) => {
+            {prizes.map((p) => {
               const count = stats.dist[p.name] || 0;
               const pct = stats.total ? Math.round((count / stats.total) * 100) : 0;
               return (
@@ -166,25 +163,6 @@ function AdminPage() {
           </div>
         </div>
       )}
-
-      {tab === "probs" && (
-        <div className="space-y-3">
-          <p className="text-xs text-muted-foreground">Weighted probabilities (any positive values; they're normalized).</p>
-          {PRIZES.map((p) => (
-            <div key={p.id} className="glass rounded-xl p-3">
-              <div className="flex justify-between items-center mb-2">
-                <span className="font-semibold text-sm">{p.short}</span>
-                <input
-                  type="number"
-                  value={probs[p.id]}
-                  onChange={(e) => updateProb(p.id, Number(e.target.value))}
-                  className="w-20 bg-[#0F1115] border border-white/10 rounded-lg px-2 py-1 text-right"
-                />
-              </div>
-            </div>
-          ))}
-        </div>
-      )}
     </div>
   );
 }
@@ -197,6 +175,266 @@ function Stat({ label, value }: { label: string; value: number }) {
     </div>
   );
 }
+
+// ============== PRIZES TAB ==============
+
+type EditPrize = {
+  id: string;
+  name: string;
+  short: string;
+  image_url: string;
+  is_win: boolean;
+  probability: number;
+  sort_order: number;
+};
+
+function PrizesTab() {
+  const { prizes } = usePrizes();
+  const invalidate = useInvalidatePrizes();
+  const upsert = useServerFn(upsertPrize);
+  const del = useServerFn(deletePrize);
+  const updateProbs = useServerFn(updateProbabilities);
+
+  const [editing, setEditing] = useState<EditPrize | null>(null);
+  const [busy, setBusy] = useState(false);
+  const [error, setError] = useState("");
+
+  // Local probabilities draft for the slider/number inputs.
+  const [draftProbs, setDraftProbs] = useState<Record<string, number>>({});
+  useEffect(() => {
+    const next: Record<string, number> = {};
+    for (const p of prizes) next[p.id] = p.probability;
+    setDraftProbs(next);
+  }, [prizes]);
+
+  const totalProb = Object.values(draftProbs).reduce((s, n) => s + (n || 0), 0);
+
+  const saveProbs = async () => {
+    setBusy(true); setError("");
+    try {
+      await updateProbs({
+        data: {
+          password: ADMIN_PASSWORD,
+          probs: prizes.map((p) => ({ id: p.id, probability: draftProbs[p.id] ?? 0 })),
+        },
+      });
+      await invalidate();
+    } catch {
+      setError("Failed to save probabilities");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const saveEditing = async () => {
+    if (!editing) return;
+    if (!editing.id || !editing.name || !editing.short || !editing.image_url) {
+      setError("All fields required");
+      return;
+    }
+    setBusy(true); setError("");
+    try {
+      await upsert({ data: { password: ADMIN_PASSWORD, prize: editing } });
+      await invalidate();
+      setEditing(null);
+    } catch (e) {
+      setError((e as Error).message || "Failed to save prize");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const removePrize = async (id: string) => {
+    if (!confirm(`Delete prize "${id}"? This cannot be undone.`)) return;
+    setBusy(true); setError("");
+    try {
+      await del({ data: { password: ADMIN_PASSWORD, id } });
+      await invalidate();
+    } catch {
+      setError("Failed to delete");
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const newPrize = () => {
+    const nextOrder = (prizes[prizes.length - 1]?.id ? Math.max(...prizes.map((p) => 0)) : 0) + (prizes.length + 1);
+    setEditing({
+      id: "",
+      name: "",
+      short: "",
+      image_url: "",
+      is_win: true,
+      probability: 0,
+      sort_order: nextOrder,
+    });
+  };
+
+  return (
+    <div className="space-y-4">
+      {error && <p className="text-destructive text-sm">{error}</p>}
+
+      {/* Probabilities quick editor */}
+      <div className="glass rounded-2xl p-4 space-y-3">
+        <div className="flex items-center justify-between">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Probabilities (live)</p>
+          <span className="text-[11px] text-muted-foreground">Total weight: {totalProb}</span>
+        </div>
+        <p className="text-[11px] text-muted-foreground">Values are weights; they're normalized. Saving updates the live wheel within seconds for all customers.</p>
+        {prizes.map((p) => {
+          const v = draftProbs[p.id] ?? 0;
+          const pct = totalProb > 0 ? Math.round((v / totalProb) * 100) : 0;
+          return (
+            <div key={p.id} className="flex items-center gap-3">
+              <img src={p.image} alt="" className="w-8 h-8 rounded object-cover bg-[#0F1115]" />
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold truncate">{p.short}</p>
+                <p className="text-[10px] text-muted-foreground">{pct}% effective</p>
+              </div>
+              <input
+                type="number"
+                min={0}
+                max={1000}
+                value={v}
+                onChange={(e) => setDraftProbs({ ...draftProbs, [p.id]: Math.max(0, Math.min(1000, Number(e.target.value) || 0)) })}
+                className="w-20 bg-[#0F1115] border border-white/10 rounded-lg px-2 py-1 text-right"
+              />
+            </div>
+          );
+        })}
+        <button
+          onClick={saveProbs}
+          disabled={busy}
+          className="w-full gradient-primary text-[#0F1115] font-bold py-2 rounded-lg disabled:opacity-60"
+        >
+          {busy ? "Saving…" : "Save probabilities"}
+        </button>
+      </div>
+
+      {/* Prize list */}
+      <div className="space-y-2">
+        <div className="flex items-center justify-between">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Prizes on the wheel</p>
+          <button onClick={newPrize} className="text-xs px-3 py-1 rounded bg-secondary">+ Add prize</button>
+        </div>
+        {prizes.map((p) => (
+          <div key={p.id} className="glass rounded-xl p-3 flex items-center gap-3">
+            <img src={p.image} alt="" className="w-12 h-12 rounded object-cover bg-[#0F1115]" />
+            <div className="flex-1 min-w-0">
+              <p className="font-semibold truncate">{p.name}</p>
+              <p className="text-[11px] text-muted-foreground truncate">
+                id: {p.id} · prob: {p.probability} · {p.isWin ? "Win" : "Try again"}
+              </p>
+            </div>
+            <button
+              onClick={() => setEditing({
+                id: p.id, name: p.name, short: p.short, image_url: p.image,
+                is_win: p.isWin, probability: p.probability,
+                sort_order: (prizes.findIndex((x) => x.id === p.id) + 1),
+              })}
+              className="text-xs px-2 py-1 rounded bg-secondary"
+            >Edit</button>
+            <button onClick={() => removePrize(p.id)} className="text-xs px-2 py-1 rounded text-destructive">Delete</button>
+          </div>
+        ))}
+      </div>
+
+      {/* Editor modal */}
+      {editing && (
+        <div className="fixed inset-0 z-50 bg-black/70 flex items-center justify-center p-4">
+          <div className="glass rounded-2xl p-5 w-full max-w-md space-y-3">
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold">{prizes.find((x) => x.id === editing.id) ? "Edit Prize" : "Add Prize"}</h3>
+              <button onClick={() => setEditing(null)} className="text-muted-foreground">✕</button>
+            </div>
+            {editing.image_url && (
+              <img src={editing.image_url} alt="" className="w-24 h-24 rounded-xl object-cover mx-auto bg-[#0F1115]" />
+            )}
+            <Field label="ID (lowercase, no spaces)">
+              <input
+                disabled={!!prizes.find((x) => x.id === editing.id)}
+                value={editing.id}
+                onChange={(e) => setEditing({ ...editing, id: e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, "") })}
+                className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2 disabled:opacity-60"
+              />
+            </Field>
+            <Field label="Full name">
+              <input
+                value={editing.name}
+                onChange={(e) => setEditing({ ...editing, name: e.target.value })}
+                className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2"
+              />
+            </Field>
+            <Field label="Short label (shown on wheel)">
+              <input
+                value={editing.short}
+                onChange={(e) => setEditing({ ...editing, short: e.target.value })}
+                className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2"
+              />
+            </Field>
+            <Field label="Image URL">
+              <input
+                value={editing.image_url}
+                onChange={(e) => setEditing({ ...editing, image_url: e.target.value })}
+                placeholder="https://… or /__l5e/assets-v1/…"
+                className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono"
+              />
+            </Field>
+            <div className="grid grid-cols-3 gap-2">
+              <Field label="Probability">
+                <input type="number" min={0} max={1000}
+                  value={editing.probability}
+                  onChange={(e) => setEditing({ ...editing, probability: Math.max(0, Math.min(1000, Number(e.target.value) || 0)) })}
+                  className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2 text-right"
+                />
+              </Field>
+              <Field label="Sort order">
+                <input type="number" min={0} max={1000}
+                  value={editing.sort_order}
+                  onChange={(e) => setEditing({ ...editing, sort_order: Math.max(0, Math.min(1000, Number(e.target.value) || 0)) })}
+                  className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2 text-right"
+                />
+              </Field>
+              <Field label="Type">
+                <button
+                  type="button"
+                  onClick={() => setEditing({ ...editing, is_win: !editing.is_win })}
+                  className={`w-full py-2 rounded-lg text-xs font-bold ${editing.is_win ? "bg-emerald-600 text-white" : "bg-secondary text-muted-foreground"}`}
+                >
+                  {editing.is_win ? "Win" : "Try again"}
+                </button>
+              </Field>
+            </div>
+            <div className="flex gap-2 pt-2">
+              <button onClick={() => setEditing(null)} className="flex-1 py-2 rounded-lg bg-secondary">Cancel</button>
+              <button
+                onClick={saveEditing}
+                disabled={busy}
+                className="flex-1 gradient-primary text-[#0F1115] font-bold py-2 rounded-lg disabled:opacity-60"
+              >
+                {busy ? "Saving…" : "Save"}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
+function Field({ label, children }: { label: string; children: React.ReactNode }) {
+  return (
+    <label className="block">
+      <span className="text-[10px] uppercase tracking-widest text-muted-foreground">{label}</span>
+      <div className="mt-1">{children}</div>
+    </label>
+  );
+}
+
+// Unused Prize type guard to keep tree-shake quiet
+export type _PrizeType = Prize;
+
+// ============== CODES TAB (unchanged) ==============
 
 function CodesTab() {
   const generate = useServerFn(generateAccessCodes);
@@ -213,8 +451,7 @@ function CodesTab() {
   const [lastBatch, setLastBatch] = useState<string[]>([]);
 
   const refresh = async (pw: string) => {
-    setLoading(true);
-    setError("");
+    setLoading(true); setError("");
     try {
       const res = await list({ data: { password: pw } });
       setRows(res.rows as CodeRow[]);
@@ -234,8 +471,7 @@ function CodesTab() {
   }, []);
 
   const handleGenerate = async () => {
-    setLoading(true);
-    setError("");
+    setLoading(true); setError("");
     try {
       const res = await generate({ data: { password, count } });
       setLastBatch(res.codes);

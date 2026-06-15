@@ -3,6 +3,7 @@ import { useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { LOGO } from "@/lib/spin-store";
 import { validateAccessCode } from "@/lib/access-codes.functions";
+import { playClick } from "@/lib/sounds";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -23,6 +24,7 @@ function Home() {
   const pressTimer = useRef<number | null>(null);
 
   const submit = async () => {
+    playClick();
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) {
       setError("Please enter your access code");
