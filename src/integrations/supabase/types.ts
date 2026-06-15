@@ -38,6 +38,42 @@ export type Database = {
         }
         Relationships: []
       }
+      prizes: {
+        Row: {
+          created_at: string
+          id: string
+          image_url: string
+          is_win: boolean
+          name: string
+          probability: number
+          short: string
+          sort_order: number
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id: string
+          image_url: string
+          is_win?: boolean
+          name: string
+          probability?: number
+          short: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          image_url?: string
+          is_win?: boolean
+          name?: string
+          probability?: number
+          short?: string
+          sort_order?: number
+          updated_at?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
