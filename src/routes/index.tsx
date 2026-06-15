@@ -24,6 +24,7 @@ function Home() {
   const pressTimer = useRef<number | null>(null);
 
   const submit = async () => {
+    playClick();
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) {
       setError("Please enter your access code");
