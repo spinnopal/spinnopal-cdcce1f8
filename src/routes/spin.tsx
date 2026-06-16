@@ -21,7 +21,7 @@ export const Route = createFileRoute("/spin")({
 });
 
 function SpinPage() {
-  const { code } = Route.useSearch();
+  const { code, name } = Route.useSearch();
   const navigate = useNavigate();
   const { prizes, isLoading } = usePrizes();
   const consume = useServerFn(consumeAccessCode);
