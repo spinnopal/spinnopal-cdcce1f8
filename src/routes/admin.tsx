@@ -392,7 +392,7 @@ function PrizesTab() {
                         r.onerror = () => reject(r.error);
                         r.readAsDataURL(file);
                       });
-                      setError(null);
+                      setError("");
                       setEditing((prev) => prev ? { ...prev, image_url: dataUrl } : prev);
                     }}
                     className="block w-full text-xs text-muted-foreground file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-secondary file:text-foreground file:font-semibold"
