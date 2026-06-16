@@ -82,6 +82,7 @@ function SpinPage() {
       </div>
 
       <p className="text-center text-muted-foreground text-sm mb-3">
+        {name ? <><span className="text-foreground font-semibold">{name}</span> · </> : null}
         Code <span className="text-foreground font-mono font-semibold tracking-widest">{code}</span>
       </p>
 
