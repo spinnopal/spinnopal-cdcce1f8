@@ -372,13 +372,40 @@ function PrizesTab() {
                 className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2"
               />
             </Field>
-            <Field label="Image URL">
-              <input
-                value={editing.image_url}
-                onChange={(e) => setEditing({ ...editing, image_url: e.target.value })}
-                placeholder="https://… or /__l5e/assets-v1/…"
-                className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono"
-              />
+            <Field label="Image">
+              <div className="space-y-2">
+                <label className="block">
+                  <span className="sr-only">Upload image</span>
+                  <input
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp,image/gif,image/svg+xml"
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      if (file.size > 800_000) {
+                        setError("Image too large (max 800 KB). Please compress it first.");
+                        return;
+                      }
+                      const dataUrl: string = await new Promise((resolve, reject) => {
+                        const r = new FileReader();
+                        r.onload = () => resolve(r.result as string);
+                        r.onerror = () => reject(r.error);
+                        r.readAsDataURL(file);
+                      });
+                      setError(null);
+                      setEditing((prev) => prev ? { ...prev, image_url: dataUrl } : prev);
+                    }}
+                    className="block w-full text-xs text-muted-foreground file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-secondary file:text-foreground file:font-semibold"
+                  />
+                </label>
+                <p className="text-[10px] text-muted-foreground">Upload a PNG/JPG (square works best, under 800 KB). Or paste a URL below.</p>
+                <input
+                  value={editing.image_url.startsWith("data:") ? "" : editing.image_url}
+                  onChange={(e) => setEditing({ ...editing, image_url: e.target.value })}
+                  placeholder="https://… (optional)"
+                  className="w-full bg-[#0F1115] border border-white/10 rounded-lg px-3 py-2 text-xs font-mono"
+                />
+              </div>
             </Field>
             <div className="grid grid-cols-3 gap-2">
               <Field label="Probability">
