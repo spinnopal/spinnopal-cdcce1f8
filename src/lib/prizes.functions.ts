@@ -19,7 +19,7 @@ const prizeInput = z.object({
   id: z.string().trim().min(1).max(64).regex(/^[a-z0-9-]+$/i),
   name: z.string().trim().min(1).max(80),
   short: z.string().trim().min(1).max(40),
-  image_url: z.string().trim().min(1).max(500),
+  image_url: z.string().trim().min(1).max(5_000_000),
   is_win: z.boolean(),
   probability: z.number().int().min(0).max(1000),
   sort_order: z.number().int().min(0).max(1000),
