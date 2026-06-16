@@ -64,8 +64,10 @@ function SpinPage() {
 
   const handleComplete = (prize: Prize) => {
     setDone(true);
-    saveRecord({ name: code, prizeId: prize.id, prizeName: prize.name, isWin: prize.isWin });
-    record({ data: { code, prize: prize.name } }).catch(() => {});
+    const who = name?.trim() || code;
+    saveRecord({ name: who, prizeId: prize.id, prizeName: prize.name, isWin: prize.isWin });
+    const tag = name?.trim() ? `${name.trim()} — ${prize.name}` : prize.name;
+    record({ data: { code, prize: tag.slice(0, 100) } }).catch(() => {});
     setTimeout(() => {
       navigate({ to: "/result", search: { code, pid: prize.id } });
     }, 600);
