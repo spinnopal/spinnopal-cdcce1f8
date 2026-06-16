@@ -19,12 +19,22 @@ function Home() {
   const navigate = useNavigate();
   const validate = useServerFn(validateAccessCode);
   const [code, setCode] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const pressTimer = useRef<number | null>(null);
 
   const submit = async () => {
     playClick();
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setError("Please enter your name");
+      return;
+    }
+    if (trimmedName.length > 40) {
+      setError("Name is too long");
+      return;
+    }
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) {
       setError("Please enter your access code");
@@ -43,7 +53,7 @@ function Home() {
         setLoading(false);
         return;
       }
-      navigate({ to: "/spin", search: { code: res.code } });
+      navigate({ to: "/spin", search: { code: res.code, name: trimmedName } });
     } catch {
       setError("Could not verify your code. Please try again.");
       setLoading(false);
