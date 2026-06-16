@@ -11,6 +11,7 @@ import { z } from "zod";
 
 const search = z.object({
   code: z.string().min(1).max(64),
+  name: z.string().min(1).max(40).optional(),
 });
 
 export const Route = createFileRoute("/spin")({
