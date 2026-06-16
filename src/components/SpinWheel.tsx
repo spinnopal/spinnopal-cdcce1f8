@@ -64,6 +64,20 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
   const size = 360;
   const r = size / 2;
   const cx = r, cy = r;
+  const N = Math.max(prizes.length, 1);
+  // Distance from wheel center to icon center: bring icons inward when many slices
+  const iconR = r * (N <= 6 ? 0.6 : N <= 8 ? 0.58 : N <= 10 ? 0.56 : 0.54);
+  // Tangential chord between adjacent icon centers
+  const chord = 2 * iconR * Math.sin(Math.PI / N);
+  // Radial breathing room (toward rim and toward hub)
+  const radialOuter = r - iconR - 6;
+  const radialInner = iconR - r * 0.22 - 6;
+  const iconRadius = Math.max(
+    14,
+    Math.min(44, (chord / 2) * 0.88, radialOuter, radialInner),
+  );
+  const textR = r * 0.92;
+  const fontSize = Math.max(8, Math.min(12, Math.round(iconRadius * 0.3)));
 
   return (
     <div className="relative w-full aspect-square">
@@ -84,12 +98,11 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
               <defs>
                 {prizes.map((prize, i) => {
                   const centerAngle = i * SEG;
-                  const iconR = r * 0.6;
                   const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
                   const iy = cy + iconR * Math.sin((centerAngle - 90) * Math.PI / 180);
                   return (
                     <clipPath key={prize.id} id={`clip-${prize.id}`}>
-                      <circle cx={ix} cy={iy} r={44} />
+                      <circle cx={ix} cy={iy} r={iconRadius} />
                     </clipPath>
                   );
                 })}
@@ -105,22 +118,20 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
                 const fill = i % 2 === 0 ? "#1f242e" : "#FF7A00";
                 const largeArc = SEG > 180 ? 1 : 0;
                 const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
-                const iconR = r * 0.6;
                 const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
                 const iy = cy + iconR * Math.sin((centerAngle - 90) * Math.PI / 180);
-                const textR = r * 0.9;
                 const tx = cx + textR * Math.cos((centerAngle - 90) * Math.PI / 180);
                 const ty = cy + textR * Math.sin((centerAngle - 90) * Math.PI / 180);
                 return (
                   <g key={prize.id}>
                     <path d={path} fill={fill} stroke="#0F1115" strokeWidth="2" />
-                    <circle cx={ix} cy={iy} r={44} fill="#0F1115" stroke="#F5C542" strokeWidth="2" />
+                    <circle cx={ix} cy={iy} r={iconRadius} fill="#0F1115" stroke="#F5C542" strokeWidth="2" />
                     <image
                       href={prize.image}
-                      x={ix - 44}
-                      y={iy - 44}
-                      width="88"
-                      height="88"
+                      x={ix - iconRadius}
+                      y={iy - iconRadius}
+                      width={iconRadius * 2}
+                      height={iconRadius * 2}
                       preserveAspectRatio="xMidYMid slice"
                       clipPath={`url(#clip-${prize.id})`}
                       transform={`rotate(${centerAngle} ${ix} ${iy})`}
@@ -129,7 +140,7 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
                       x={tx}
                       y={ty}
                       fill="#FFFFFF"
-                      fontSize="12"
+                      fontSize={fontSize}
                       fontWeight="800"
                       textAnchor="middle"
                       transform={`rotate(${centerAngle} ${tx} ${ty})`}
