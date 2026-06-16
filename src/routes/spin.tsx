@@ -11,6 +11,7 @@ import { z } from "zod";
 
 const search = z.object({
   code: z.string().min(1).max(64),
+  name: z.string().min(1).max(40).optional(),
 });
 
 export const Route = createFileRoute("/spin")({
@@ -20,7 +21,7 @@ export const Route = createFileRoute("/spin")({
 });
 
 function SpinPage() {
-  const { code } = Route.useSearch();
+  const { code, name } = Route.useSearch();
   const navigate = useNavigate();
   const { prizes, isLoading } = usePrizes();
   const consume = useServerFn(consumeAccessCode);
@@ -63,8 +64,10 @@ function SpinPage() {
 
   const handleComplete = (prize: Prize) => {
     setDone(true);
-    saveRecord({ name: code, prizeId: prize.id, prizeName: prize.name, isWin: prize.isWin });
-    record({ data: { code, prize: prize.name } }).catch(() => {});
+    const who = name?.trim() || code;
+    saveRecord({ name: who, prizeId: prize.id, prizeName: prize.name, isWin: prize.isWin });
+    const tag = name?.trim() ? `${name.trim()} — ${prize.name}` : prize.name;
+    record({ data: { code, prize: tag.slice(0, 100) } }).catch(() => {});
     setTimeout(() => {
       navigate({ to: "/result", search: { code, pid: prize.id } });
     }, 600);
@@ -79,6 +82,7 @@ function SpinPage() {
       </div>
 
       <p className="text-center text-muted-foreground text-sm mb-3">
+        {name ? <><span className="text-foreground font-semibold">{name}</span> · </> : null}
         Code <span className="text-foreground font-mono font-semibold tracking-widest">{code}</span>
       </p>
 

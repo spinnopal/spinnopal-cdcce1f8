@@ -19,12 +19,22 @@ function Home() {
   const navigate = useNavigate();
   const validate = useServerFn(validateAccessCode);
   const [code, setCode] = useState("");
+  const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const pressTimer = useRef<number | null>(null);
 
   const submit = async () => {
     playClick();
+    const trimmedName = name.trim();
+    if (!trimmedName) {
+      setError("Please enter your name");
+      return;
+    }
+    if (trimmedName.length > 40) {
+      setError("Name is too long");
+      return;
+    }
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) {
       setError("Please enter your access code");
@@ -43,7 +53,7 @@ function Home() {
         setLoading(false);
         return;
       }
-      navigate({ to: "/spin", search: { code: res.code } });
+      navigate({ to: "/spin", search: { code: res.code, name: trimmedName } });
     } catch {
       setError("Could not verify your code. Please try again.");
       setLoading(false);
@@ -84,7 +94,19 @@ function Home() {
       <p className="mt-2 text-sm tracking-[0.32em] text-gold uppercase">Lucky Spin Campaign</p>
 
       <div className="glass rounded-2xl p-5 mt-10 w-full max-w-sm animate-float-up">
-        <label className="text-xs uppercase tracking-widest text-muted-foreground">Access Code</label>
+        <label className="text-xs uppercase tracking-widest text-muted-foreground">Your Name</label>
+        <input
+          value={name}
+          onChange={(e) => { setName(e.target.value); setError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder="Enter your full name"
+          maxLength={40}
+          autoCorrect="off"
+          spellCheck={false}
+          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
+        />
+
+        <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Access Code</label>
         <input
           value={code}
           onChange={(e) => {
@@ -92,7 +114,7 @@ function Home() {
             setError("");
           }}
           onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Enter your unique access code to spin"
+          placeholder="Enter your unique access code"
           maxLength={32}
           autoCapitalize="characters"
           autoCorrect="off"
