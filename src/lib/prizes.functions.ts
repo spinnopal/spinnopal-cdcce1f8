@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const ADMIN_PASSWORD = "mmz-admin-2024";
+function checkAdminPassword(pw: string) {
+  const expected = process.env.ADMIN_PASSWORD;
+  if (!expected) throw new Error("Admin password not configured");
+  if (pw !== expected) throw new Error("Unauthorized");
+}
 
 export const listPrizes = createServerFn({ method: "GET" }).handler(async () => {
   const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
