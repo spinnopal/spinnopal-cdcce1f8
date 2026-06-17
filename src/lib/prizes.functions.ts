@@ -28,7 +28,7 @@ const prizeInput = z.object({
 export const upsertPrize = createServerFn({ method: "POST" })
   .inputValidator(adminBase.extend({ prize: prizeInput }).parse)
   .handler(async ({ data }) => {
-    if (data.password !== ADMIN_PASSWORD) throw new Error("Unauthorized");
+    checkAdminPassword(data.password);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("prizes")
@@ -40,7 +40,7 @@ export const upsertPrize = createServerFn({ method: "POST" })
 export const deletePrize = createServerFn({ method: "POST" })
   .inputValidator(adminBase.extend({ id: z.string().min(1).max(64) }).parse)
   .handler(async ({ data }) => {
-    if (data.password !== ADMIN_PASSWORD) throw new Error("Unauthorized");
+    checkAdminPassword(data.password);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin.from("prizes").delete().eq("id", data.id);
     if (error) throw new Error(error.message);
@@ -54,7 +54,7 @@ export const updateProbabilities = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }) => {
-    if (data.password !== ADMIN_PASSWORD) throw new Error("Unauthorized");
+    checkAdminPassword(data.password);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     for (const p of data.probs) {
       const { error } = await supabaseAdmin

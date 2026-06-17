@@ -80,7 +80,7 @@ export const generateAccessCodes = createServerFn({ method: "POST" })
     adminSchema.extend({ count: z.number().int().min(1).max(500) }).parse,
   )
   .handler(async ({ data }) => {
-    if (data.password !== ADMIN_PASSWORD) throw new Error("Unauthorized");
+    checkAdminPassword(data.password);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const codes = new Set<string>();
     while (codes.size < data.count) codes.add(randomCode());
@@ -96,7 +96,7 @@ export const generateAccessCodes = createServerFn({ method: "POST" })
 export const listAccessCodes = createServerFn({ method: "POST" })
   .inputValidator(adminSchema.parse)
   .handler(async ({ data }) => {
-    if (data.password !== ADMIN_PASSWORD) throw new Error("Unauthorized");
+    checkAdminPassword(data.password);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("access_codes")
@@ -110,7 +110,7 @@ export const listAccessCodes = createServerFn({ method: "POST" })
 export const deleteUnusedCodes = createServerFn({ method: "POST" })
   .inputValidator(adminSchema.parse)
   .handler(async ({ data }) => {
-    if (data.password !== ADMIN_PASSWORD) throw new Error("Unauthorized");
+    checkAdminPassword(data.password);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { error } = await supabaseAdmin
       .from("access_codes")
