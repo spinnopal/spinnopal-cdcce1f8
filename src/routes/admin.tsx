@@ -605,7 +605,7 @@ function CodesTab() {
         >
           {loading ? "Checking..." : "Unlock"}
         </button>
-        <p className="text-[11px] text-muted-foreground">Default: mmz-admin-2024</p>
+        
       </div>
     );
   }
