@@ -91,12 +91,39 @@ function AdminPage() {
     URL.revokeObjectURL(url);
   };
 
+  if (!authed) {
+    return (
+      <div className="min-h-screen px-4 py-6 max-w-md mx-auto flex flex-col justify-center">
+        <div className="glass rounded-2xl p-5 space-y-3">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Admin Login</p>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && tryAuth(password)}
+            placeholder="Enter admin password"
+            className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary"
+          />
+          {authError && <p className="text-destructive text-sm">{authError}</p>}
+          <button
+            onClick={() => tryAuth(password)}
+            disabled={authLoading || !password}
+            className="w-full gradient-primary text-[#0F1115] font-bold py-3 rounded-xl disabled:opacity-60"
+          >
+            {authLoading ? "Checking..." : "Unlock"}
+          </button>
+          <button onClick={() => navigate({ to: "/" })} className="w-full text-xs text-muted-foreground mt-1">← Back</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <button onClick={() => { playClick(); navigate({ to: "/" }); }} className="text-sm text-muted-foreground">← Home</button>
         <h1 className="text-lg font-black tracking-widest">ADMIN PANEL</h1>
-        <span className="w-10" />
+        <button onClick={() => { sessionStorage.removeItem("mmz_admin_pw"); setAuthed(false); setPassword(""); }} className="text-xs text-muted-foreground">Lock</button>
       </div>
 
       <div className="glass rounded-2xl p-1 flex gap-1 mb-5">
