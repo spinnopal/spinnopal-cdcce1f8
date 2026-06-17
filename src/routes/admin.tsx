@@ -433,23 +433,55 @@ function PrizesTab() {
                     onChange={async (e) => {
                       const file = e.target.files?.[0];
                       if (!file) return;
-                      if (file.size > 800_000) {
-                        setError("Image too large (max 800 KB). Please compress it first.");
+                      if (file.size > 10_000_000) {
+                        setError("Image too large (max 10 MB).");
                         return;
                       }
-                      const dataUrl: string = await new Promise((resolve, reject) => {
+                      const readAsDataUrl = (f: Blob) => new Promise<string>((resolve, reject) => {
                         const r = new FileReader();
                         r.onload = () => resolve(r.result as string);
                         r.onerror = () => reject(r.error);
-                        r.readAsDataURL(file);
+                        r.readAsDataURL(f);
                       });
+                      const original = await readAsDataUrl(file);
+                      let dataUrl = original;
+                      // Auto-downscale to keep DB payload small (max 1024px, JPEG ~0.88)
+                      if (file.type !== "image/svg+xml" && file.type !== "image/gif") {
+                        try {
+                          const img = await new Promise<HTMLImageElement>((res, rej) => {
+                            const i = new Image();
+                            i.onload = () => res(i);
+                            i.onerror = () => rej(new Error("decode failed"));
+                            i.src = original;
+                          });
+                          const MAX = 1024;
+                          const scale = Math.min(1, MAX / Math.max(img.width, img.height));
+                          const w = Math.round(img.width * scale);
+                          const h = Math.round(img.height * scale);
+                          const canvas = document.createElement("canvas");
+                          canvas.width = w; canvas.height = h;
+                          const ctx = canvas.getContext("2d");
+                          if (ctx) {
+                            ctx.drawImage(img, 0, 0, w, h);
+                            const hasAlpha = file.type === "image/png" || file.type === "image/webp";
+                            dataUrl = canvas.toDataURL(hasAlpha ? "image/png" : "image/jpeg", 0.88);
+                            if (dataUrl.length > 3_500_000 && !hasAlpha) {
+                              dataUrl = canvas.toDataURL("image/jpeg", 0.78);
+                            }
+                          }
+                        } catch { /* fall back to original */ }
+                      }
+                      if (dataUrl.length > 8_000_000) {
+                        setError("Processed image is still too large. Try a smaller photo.");
+                        return;
+                      }
                       setError("");
                       setEditing((prev) => prev ? { ...prev, image_url: dataUrl } : prev);
                     }}
                     className="block w-full text-xs text-muted-foreground file:mr-3 file:py-2 file:px-3 file:rounded-lg file:border-0 file:bg-secondary file:text-foreground file:font-semibold"
                   />
                 </label>
-                <p className="text-[10px] text-muted-foreground">Upload a PNG/JPG (square works best, under 800 KB). Or paste a URL below.</p>
+                <p className="text-[10px] text-muted-foreground">Upload a PNG/JPG up to 10 MB — it will be auto-optimized for the wheel. Or paste a URL below.</p>
                 <input
                   value={editing.image_url.startsWith("data:") ? "" : editing.image_url}
                   onChange={(e) => setEditing({ ...editing, image_url: e.target.value })}
