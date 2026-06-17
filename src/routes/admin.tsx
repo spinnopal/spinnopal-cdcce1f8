@@ -30,7 +30,7 @@ type CodeRow = {
   created_at: string;
 };
 
-const ADMIN_PASSWORD = "mmz-admin-2024";
+
 
 function AdminPage() {
   const navigate = useNavigate();
