@@ -238,7 +238,7 @@ function PrizesTab() {
     try {
       await updateProbs({
         data: {
-          password: ADMIN_PASSWORD,
+          password: sessionStorage.getItem("mmz_admin_pw") || "",
           probs: prizes.map((p) => ({ id: p.id, probability: draftProbs[p.id] ?? 0 })),
         },
       });
@@ -258,7 +258,7 @@ function PrizesTab() {
     }
     setBusy(true); setError("");
     try {
-      await upsert({ data: { password: ADMIN_PASSWORD, prize: editing } });
+      await upsert({ data: { password: sessionStorage.getItem("mmz_admin_pw") || "", prize: editing } });
       await invalidate();
       setEditing(null);
     } catch (e) {
@@ -272,7 +272,7 @@ function PrizesTab() {
     if (!confirm(`Delete prize "${id}"? This cannot be undone.`)) return;
     setBusy(true); setError("");
     try {
-      await del({ data: { password: ADMIN_PASSWORD, id } });
+      await del({ data: { password: sessionStorage.getItem("mmz_admin_pw") || "", id } });
       await invalidate();
     } catch {
       setError("Failed to delete");
