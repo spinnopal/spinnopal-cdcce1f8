@@ -30,15 +30,39 @@ type CodeRow = {
   created_at: string;
 };
 
-const ADMIN_PASSWORD = "mmz-admin-2024";
+
 
 function AdminPage() {
   const navigate = useNavigate();
   const { prizes } = usePrizes();
+  const verifyList = useServerFn(listAccessCodes);
+  const [password, setPassword] = useState(() => (typeof sessionStorage !== "undefined" ? sessionStorage.getItem("mmz_admin_pw") || "" : ""));
+  const [authed, setAuthed] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
   const [tab, setTab] = useState<"stats" | "records" | "prizes" | "codes">("codes");
   const [query, setQuery] = useState("");
   const [tick, setTick] = useState(0);
   const records = useMemo(() => getRecords(), [tick]);
+
+  const tryAuth = async (pw: string) => {
+    setAuthLoading(true); setAuthError("");
+    try {
+      await verifyList({ data: { password: pw } });
+      sessionStorage.setItem("mmz_admin_pw", pw);
+      setAuthed(true);
+    } catch {
+      setAuthError("Incorrect password.");
+      setAuthed(false);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (password && !authed) tryAuth(password);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = records.filter((r) =>
     r.name.toLowerCase().includes(query.toLowerCase()) ||
@@ -67,12 +91,39 @@ function AdminPage() {
     URL.revokeObjectURL(url);
   };
 
+  if (!authed) {
+    return (
+      <div className="min-h-screen px-4 py-6 max-w-md mx-auto flex flex-col justify-center">
+        <div className="glass rounded-2xl p-5 space-y-3">
+          <p className="text-xs uppercase tracking-widest text-muted-foreground">Admin Login</p>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            onKeyDown={(e) => e.key === "Enter" && tryAuth(password)}
+            placeholder="Enter admin password"
+            className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary"
+          />
+          {authError && <p className="text-destructive text-sm">{authError}</p>}
+          <button
+            onClick={() => tryAuth(password)}
+            disabled={authLoading || !password}
+            className="w-full gradient-primary text-[#0F1115] font-bold py-3 rounded-xl disabled:opacity-60"
+          >
+            {authLoading ? "Checking..." : "Unlock"}
+          </button>
+          <button onClick={() => navigate({ to: "/" })} className="w-full text-xs text-muted-foreground mt-1">← Back</button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen px-4 py-6 max-w-2xl mx-auto">
       <div className="flex items-center justify-between mb-4">
         <button onClick={() => { playClick(); navigate({ to: "/" }); }} className="text-sm text-muted-foreground">← Home</button>
         <h1 className="text-lg font-black tracking-widest">ADMIN PANEL</h1>
-        <span className="w-10" />
+        <button onClick={() => { sessionStorage.removeItem("mmz_admin_pw"); setAuthed(false); setPassword(""); }} className="text-xs text-muted-foreground">Lock</button>
       </div>
 
       <div className="glass rounded-2xl p-1 flex gap-1 mb-5">
@@ -214,7 +265,7 @@ function PrizesTab() {
     try {
       await updateProbs({
         data: {
-          password: ADMIN_PASSWORD,
+          password: sessionStorage.getItem("mmz_admin_pw") || "",
           probs: prizes.map((p) => ({ id: p.id, probability: draftProbs[p.id] ?? 0 })),
         },
       });
@@ -234,7 +285,7 @@ function PrizesTab() {
     }
     setBusy(true); setError("");
     try {
-      await upsert({ data: { password: ADMIN_PASSWORD, prize: editing } });
+      await upsert({ data: { password: sessionStorage.getItem("mmz_admin_pw") || "", prize: editing } });
       await invalidate();
       setEditing(null);
     } catch (e) {
@@ -248,7 +299,7 @@ function PrizesTab() {
     if (!confirm(`Delete prize "${id}"? This cannot be undone.`)) return;
     setBusy(true); setError("");
     try {
-      await del({ data: { password: ADMIN_PASSWORD, id } });
+      await del({ data: { password: sessionStorage.getItem("mmz_admin_pw") || "", id } });
       await invalidate();
     } catch {
       setError("Failed to delete");
@@ -554,7 +605,7 @@ function CodesTab() {
         >
           {loading ? "Checking..." : "Unlock"}
         </button>
-        <p className="text-[11px] text-muted-foreground">Default: mmz-admin-2024</p>
+        
       </div>
     );
   }

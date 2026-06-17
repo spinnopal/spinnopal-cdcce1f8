@@ -62,8 +62,7 @@ function Home() {
 
   const onPressStart = () => {
     pressTimer.current = window.setTimeout(() => {
-      const pw = window.prompt("Admin password");
-      if (pw === "1234") navigate({ to: "/admin" });
+      navigate({ to: "/admin" });
     }, 5000);
   };
   const onPressEnd = () => {
