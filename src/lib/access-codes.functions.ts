@@ -1,7 +1,11 @@
 import { createServerFn } from "@tanstack/react-start";
 import { z } from "zod";
 
-const ADMIN_PASSWORD = "mmz-admin-2024";
+function checkAdminPassword(pw: string) {
+  const expected = process.env.ADMIN_PASSWORD;
+  if (!expected) throw new Error("Admin password not configured");
+  if (pw !== expected) throw new Error("Unauthorized");
+}
 
 const codeSchema = z.object({
   code: z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9-]+$/),
