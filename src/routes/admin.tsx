@@ -35,10 +35,34 @@ const ADMIN_PASSWORD = "mmz-admin-2024";
 function AdminPage() {
   const navigate = useNavigate();
   const { prizes } = usePrizes();
+  const verifyList = useServerFn(listAccessCodes);
+  const [password, setPassword] = useState(() => (typeof sessionStorage !== "undefined" ? sessionStorage.getItem("mmz_admin_pw") || "" : ""));
+  const [authed, setAuthed] = useState(false);
+  const [authError, setAuthError] = useState("");
+  const [authLoading, setAuthLoading] = useState(false);
   const [tab, setTab] = useState<"stats" | "records" | "prizes" | "codes">("codes");
   const [query, setQuery] = useState("");
   const [tick, setTick] = useState(0);
   const records = useMemo(() => getRecords(), [tick]);
+
+  const tryAuth = async (pw: string) => {
+    setAuthLoading(true); setAuthError("");
+    try {
+      await verifyList({ data: { password: pw } });
+      sessionStorage.setItem("mmz_admin_pw", pw);
+      setAuthed(true);
+    } catch {
+      setAuthError("Incorrect password.");
+      setAuthed(false);
+    } finally {
+      setAuthLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (password && !authed) tryAuth(password);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const filtered = records.filter((r) =>
     r.name.toLowerCase().includes(query.toLowerCase()) ||
