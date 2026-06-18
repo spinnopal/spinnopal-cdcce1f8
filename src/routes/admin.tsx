@@ -225,8 +225,10 @@ function AdminPage() {
           <div className="flex gap-3">
             <button onClick={handleExport} className="flex-1 py-3 rounded-xl bg-secondary font-semibold">Export CSV</button>
             <button
-              onClick={() => {
-                if (confirm("Reset all records?")) { resetCampaign(); setTick((t) => t + 1); }
+              onClick={async () => {
+                if (!confirm("Reset all spin records? Codes will become reusable.")) return;
+                const pw = sessionStorage.getItem("mmz_admin_pw") || "";
+                try { await resetAllRecords({ data: { password: pw } }); await loadRecords(); } catch {}
               }}
               className="flex-1 py-3 rounded-xl bg-destructive/80 text-destructive-foreground font-semibold"
             >
@@ -238,31 +240,44 @@ function AdminPage() {
 
       {tab === "records" && (
         <div>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name or prize..."
-            className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 mb-3 outline-none focus:border-primary"
-          />
+          <div className="flex gap-2 mb-3">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name, prize or code..."
+              className="flex-1 bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary"
+            />
+            <button onClick={loadRecords} className="px-3 rounded-xl bg-secondary text-sm">↻</button>
+          </div>
           <div className="space-y-2">
-            {filtered.length === 0 && <p className="text-muted-foreground text-center py-8">No records</p>}
-            {filtered.map((r) => (
-              <div key={r.id} className="glass rounded-xl p-3 flex items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold truncate font-mono text-sm">{r.name}</p>
-                  <p className={`text-xs ${r.isWin ? "text-gold" : "text-muted-foreground"}`}>{r.prizeName}</p>
-                  <p className="text-[10px] text-muted-foreground">{new Date(r.timestamp).toLocaleString()}</p>
+            {recordsLoading && <p className="text-muted-foreground text-center py-4">Loading…</p>}
+            {!recordsLoading && filtered.length === 0 && <p className="text-muted-foreground text-center py-8">No records</p>}
+            {filtered.map((r) => {
+              const prize = prizes.find((p) => p.name === r.prize_won);
+              const isWin = prize ? prize.isWin : true;
+              return (
+                <div key={r.code} className="glass rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold truncate text-sm">{r.customer_name || <span className="text-muted-foreground italic">No name</span>}</p>
+                    <p className={`text-xs ${isWin ? "text-gold" : "text-muted-foreground"}`}>{r.prize_won}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">{r.code} · {r.spun_at ? new Date(r.spun_at).toLocaleString() : ""}</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!confirm("Delete this record?")) return;
+                      const pw = sessionStorage.getItem("mmz_admin_pw") || "";
+                      try { await delRecord({ data: { password: pw, code: r.code } }); await loadRecords(); } catch {}
+                    }}
+                    className="text-destructive text-sm px-2 py-1"
+                  >Delete</button>
                 </div>
-                <button
-                  onClick={() => { deleteRecord(r.id); setTick((t) => t + 1); }}
-                  className="text-destructive text-sm px-2 py-1"
-                >Delete</button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
     </div>
+
   );
 }
 
