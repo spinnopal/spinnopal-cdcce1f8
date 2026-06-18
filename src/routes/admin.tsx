@@ -32,18 +32,28 @@ type CodeRow = {
 
 
 
+type SpinRecord = {
+  code: string;
+  spun_at: string | null;
+  prize_won: string | null;
+  customer_name: string | null;
+};
+
 function AdminPage() {
   const navigate = useNavigate();
   const { prizes } = usePrizes();
   const verifyList = useServerFn(listAccessCodes);
+  const fetchRecords = useServerFn(listSpinRecords);
+  const delRecord = useServerFn(deleteSpinRecord);
+  const resetAllRecords = useServerFn(resetSpinRecords);
   const [password, setPassword] = useState(() => (typeof sessionStorage !== "undefined" ? sessionStorage.getItem("mmz_admin_pw") || "" : ""));
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [tab, setTab] = useState<"stats" | "records" | "prizes" | "codes">("codes");
   const [query, setQuery] = useState("");
-  const [tick, setTick] = useState(0);
-  const records = useMemo(() => getRecords(), [tick]);
+  const [records, setRecords] = useState<SpinRecord[]>([]);
+  const [recordsLoading, setRecordsLoading] = useState(false);
 
   const tryAuth = async (pw: string) => {
     setAuthLoading(true); setAuthError("");
@@ -59,29 +69,66 @@ function AdminPage() {
     }
   };
 
+  const loadRecords = useCallback(async () => {
+    const pw = sessionStorage.getItem("mmz_admin_pw") || "";
+    if (!pw) return;
+    setRecordsLoading(true);
+    try {
+      const res = await fetchRecords({ data: { password: pw } });
+      setRecords((res.rows as SpinRecord[]) ?? []);
+    } catch {
+      // ignore
+    } finally {
+      setRecordsLoading(false);
+    }
+  }, [fetchRecords]);
+
   useEffect(() => {
     if (password && !authed) tryAuth(password);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filtered = records.filter((r) =>
-    r.name.toLowerCase().includes(query.toLowerCase()) ||
-    r.prizeName.toLowerCase().includes(query.toLowerCase())
-  );
+  useEffect(() => {
+    if (authed && (tab === "records" || tab === "stats")) loadRecords();
+  }, [authed, tab, loadRecords]);
+
+  const filtered = records.filter((r) => {
+    const q = query.toLowerCase();
+    return (
+      (r.customer_name || "").toLowerCase().includes(q) ||
+      (r.prize_won || "").toLowerCase().includes(q) ||
+      r.code.toLowerCase().includes(q)
+    );
+  });
 
   const stats = useMemo(() => {
     const total = records.length;
-    const winners = records.filter((r) => r.isWin).length;
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const today = records.filter((r) => r.timestamp >= todayStart.getTime()).length;
+    const today = records.filter((r) => r.spun_at && new Date(r.spun_at).getTime() >= todayStart.getTime()).length;
     const dist: Record<string, number> = {};
-    for (const r of records) dist[r.prizeName] = (dist[r.prizeName] || 0) + 1;
+    for (const r of records) {
+      const k = r.prize_won || "Unknown";
+      dist[k] = (dist[k] || 0) + 1;
+    }
+    const tryAgainNames = new Set(prizes.filter((p) => !p.isWin).map((p) => p.name));
+    const winners = records.filter((r) => r.prize_won && !tryAgainNames.has(r.prize_won)).length;
     const most = Object.entries(dist).sort((a, b) => b[1] - a[1])[0];
     return { total, winners, today, dist, most };
-  }, [records]);
+  }, [records, prizes]);
 
   const handleExport = () => {
-    const csv = exportCsv();
+    const rows = [["Name", "Code", "Prize", "Date", "Time"]];
+    for (const r of records) {
+      const d = r.spun_at ? new Date(r.spun_at) : null;
+      rows.push([
+        (r.customer_name || "").replace(/"/g, '""'),
+        r.code,
+        (r.prize_won || "").replace(/"/g, '""'),
+        d ? d.toLocaleDateString() : "",
+        d ? d.toLocaleTimeString() : "",
+      ]);
+    }
+    const csv = rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -90,6 +137,7 @@ function AdminPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
 
   if (!authed) {
     return (
