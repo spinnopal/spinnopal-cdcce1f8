@@ -117,25 +117,61 @@ function AdminPage() {
   }, [records, prizes]);
 
   const handleExport = () => {
-    const rows = [["Name", "Code", "Prize", "Date", "Time"]];
-    for (const r of records) {
-      const d = r.spun_at ? new Date(r.spun_at) : null;
-      rows.push([
-        (r.customer_name || "").replace(/"/g, '""'),
-        r.code,
-        (r.prize_won || "").replace(/"/g, '""'),
-        d ? d.toLocaleDateString() : "",
-        d ? d.toLocaleTimeString() : "",
-      ]);
+    try {
+      if (!records.length) {
+        alert("No records to export yet.");
+        return;
+      }
+      const rows = [["Name", "Code", "Prize", "Date", "Time"]];
+      for (const r of records) {
+        const d = r.spun_at ? new Date(r.spun_at) : null;
+        rows.push([
+          (r.customer_name || "").replace(/"/g, '""'),
+          r.code,
+          (r.prize_won || "").replace(/"/g, '""'),
+          d ? d.toLocaleDateString() : "",
+          d ? d.toLocaleTimeString() : "",
+        ]);
+      }
+      const csv = "\ufeff" + rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+      const filename = `mmz-records-${new Date().toISOString().slice(0, 10)}.csv`;
+      const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+      // iOS Safari fallback: open data URL in a new tab so user can share/save
+      const ua = navigator.userAgent;
+      const isIOS = /iPad|iPhone|iPod/.test(ua);
+
+      if (isIOS) {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const dataUrl = reader.result as string;
+          const w = window.open();
+          if (w) {
+            w.document.title = filename;
+            w.document.body.innerHTML = `<a id="dl" href="${dataUrl}" download="${filename}">Tap to download ${filename}</a><pre style="white-space:pre-wrap;font-family:monospace;margin-top:16px">${csv.replace(/</g, "&lt;")}</pre>`;
+          } else {
+            window.location.href = dataUrl;
+          }
+        };
+        reader.readAsDataURL(blob);
+        return;
+      }
+
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = filename;
+      a.rel = "noopener";
+      document.body.appendChild(a);
+      a.click();
+      setTimeout(() => {
+        document.body.removeChild(a);
+        URL.revokeObjectURL(url);
+      }, 100);
+    } catch (err) {
+      console.error("CSV export failed", err);
+      alert("Export failed. Please try again on a desktop browser.");
     }
-    const csv = rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
-    const blob = new Blob([csv], { type: "text/csv" });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement("a");
-    a.href = url;
-    a.download = `mmz-records-${new Date().toISOString().slice(0,10)}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
   };
 
 
