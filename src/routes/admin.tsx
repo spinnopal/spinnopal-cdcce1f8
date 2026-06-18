@@ -1,11 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  deleteRecord,
-  exportCsv,
-  getRecords,
-  resetCampaign,
   type Prize,
 } from "@/lib/spin-store";
 import { usePrizes, useInvalidatePrizes } from "@/lib/prizes-hook";
@@ -14,8 +10,12 @@ import {
   deleteUnusedCodes,
   generateAccessCodes,
   listAccessCodes,
+  listSpinRecords,
+  deleteSpinRecord,
+  resetSpinRecords,
 } from "@/lib/access-codes.functions";
 import { playClick } from "@/lib/sounds";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — Mas Mobile Zone" }] }),
