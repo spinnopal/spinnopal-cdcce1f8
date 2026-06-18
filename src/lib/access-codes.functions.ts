@@ -50,16 +50,18 @@ export const recordPrizeForCode = createServerFn({ method: "POST" })
     z.object({
       code: z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9-]+$/),
       prize: z.string().trim().min(1).max(100),
+      name: z.string().trim().min(1).max(60).optional(),
     }).parse,
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     await supabaseAdmin
       .from("access_codes")
-      .update({ prize_won: data.prize })
+      .update({ prize_won: data.prize, customer_name: data.name ?? null })
       .eq("code", data.code.toUpperCase());
     return { ok: true };
   });
+
 
 // ---- Admin ----
 
