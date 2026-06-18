@@ -66,8 +66,8 @@ function SpinPage() {
     setDone(true);
     const who = name?.trim() || code;
     saveRecord({ name: who, prizeId: prize.id, prizeName: prize.name, isWin: prize.isWin });
-    const tag = name?.trim() ? `${name.trim()} — ${prize.name}` : prize.name;
-    record({ data: { code, prize: tag.slice(0, 100) } }).catch(() => {});
+    record({ data: { code, prize: prize.name.slice(0, 100), name: name?.trim() || undefined } }).catch(() => {});
+
     setTimeout(() => {
       navigate({ to: "/result", search: { code, pid: prize.id } });
     }, 600);
