@@ -121,3 +121,44 @@ export const deleteUnusedCodes = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+export const listSpinRecords = createServerFn({ method: "POST" })
+  .inputValidator(adminSchema.parse)
+  .handler(async ({ data }) => {
+    checkAdminPassword(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
+      .from("access_codes")
+      .select("code, spun_at, prize_won, customer_name")
+      .not("prize_won", "is", null)
+      .order("spun_at", { ascending: false })
+      .limit(2000);
+    if (error) throw new Error(error.message);
+    return { rows: rows ?? [] };
+  });
+
+export const deleteSpinRecord = createServerFn({ method: "POST" })
+  .inputValidator(adminSchema.extend({ code: z.string().min(1).max(64) }).parse)
+  .handler(async ({ data }) => {
+    checkAdminPassword(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("access_codes")
+      .update({ prize_won: null, customer_name: null, spun_at: null, is_used: false })
+      .eq("code", data.code.toUpperCase());
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const resetSpinRecords = createServerFn({ method: "POST" })
+  .inputValidator(adminSchema.parse)
+  .handler(async ({ data }) => {
+    checkAdminPassword(data.password);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
+      .from("access_codes")
+      .update({ prize_won: null, customer_name: null, spun_at: null, is_used: false })
+      .not("prize_won", "is", null);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
