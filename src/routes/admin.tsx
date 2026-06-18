@@ -1,11 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import {
-  deleteRecord,
-  exportCsv,
-  getRecords,
-  resetCampaign,
   type Prize,
 } from "@/lib/spin-store";
 import { usePrizes, useInvalidatePrizes } from "@/lib/prizes-hook";
@@ -14,8 +10,12 @@ import {
   deleteUnusedCodes,
   generateAccessCodes,
   listAccessCodes,
+  listSpinRecords,
+  deleteSpinRecord,
+  resetSpinRecords,
 } from "@/lib/access-codes.functions";
 import { playClick } from "@/lib/sounds";
+
 
 export const Route = createFileRoute("/admin")({
   head: () => ({ meta: [{ title: "Admin — Mas Mobile Zone" }] }),
@@ -32,18 +32,28 @@ type CodeRow = {
 
 
 
+type SpinRecord = {
+  code: string;
+  spun_at: string | null;
+  prize_won: string | null;
+  customer_name: string | null;
+};
+
 function AdminPage() {
   const navigate = useNavigate();
   const { prizes } = usePrizes();
   const verifyList = useServerFn(listAccessCodes);
+  const fetchRecords = useServerFn(listSpinRecords);
+  const delRecord = useServerFn(deleteSpinRecord);
+  const resetAllRecords = useServerFn(resetSpinRecords);
   const [password, setPassword] = useState(() => (typeof sessionStorage !== "undefined" ? sessionStorage.getItem("mmz_admin_pw") || "" : ""));
   const [authed, setAuthed] = useState(false);
   const [authError, setAuthError] = useState("");
   const [authLoading, setAuthLoading] = useState(false);
   const [tab, setTab] = useState<"stats" | "records" | "prizes" | "codes">("codes");
   const [query, setQuery] = useState("");
-  const [tick, setTick] = useState(0);
-  const records = useMemo(() => getRecords(), [tick]);
+  const [records, setRecords] = useState<SpinRecord[]>([]);
+  const [recordsLoading, setRecordsLoading] = useState(false);
 
   const tryAuth = async (pw: string) => {
     setAuthLoading(true); setAuthError("");
@@ -59,29 +69,66 @@ function AdminPage() {
     }
   };
 
+  const loadRecords = useCallback(async () => {
+    const pw = sessionStorage.getItem("mmz_admin_pw") || "";
+    if (!pw) return;
+    setRecordsLoading(true);
+    try {
+      const res = await fetchRecords({ data: { password: pw } });
+      setRecords((res.rows as SpinRecord[]) ?? []);
+    } catch {
+      // ignore
+    } finally {
+      setRecordsLoading(false);
+    }
+  }, [fetchRecords]);
+
   useEffect(() => {
     if (password && !authed) tryAuth(password);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  const filtered = records.filter((r) =>
-    r.name.toLowerCase().includes(query.toLowerCase()) ||
-    r.prizeName.toLowerCase().includes(query.toLowerCase())
-  );
+  useEffect(() => {
+    if (authed && (tab === "records" || tab === "stats")) loadRecords();
+  }, [authed, tab, loadRecords]);
+
+  const filtered = records.filter((r) => {
+    const q = query.toLowerCase();
+    return (
+      (r.customer_name || "").toLowerCase().includes(q) ||
+      (r.prize_won || "").toLowerCase().includes(q) ||
+      r.code.toLowerCase().includes(q)
+    );
+  });
 
   const stats = useMemo(() => {
     const total = records.length;
-    const winners = records.filter((r) => r.isWin).length;
     const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
-    const today = records.filter((r) => r.timestamp >= todayStart.getTime()).length;
+    const today = records.filter((r) => r.spun_at && new Date(r.spun_at).getTime() >= todayStart.getTime()).length;
     const dist: Record<string, number> = {};
-    for (const r of records) dist[r.prizeName] = (dist[r.prizeName] || 0) + 1;
+    for (const r of records) {
+      const k = r.prize_won || "Unknown";
+      dist[k] = (dist[k] || 0) + 1;
+    }
+    const tryAgainNames = new Set(prizes.filter((p) => !p.isWin).map((p) => p.name));
+    const winners = records.filter((r) => r.prize_won && !tryAgainNames.has(r.prize_won)).length;
     const most = Object.entries(dist).sort((a, b) => b[1] - a[1])[0];
     return { total, winners, today, dist, most };
-  }, [records]);
+  }, [records, prizes]);
 
   const handleExport = () => {
-    const csv = exportCsv();
+    const rows = [["Name", "Code", "Prize", "Date", "Time"]];
+    for (const r of records) {
+      const d = r.spun_at ? new Date(r.spun_at) : null;
+      rows.push([
+        (r.customer_name || "").replace(/"/g, '""'),
+        r.code,
+        (r.prize_won || "").replace(/"/g, '""'),
+        d ? d.toLocaleDateString() : "",
+        d ? d.toLocaleTimeString() : "",
+      ]);
+    }
+    const csv = rows.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
     const blob = new Blob([csv], { type: "text/csv" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
@@ -90,6 +137,7 @@ function AdminPage() {
     a.click();
     URL.revokeObjectURL(url);
   };
+
 
   if (!authed) {
     return (
@@ -177,8 +225,10 @@ function AdminPage() {
           <div className="flex gap-3">
             <button onClick={handleExport} className="flex-1 py-3 rounded-xl bg-secondary font-semibold">Export CSV</button>
             <button
-              onClick={() => {
-                if (confirm("Reset all records?")) { resetCampaign(); setTick((t) => t + 1); }
+              onClick={async () => {
+                if (!confirm("Reset all spin records? Codes will become reusable.")) return;
+                const pw = sessionStorage.getItem("mmz_admin_pw") || "";
+                try { await resetAllRecords({ data: { password: pw } }); await loadRecords(); } catch {}
               }}
               className="flex-1 py-3 rounded-xl bg-destructive/80 text-destructive-foreground font-semibold"
             >
@@ -190,31 +240,44 @@ function AdminPage() {
 
       {tab === "records" && (
         <div>
-          <input
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            placeholder="Search by name or prize..."
-            className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 mb-3 outline-none focus:border-primary"
-          />
+          <div className="flex gap-2 mb-3">
+            <input
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Search by name, prize or code..."
+              className="flex-1 bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary"
+            />
+            <button onClick={loadRecords} className="px-3 rounded-xl bg-secondary text-sm">↻</button>
+          </div>
           <div className="space-y-2">
-            {filtered.length === 0 && <p className="text-muted-foreground text-center py-8">No records</p>}
-            {filtered.map((r) => (
-              <div key={r.id} className="glass rounded-xl p-3 flex items-center justify-between gap-3">
-                <div className="min-w-0 flex-1">
-                  <p className="font-semibold truncate font-mono text-sm">{r.name}</p>
-                  <p className={`text-xs ${r.isWin ? "text-gold" : "text-muted-foreground"}`}>{r.prizeName}</p>
-                  <p className="text-[10px] text-muted-foreground">{new Date(r.timestamp).toLocaleString()}</p>
+            {recordsLoading && <p className="text-muted-foreground text-center py-4">Loading…</p>}
+            {!recordsLoading && filtered.length === 0 && <p className="text-muted-foreground text-center py-8">No records</p>}
+            {filtered.map((r) => {
+              const prize = prizes.find((p) => p.name === r.prize_won);
+              const isWin = prize ? prize.isWin : true;
+              return (
+                <div key={r.code} className="glass rounded-xl p-3 flex items-center justify-between gap-3">
+                  <div className="min-w-0 flex-1">
+                    <p className="font-semibold truncate text-sm">{r.customer_name || <span className="text-muted-foreground italic">No name</span>}</p>
+                    <p className={`text-xs ${isWin ? "text-gold" : "text-muted-foreground"}`}>{r.prize_won}</p>
+                    <p className="text-[10px] text-muted-foreground font-mono">{r.code} · {r.spun_at ? new Date(r.spun_at).toLocaleString() : ""}</p>
+                  </div>
+                  <button
+                    onClick={async () => {
+                      if (!confirm("Delete this record?")) return;
+                      const pw = sessionStorage.getItem("mmz_admin_pw") || "";
+                      try { await delRecord({ data: { password: pw, code: r.code } }); await loadRecords(); } catch {}
+                    }}
+                    className="text-destructive text-sm px-2 py-1"
+                  >Delete</button>
                 </div>
-                <button
-                  onClick={() => { deleteRecord(r.id); setTick((t) => t + 1); }}
-                  className="text-destructive text-sm px-2 py-1"
-                >Delete</button>
-              </div>
-            ))}
+              );
+            })}
           </div>
         </div>
       )}
     </div>
+
   );
 }
 
