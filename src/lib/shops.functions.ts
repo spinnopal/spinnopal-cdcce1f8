@@ -115,7 +115,7 @@ export const updateMyShop = createServerFn({ method: "POST" })
       .parse,
   )
   .handler(async ({ data, context }) => {
-    const patch: Record<string, unknown> = {};
+    const patch: { name?: string; slug?: string; logo_url?: string | null } = {};
     if (data.name !== undefined) patch.name = data.name;
     if (data.slug !== undefined) patch.slug = data.slug;
     if (data.logo_url !== undefined) patch.logo_url = data.logo_url;
