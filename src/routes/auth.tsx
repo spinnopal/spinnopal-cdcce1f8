@@ -28,13 +28,9 @@ function AuthPage() {
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // Use getUser() (revalidates with server) instead of getSession() (reads localStorage)
-    // to avoid a redirect loop when a stale/unconfirmed token is cached.
-    supabase.auth.getUser().then(({ data, error }) => {
-      if (!error && data.user) navigate({ to: "/dashboard" });
-    });
-  }, [navigate]);
+  // No auto-redirect on mount: it caused a race where a cached session
+  // would navigate the user to /dashboard mid-keystroke, making it feel
+  // like the inputs were frozen. Redirect only after a successful submit.
 
   const autoSlug = (s: string) =>
     s
