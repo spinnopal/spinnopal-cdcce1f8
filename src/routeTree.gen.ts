@@ -16,6 +16,7 @@ import { Route as IndexRouteImport } from './routes/index'
 import { Route as SSlugRouteImport } from './routes/s.$slug'
 import { Route as AuthenticatedSuperAdminRouteImport } from './routes/_authenticated/super-admin'
 import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as SSlugIndexRouteImport } from './routes/s.$slug.index'
 import { Route as SSlugSpinRouteImport } from './routes/s.$slug.spin'
 import { Route as SSlugResultRouteImport } from './routes/s.$slug.result'
 
@@ -53,6 +54,11 @@ const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
   path: '/dashboard',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const SSlugIndexRoute = SSlugIndexRouteImport.update({
+  id: '/',
+  path: '/',
+  getParentRoute: () => SSlugRoute,
+} as any)
 const SSlugSpinRoute = SSlugSpinRouteImport.update({
   id: '/spin',
   path: '/spin',
@@ -73,6 +79,7 @@ export interface FileRoutesByFullPath {
   '/s/$slug': typeof SSlugRouteWithChildren
   '/s/$slug/result': typeof SSlugResultRoute
   '/s/$slug/spin': typeof SSlugSpinRoute
+  '/s/$slug/': typeof SSlugIndexRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
@@ -80,9 +87,9 @@ export interface FileRoutesByTo {
   '/trust': typeof TrustRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/super-admin': typeof AuthenticatedSuperAdminRoute
-  '/s/$slug': typeof SSlugRouteWithChildren
   '/s/$slug/result': typeof SSlugResultRoute
   '/s/$slug/spin': typeof SSlugSpinRoute
+  '/s/$slug': typeof SSlugIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -95,6 +102,7 @@ export interface FileRoutesById {
   '/s/$slug': typeof SSlugRouteWithChildren
   '/s/$slug/result': typeof SSlugResultRoute
   '/s/$slug/spin': typeof SSlugSpinRoute
+  '/s/$slug/': typeof SSlugIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -107,6 +115,7 @@ export interface FileRouteTypes {
     | '/s/$slug'
     | '/s/$slug/result'
     | '/s/$slug/spin'
+    | '/s/$slug/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
@@ -114,9 +123,9 @@ export interface FileRouteTypes {
     | '/trust'
     | '/dashboard'
     | '/super-admin'
-    | '/s/$slug'
     | '/s/$slug/result'
     | '/s/$slug/spin'
+    | '/s/$slug'
   id:
     | '__root__'
     | '/'
@@ -128,6 +137,7 @@ export interface FileRouteTypes {
     | '/s/$slug'
     | '/s/$slug/result'
     | '/s/$slug/spin'
+    | '/s/$slug/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -189,6 +199,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDashboardRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/s/$slug/': {
+      id: '/s/$slug/'
+      path: '/'
+      fullPath: '/s/$slug/'
+      preLoaderRoute: typeof SSlugIndexRouteImport
+      parentRoute: typeof SSlugRoute
+    }
     '/s/$slug/spin': {
       id: '/s/$slug/spin'
       path: '/spin'
@@ -222,11 +239,13 @@ const AuthenticatedRouteRouteWithChildren =
 interface SSlugRouteChildren {
   SSlugResultRoute: typeof SSlugResultRoute
   SSlugSpinRoute: typeof SSlugSpinRoute
+  SSlugIndexRoute: typeof SSlugIndexRoute
 }
 
 const SSlugRouteChildren: SSlugRouteChildren = {
   SSlugResultRoute: SSlugResultRoute,
   SSlugSpinRoute: SSlugSpinRoute,
+  SSlugIndexRoute: SSlugIndexRoute,
 }
 
 const SSlugRouteWithChildren = SSlugRoute._addFileChildren(SSlugRouteChildren)
