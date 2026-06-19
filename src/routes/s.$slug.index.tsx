@@ -7,7 +7,7 @@ import { validateAccessCode } from "@/lib/access-codes.functions";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 import { playClick } from "@/lib/sounds";
 
-export const Route = createFileRoute("/s/$slug")({
+export const Route = createFileRoute("/s/$slug/")({
   head: ({ params }) => ({
     meta: [
       { title: `${params.slug} — Lucky Spin` },
