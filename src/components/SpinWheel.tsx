@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { LOGO, type Prize } from "@/lib/spin-store";
+import { DEFAULT_LOGO, type Prize } from "@/lib/spin-store";
 import { startSpinTicks, playWin, playLose } from "@/lib/sounds";
 
 interface Props {
@@ -8,9 +8,11 @@ interface Props {
   targetIndex: number | null;
   onComplete: (prize: Prize) => void;
   onLogoLongPress?: () => void;
+  centerLogo?: string;
+  centerLabel?: string;
 }
 
-export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLongPress }: Props) {
+export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLongPress, centerLogo, centerLabel }: Props) {
   const SEG = prizes.length > 0 ? 360 / prizes.length : 360;
   const [rotation, setRotation] = useState(0);
   const rotationRef = useRef(0);
@@ -159,9 +161,9 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
               onPointerLeave={endPress}
               onPointerCancel={endPress}
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] rounded-full overflow-hidden border-2 border-[var(--gold)] glow-gold bg-[#0F1115]"
-              aria-label="Mas Mobile Zone"
+              aria-label={centerLabel || "Lucky Spin"}
             >
-              <img src={LOGO} alt="Mas Mobile Zone" className="w-full h-full object-cover" />
+              <img src={centerLogo || DEFAULT_LOGO} alt={centerLabel || "Lucky Spin"} className="w-full h-full object-cover" />
             </button>
           </div>
         </div>
