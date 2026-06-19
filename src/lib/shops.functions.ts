@@ -175,9 +175,13 @@ export const listAllShops = createServerFn({ method: "GET" })
     const enriched = await Promise.all(
       (shops ?? []).map(async (s) => {
         let ownerEmail: string | null = null;
+        let lastSignIn: string | null = null;
+        let emailConfirmed: string | null = null;
         if (s.owner_user_id) {
           const { data: u } = await supabaseAdmin.auth.admin.getUserById(s.owner_user_id);
           ownerEmail = u.user?.email ?? null;
+          lastSignIn = u.user?.last_sign_in_at ?? null;
+          emailConfirmed = u.user?.email_confirmed_at ?? null;
         }
         const { count: codes } = await supabaseAdmin
           .from("access_codes")
@@ -188,7 +192,14 @@ export const listAllShops = createServerFn({ method: "GET" })
           .select("*", { count: "exact", head: true })
           .eq("shop_id", s.id)
           .not("spun_at", "is", null);
-        return { ...s, owner_email: ownerEmail, codes_count: codes ?? 0, spins_count: spins ?? 0 };
+        return {
+          ...s,
+          owner_email: ownerEmail,
+          owner_last_sign_in_at: lastSignIn,
+          owner_email_confirmed_at: emailConfirmed,
+          codes_count: codes ?? 0,
+          spins_count: spins ?? 0,
+        };
       }),
     );
     return { shops: enriched };
