@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TrustRouteImport } from './routes/trust'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
@@ -18,6 +19,11 @@ import { Route as AuthenticatedDashboardRouteImport } from './routes/_authentica
 import { Route as SSlugSpinRouteImport } from './routes/s.$slug.spin'
 import { Route as SSlugResultRouteImport } from './routes/s.$slug.result'
 
+const TrustRoute = TrustRouteImport.update({
+  id: '/trust',
+  path: '/trust',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AuthRoute = AuthRouteImport.update({
   id: '/auth',
   path: '/auth',
@@ -61,6 +67,7 @@ const SSlugResultRoute = SSlugResultRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/trust': typeof TrustRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/super-admin': typeof AuthenticatedSuperAdminRoute
   '/s/$slug': typeof SSlugRouteWithChildren
@@ -70,6 +77,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/auth': typeof AuthRoute
+  '/trust': typeof TrustRoute
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/super-admin': typeof AuthenticatedSuperAdminRoute
   '/s/$slug': typeof SSlugRouteWithChildren
@@ -81,6 +89,7 @@ export interface FileRoutesById {
   '/': typeof IndexRoute
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
+  '/trust': typeof TrustRoute
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/_authenticated/super-admin': typeof AuthenticatedSuperAdminRoute
   '/s/$slug': typeof SSlugRouteWithChildren
@@ -92,6 +101,7 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/auth'
+    | '/trust'
     | '/dashboard'
     | '/super-admin'
     | '/s/$slug'
@@ -101,6 +111,7 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/auth'
+    | '/trust'
     | '/dashboard'
     | '/super-admin'
     | '/s/$slug'
@@ -111,6 +122,7 @@ export interface FileRouteTypes {
     | '/'
     | '/_authenticated'
     | '/auth'
+    | '/trust'
     | '/_authenticated/dashboard'
     | '/_authenticated/super-admin'
     | '/s/$slug'
@@ -122,11 +134,19 @@ export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
   AuthRoute: typeof AuthRoute
+  TrustRoute: typeof TrustRoute
   SSlugRoute: typeof SSlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/trust': {
+      id: '/trust'
+      path: '/trust'
+      fullPath: '/trust'
+      preLoaderRoute: typeof TrustRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/auth': {
       id: '/auth'
       path: '/auth'
@@ -215,6 +235,7 @@ const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
   AuthRoute: AuthRoute,
+  TrustRoute: TrustRoute,
   SSlugRoute: SSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
