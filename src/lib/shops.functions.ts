@@ -12,10 +12,9 @@ const slugSchema = z
 
 const nameSchema = z.string().trim().min(1).max(80);
 
-function publicClient() {
+async function publicClient() {
   // Server-side publishable client for anon-readable data during SSR or public fns.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { createClient } = require("@supabase/supabase-js") as typeof import("@supabase/supabase-js");
+  const { createClient } = await import("@supabase/supabase-js");
   return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
