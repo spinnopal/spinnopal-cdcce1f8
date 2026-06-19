@@ -21,6 +21,7 @@ export type Database = {
           customer_name: string | null
           is_used: boolean
           prize_won: string | null
+          shop_id: string
           spun_at: string | null
         }
         Insert: {
@@ -29,6 +30,7 @@ export type Database = {
           customer_name?: string | null
           is_used?: boolean
           prize_won?: string | null
+          shop_id: string
           spun_at?: string | null
         }
         Update: {
@@ -37,9 +39,18 @@ export type Database = {
           customer_name?: string | null
           is_used?: boolean
           prize_won?: string | null
+          shop_id?: string
           spun_at?: string | null
         }
-        Relationships: []
+        Relationships: [
+          {
+            foreignKeyName: "access_codes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
       }
       prizes: {
         Row: {
@@ -49,6 +60,7 @@ export type Database = {
           is_win: boolean
           name: string
           probability: number
+          shop_id: string
           short: string
           sort_order: number
           updated_at: string
@@ -60,6 +72,7 @@ export type Database = {
           is_win?: boolean
           name: string
           probability?: number
+          shop_id: string
           short: string
           sort_order?: number
           updated_at?: string
@@ -71,9 +84,72 @@ export type Database = {
           is_win?: boolean
           name?: string
           probability?: number
+          shop_id?: string
           short?: string
           sort_order?: number
           updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "prizes_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      shops: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          logo_url: string | null
+          name: string
+          owner_user_id: string | null
+          slug: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name: string
+          owner_user_id?: string | null
+          slug: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          logo_url?: string | null
+          name?: string
+          owner_user_id?: string | null
+          slug?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          created_at: string
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
         }
         Relationships: []
       }
@@ -82,10 +158,16 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "super_admin"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -212,6 +294,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["super_admin"],
+    },
   },
 } as const

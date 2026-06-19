@@ -1,140 +1,101 @@
-import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useRef, useState } from "react";
-import { useServerFn } from "@tanstack/react-start";
-import { LOGO } from "@/lib/spin-store";
-import { validateAccessCode } from "@/lib/access-codes.functions";
-import { playClick } from "@/lib/sounds";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { DEFAULT_LOGO } from "@/lib/spin-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Mas Mobile Zone — Lucky Spin Campaign" },
-      { name: "description", content: "Enter your access code to spin and win at Mas Mobile Zone." },
+      { title: "Lucky Spin — Run prize campaigns for your shop" },
+      {
+        name: "description",
+        content:
+          "Launch a branded Lucky Spin campaign for your shop in minutes. Hand customers an access code and let them spin to win.",
+      },
+      { property: "og:title", content: "Lucky Spin — Run prize campaigns for your shop" },
+      {
+        property: "og:description",
+        content:
+          "Launch a branded Lucky Spin campaign for your shop in minutes. Hand customers an access code and let them spin to win.",
+      },
     ],
   }),
-  component: Home,
+  component: Landing,
 });
 
-function Home() {
-  const navigate = useNavigate();
-  const validate = useServerFn(validateAccessCode);
-  const [code, setCode] = useState("");
-  const [name, setName] = useState("");
-  const [error, setError] = useState("");
-  const [loading, setLoading] = useState(false);
-  const pressTimer = useRef<number | null>(null);
-
-  const submit = async () => {
-    playClick();
-    const trimmedName = name.trim();
-    if (!trimmedName) {
-      setError("Please enter your name");
-      return;
-    }
-    if (trimmedName.length > 40) {
-      setError("Name is too long");
-      return;
-    }
-    const trimmed = code.trim().toUpperCase();
-    if (!trimmed) {
-      setError("Please enter your access code");
-      return;
-    }
-    if (!/^[A-Z0-9-]+$/.test(trimmed)) {
-      setError("Code can only contain letters, numbers, and dashes");
-      return;
-    }
-    setLoading(true);
-    setError("");
-    try {
-      const res = await validate({ data: { code: trimmed } });
-      if (!res.ok) {
-        setError("This code is invalid or has already been used.");
-        setLoading(false);
-        return;
-      }
-      navigate({ to: "/spin", search: { code: res.code, name: trimmedName } });
-    } catch {
-      setError("Could not verify your code. Please try again.");
-      setLoading(false);
-    }
-  };
-
-  const onPressStart = () => {
-    pressTimer.current = window.setTimeout(() => {
-      navigate({ to: "/admin" });
-    }, 5000);
-  };
-  const onPressEnd = () => {
-    if (pressTimer.current) {
-      clearTimeout(pressTimer.current);
-      pressTimer.current = null;
-    }
-  };
-
+function Landing() {
   return (
-    <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10">
-      <div
-        className="relative animate-pulse-glow rounded-full mb-8"
-        onPointerDown={onPressStart}
-        onPointerUp={onPressEnd}
-        onPointerLeave={onPressEnd}
-        onPointerCancel={onPressEnd}
-      >
-        <img
-          src={LOGO}
-          alt="Mas Mobile Zone"
-          className="w-44 h-44 rounded-full object-cover border-2 border-[var(--gold)]/70"
-          draggable={false}
-        />
-      </div>
+    <div className="min-h-screen flex flex-col items-center px-6 py-12">
+      <header className="w-full max-w-5xl flex items-center justify-between mb-12">
+        <div className="flex items-center gap-2">
+          <img src={DEFAULT_LOGO} alt="" className="w-9 h-9 rounded-full object-cover" />
+          <span className="font-black tracking-widest">LUCKY SPIN</span>
+        </div>
+        <nav className="flex items-center gap-3">
+          <Link
+            to="/auth"
+            className="text-sm px-4 py-2 rounded-lg border border-white/15 hover:border-primary transition"
+          >
+            Sign in
+          </Link>
+          <Link
+            to="/auth"
+            className="text-sm px-4 py-2 rounded-lg gradient-primary text-[#0F1115] font-bold glow-orange"
+          >
+            Create your shop
+          </Link>
+        </nav>
+      </header>
 
-      <h1 className="text-3xl font-black tracking-[0.18em] text-center">MAS MOBILE ZONE</h1>
-      <p className="mt-2 text-sm tracking-[0.32em] text-gold uppercase">Lucky Spin Campaign</p>
-
-      <div className="glass rounded-2xl p-5 mt-10 w-full max-w-sm animate-float-up">
-        <label className="text-xs uppercase tracking-widest text-muted-foreground">Your Name</label>
-        <input
-          value={name}
-          onChange={(e) => { setName(e.target.value); setError(""); }}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Enter your full name"
-          maxLength={40}
-          autoCorrect="off"
-          spellCheck={false}
-          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
-        />
-
-        <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Access Code</label>
-        <input
-          value={code}
-          onChange={(e) => {
-            setCode(e.target.value.toUpperCase());
-            setError("");
-          }}
-          onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Enter your unique access code"
-          maxLength={32}
-          autoCapitalize="characters"
-          autoCorrect="off"
-          spellCheck={false}
-          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base tracking-widest text-center font-mono outline-none focus:border-primary"
-        />
-        {error && <p className="text-destructive text-sm mt-2 text-center">{error}</p>}
-
-        <button
-          onClick={submit}
-          disabled={loading}
-          className="mt-5 w-full gradient-primary text-[#0F1115] font-bold text-lg py-4 rounded-xl glow-orange active:scale-[0.98] transition disabled:opacity-60"
-        >
-          {loading ? "VERIFYING..." : "SUBMIT"}
-        </button>
-        <p className="mt-3 text-[11px] text-muted-foreground text-center">
-          Each code can be used only once.
+      <main className="flex-1 w-full max-w-3xl flex flex-col items-center text-center">
+        <div className="relative animate-pulse-glow rounded-full mb-8">
+          <img
+            src={DEFAULT_LOGO}
+            alt=""
+            className="w-36 h-36 rounded-full object-cover border-2 border-[var(--gold)]/70"
+          />
+        </div>
+        <h1 className="text-4xl md:text-5xl font-black tracking-tight">
+          Run a Lucky Spin campaign for <span className="text-gold">your</span> shop
+        </h1>
+        <p className="mt-5 max-w-xl text-muted-foreground">
+          Create your shop, customize the logo and prizes, generate access codes, and share a single
+          link with customers. They enter their name and code, then spin to win.
         </p>
-      </div>
 
-      <p className="mt-8 text-xs text-muted-foreground/60">Premium retail experience</p>
+        <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+          <Link
+            to="/auth"
+            className="px-6 py-3 rounded-xl gradient-primary text-[#0F1115] font-bold glow-orange"
+          >
+            Get started — it's free
+          </Link>
+          <Link
+            to="/auth"
+            className="px-6 py-3 rounded-xl border border-white/15 hover:border-primary transition"
+          >
+            I already have a shop
+          </Link>
+        </div>
+
+        <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
+          <div className="glass rounded-2xl p-5 text-left">
+            <p className="text-xs uppercase tracking-widest text-gold">1. Set up</p>
+            <p className="mt-2 font-semibold">Brand your spin page</p>
+            <p className="text-sm text-muted-foreground mt-1">Upload your logo, name your shop, pick a URL.</p>
+          </div>
+          <div className="glass rounded-2xl p-5 text-left">
+            <p className="text-xs uppercase tracking-widest text-gold">2. Configure</p>
+            <p className="mt-2 font-semibold">Prizes & access codes</p>
+            <p className="text-sm text-muted-foreground mt-1">Add prizes with photos, set win odds, generate codes to hand out.</p>
+          </div>
+          <div className="glass rounded-2xl p-5 text-left">
+            <p className="text-xs uppercase tracking-widest text-gold">3. Launch</p>
+            <p className="mt-2 font-semibold">Share one link</p>
+            <p className="text-sm text-muted-foreground mt-1">Customers spin, you see every winner in your dashboard.</p>
+          </div>
+        </div>
+      </main>
+
+      <footer className="mt-16 text-xs text-muted-foreground/60">Premium retail experience</footer>
     </div>
   );
 }
