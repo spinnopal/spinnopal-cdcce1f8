@@ -35,7 +35,7 @@ async function isSuperAdmin(ctx: { supabase: any; userId: string }) {
 export const getPublicShop = createServerFn({ method: "GET" })
   .inputValidator(z.object({ slug: slugSchema }).parse)
   .handler(async ({ data }) => {
-    const sb = publicClient();
+    const sb = await publicClient();
     const { data: shop, error } = await sb
       .from("shops")
       .select("id, name, slug, logo_url, is_active")
@@ -49,7 +49,7 @@ export const getPublicShop = createServerFn({ method: "GET" })
 export const getPublicPrizes = createServerFn({ method: "GET" })
   .inputValidator(z.object({ slug: slugSchema }).parse)
   .handler(async ({ data }) => {
-    const sb = publicClient();
+    const sb = await publicClient();
     const { data: shop } = await sb
       .from("shops")
       .select("id")
