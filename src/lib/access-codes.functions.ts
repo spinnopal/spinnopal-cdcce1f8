@@ -12,16 +12,15 @@ const slugSchema = z
 
 const codeChars = z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9-]+$/);
 
-function publicClient() {
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { createClient } = require("@supabase/supabase-js") as typeof import("@supabase/supabase-js");
+async function publicClient() {
+  const { createClient } = await import("@supabase/supabase-js");
   return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
 }
 
 async function shopIdForSlug(slug: string): Promise<string | null> {
-  const sb = publicClient();
+  const sb = await publicClient();
   const { data } = await sb
     .from("shops")
     .select("id")
@@ -119,10 +118,11 @@ export const generateAccessCodes = createServerFn({ method: "POST" })
   .inputValidator(z.object({ shopId: z.string().uuid(), count: z.number().int().min(1).max(500) }).parse)
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const codes = new Set<string>();
     while (codes.size < data.count) codes.add(randomCode());
     const rows = Array.from(codes).map((code) => ({ code, shop_id: data.shopId }));
-    const { data: inserted, error } = await context.supabase
+    const { data: inserted, error } = await supabaseAdmin
       .from("access_codes")
       .insert(rows)
       .select("code");
@@ -135,7 +135,8 @@ export const listAccessCodes = createServerFn({ method: "POST" })
   .inputValidator(z.object({ shopId: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
-    const { data: rows, error } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
       .from("access_codes")
       .select("code, is_used, spun_at, prize_won, customer_name, created_at")
       .eq("shop_id", data.shopId)
@@ -150,7 +151,8 @@ export const deleteUnusedCodes = createServerFn({ method: "POST" })
   .inputValidator(z.object({ shopId: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
-    const { error } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
       .from("access_codes")
       .delete()
       .eq("shop_id", data.shopId)
@@ -164,7 +166,8 @@ export const listSpinRecords = createServerFn({ method: "POST" })
   .inputValidator(z.object({ shopId: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
-    const { data: rows, error } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: rows, error } = await supabaseAdmin
       .from("access_codes")
       .select("code, spun_at, prize_won, customer_name")
       .eq("shop_id", data.shopId)
@@ -180,7 +183,8 @@ export const deleteSpinRecord = createServerFn({ method: "POST" })
   .inputValidator(z.object({ shopId: z.string().uuid(), code: z.string().min(1).max(64) }).parse)
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
-    const { error } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
       .from("access_codes")
       .update({ prize_won: null, customer_name: null, spun_at: null, is_used: false })
       .eq("shop_id", data.shopId)
@@ -194,7 +198,8 @@ export const resetSpinRecords = createServerFn({ method: "POST" })
   .inputValidator(z.object({ shopId: z.string().uuid() }).parse)
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
-    const { error } = await context.supabase
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin
       .from("access_codes")
       .update({ prize_won: null, customer_name: null, spun_at: null, is_used: false })
       .eq("shop_id", data.shopId)
