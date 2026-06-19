@@ -9,24 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as SpinRouteImport } from './routes/spin'
-import { Route as ResultRouteImport } from './routes/result'
-import { Route as AdminRouteImport } from './routes/admin'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as IndexRouteImport } from './routes/index'
+import { Route as SSlugRouteImport } from './routes/s.$slug'
+import { Route as AuthenticatedSuperAdminRouteImport } from './routes/_authenticated/super-admin'
+import { Route as AuthenticatedDashboardRouteImport } from './routes/_authenticated/dashboard'
+import { Route as SSlugSpinRouteImport } from './routes/s.$slug.spin'
+import { Route as SSlugResultRouteImport } from './routes/s.$slug.result'
 
-const SpinRoute = SpinRouteImport.update({
-  id: '/spin',
-  path: '/spin',
+const AuthRoute = AuthRouteImport.update({
+  id: '/auth',
+  path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const ResultRoute = ResultRouteImport.update({
-  id: '/result',
-  path: '/result',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AdminRoute = AdminRouteImport.update({
-  id: '/admin',
-  path: '/admin',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const IndexRoute = IndexRouteImport.update({
@@ -34,62 +32,113 @@ const IndexRoute = IndexRouteImport.update({
   path: '/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const SSlugRoute = SSlugRouteImport.update({
+  id: '/s/$slug',
+  path: '/s/$slug',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AuthenticatedSuperAdminRoute = AuthenticatedSuperAdminRouteImport.update({
+  id: '/super-admin',
+  path: '/super-admin',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedDashboardRoute = AuthenticatedDashboardRouteImport.update({
+  id: '/dashboard',
+  path: '/dashboard',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const SSlugSpinRoute = SSlugSpinRouteImport.update({
+  id: '/spin',
+  path: '/spin',
+  getParentRoute: () => SSlugRoute,
+} as any)
+const SSlugResultRoute = SSlugResultRouteImport.update({
+  id: '/result',
+  path: '/result',
+  getParentRoute: () => SSlugRoute,
+} as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/result': typeof ResultRoute
-  '/spin': typeof SpinRoute
+  '/auth': typeof AuthRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/super-admin': typeof AuthenticatedSuperAdminRoute
+  '/s/$slug': typeof SSlugRouteWithChildren
+  '/s/$slug/result': typeof SSlugResultRoute
+  '/s/$slug/spin': typeof SSlugSpinRoute
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/result': typeof ResultRoute
-  '/spin': typeof SpinRoute
+  '/auth': typeof AuthRoute
+  '/dashboard': typeof AuthenticatedDashboardRoute
+  '/super-admin': typeof AuthenticatedSuperAdminRoute
+  '/s/$slug': typeof SSlugRouteWithChildren
+  '/s/$slug/result': typeof SSlugResultRoute
+  '/s/$slug/spin': typeof SSlugSpinRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
-  '/admin': typeof AdminRoute
-  '/result': typeof ResultRoute
-  '/spin': typeof SpinRoute
+  '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
+  '/auth': typeof AuthRoute
+  '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
+  '/_authenticated/super-admin': typeof AuthenticatedSuperAdminRoute
+  '/s/$slug': typeof SSlugRouteWithChildren
+  '/s/$slug/result': typeof SSlugResultRoute
+  '/s/$slug/spin': typeof SSlugSpinRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
-  fullPaths: '/' | '/admin' | '/result' | '/spin'
+  fullPaths:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/super-admin'
+    | '/s/$slug'
+    | '/s/$slug/result'
+    | '/s/$slug/spin'
   fileRoutesByTo: FileRoutesByTo
-  to: '/' | '/admin' | '/result' | '/spin'
-  id: '__root__' | '/' | '/admin' | '/result' | '/spin'
+  to:
+    | '/'
+    | '/auth'
+    | '/dashboard'
+    | '/super-admin'
+    | '/s/$slug'
+    | '/s/$slug/result'
+    | '/s/$slug/spin'
+  id:
+    | '__root__'
+    | '/'
+    | '/_authenticated'
+    | '/auth'
+    | '/_authenticated/dashboard'
+    | '/_authenticated/super-admin'
+    | '/s/$slug'
+    | '/s/$slug/result'
+    | '/s/$slug/spin'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
-  AdminRoute: typeof AdminRoute
-  ResultRoute: typeof ResultRoute
-  SpinRoute: typeof SpinRoute
+  AuthenticatedRouteRoute: typeof AuthenticatedRouteRouteWithChildren
+  AuthRoute: typeof AuthRoute
+  SSlugRoute: typeof SSlugRouteWithChildren
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/spin': {
-      id: '/spin'
-      path: '/spin'
-      fullPath: '/spin'
-      preLoaderRoute: typeof SpinRouteImport
+    '/auth': {
+      id: '/auth'
+      path: '/auth'
+      fullPath: '/auth'
+      preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/result': {
-      id: '/result'
-      path: '/result'
-      fullPath: '/result'
-      preLoaderRoute: typeof ResultRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/admin': {
-      id: '/admin'
-      path: '/admin'
-      fullPath: '/admin'
-      preLoaderRoute: typeof AdminRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/': {
@@ -99,25 +148,75 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof IndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/s/$slug': {
+      id: '/s/$slug'
+      path: '/s/$slug'
+      fullPath: '/s/$slug'
+      preLoaderRoute: typeof SSlugRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/_authenticated/super-admin': {
+      id: '/_authenticated/super-admin'
+      path: '/super-admin'
+      fullPath: '/super-admin'
+      preLoaderRoute: typeof AuthenticatedSuperAdminRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/dashboard': {
+      id: '/_authenticated/dashboard'
+      path: '/dashboard'
+      fullPath: '/dashboard'
+      preLoaderRoute: typeof AuthenticatedDashboardRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/s/$slug/spin': {
+      id: '/s/$slug/spin'
+      path: '/spin'
+      fullPath: '/s/$slug/spin'
+      preLoaderRoute: typeof SSlugSpinRouteImport
+      parentRoute: typeof SSlugRoute
+    }
+    '/s/$slug/result': {
+      id: '/s/$slug/result'
+      path: '/result'
+      fullPath: '/s/$slug/result'
+      preLoaderRoute: typeof SSlugResultRouteImport
+      parentRoute: typeof SSlugRoute
+    }
   }
 }
 
+interface AuthenticatedRouteRouteChildren {
+  AuthenticatedDashboardRoute: typeof AuthenticatedDashboardRoute
+  AuthenticatedSuperAdminRoute: typeof AuthenticatedSuperAdminRoute
+}
+
+const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedDashboardRoute: AuthenticatedDashboardRoute,
+  AuthenticatedSuperAdminRoute: AuthenticatedSuperAdminRoute,
+}
+
+const AuthenticatedRouteRouteWithChildren =
+  AuthenticatedRouteRoute._addFileChildren(AuthenticatedRouteRouteChildren)
+
+interface SSlugRouteChildren {
+  SSlugResultRoute: typeof SSlugResultRoute
+  SSlugSpinRoute: typeof SSlugSpinRoute
+}
+
+const SSlugRouteChildren: SSlugRouteChildren = {
+  SSlugResultRoute: SSlugResultRoute,
+  SSlugSpinRoute: SSlugSpinRoute,
+}
+
+const SSlugRouteWithChildren = SSlugRoute._addFileChildren(SSlugRouteChildren)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
-  AdminRoute: AdminRoute,
-  ResultRoute: ResultRoute,
-  SpinRoute: SpinRoute,
+  AuthenticatedRouteRoute: AuthenticatedRouteRouteWithChildren,
+  AuthRoute: AuthRoute,
+  SSlugRoute: SSlugRouteWithChildren,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
