@@ -229,3 +229,100 @@ export const claimShop = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
+// ------------ SUPER ADMIN: owner account controls ------------
+
+async function getShopOwnerId(shopId: string): Promise<string | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data } = await supabaseAdmin.from("shops").select("owner_user_id").eq("id", shopId).maybeSingle();
+  return data?.owner_user_id ?? null;
+}
+
+export const sendOwnerPasswordReset = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ shopId: z.string().uuid(), redirectTo: z.string().url().optional() }).parse)
+  .handler(async ({ data, context }) => {
+    if (!(await isSuperAdmin(context))) throw new Error("Forbidden");
+    const ownerId = await getShopOwnerId(data.shopId);
+    if (!ownerId) throw new Error("Shop has no owner");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: u } = await supabaseAdmin.auth.admin.getUserById(ownerId);
+    const email = u.user?.email;
+    if (!email) throw new Error("Owner has no email");
+    const { error } = await supabaseAdmin.auth.resetPasswordForEmail(email, {
+      redirectTo: data.redirectTo,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true, email };
+  });
+
+export const forceSetOwnerPassword = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ shopId: z.string().uuid(), password: z.string().min(8).max(128) }).parse)
+  .handler(async ({ data, context }) => {
+    if (!(await isSuperAdmin(context))) throw new Error("Forbidden");
+    const ownerId = await getShopOwnerId(data.shopId);
+    if (!ownerId) throw new Error("Shop has no owner");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.updateUserById(ownerId, { password: data.password });
+    if (error) throw new Error(error.message);
+    // Also revoke active sessions so the owner must use the new password.
+    await supabaseAdmin.auth.admin.signOut(ownerId, "global").catch(() => {});
+    return { ok: true };
+  });
+
+export const signOutOwner = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ shopId: z.string().uuid() }).parse)
+  .handler(async ({ data, context }) => {
+    if (!(await isSuperAdmin(context))) throw new Error("Forbidden");
+    const ownerId = await getShopOwnerId(data.shopId);
+    if (!ownerId) throw new Error("Shop has no owner");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { error } = await supabaseAdmin.auth.admin.signOut(ownerId, "global");
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+// ------------ SUPER ADMIN: shop details ------------
+
+export const getShopDetails = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ shopId: z.string().uuid() }).parse)
+  .handler(async ({ data, context }) => {
+    if (!(await isSuperAdmin(context))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: shop, error: shopErr } = await supabaseAdmin
+      .from("shops").select("*").eq("id", data.shopId).maybeSingle();
+    if (shopErr) throw new Error(shopErr.message);
+    if (!shop) throw new Error("Not found");
+
+    let owner: { email: string | null; last_sign_in_at: string | null; email_confirmed_at: string | null; created_at: string | null } | null = null;
+    if (shop.owner_user_id) {
+      const { data: u } = await supabaseAdmin.auth.admin.getUserById(shop.owner_user_id);
+      if (u.user) {
+        owner = {
+          email: u.user.email ?? null,
+          last_sign_in_at: u.user.last_sign_in_at ?? null,
+          email_confirmed_at: u.user.email_confirmed_at ?? null,
+          created_at: u.user.created_at ?? null,
+        };
+      }
+    }
+
+    const { data: prizes } = await supabaseAdmin
+      .from("prizes").select("id, name, short, image_url, is_win, probability, sort_order")
+      .eq("shop_id", data.shopId).order("sort_order", { ascending: true });
+
+    const { data: codes } = await supabaseAdmin
+      .from("access_codes").select("code, is_used, customer_name, prize_won, spun_at, created_at")
+      .eq("shop_id", data.shopId).order("created_at", { ascending: false }).limit(500);
+
+    const { data: spins } = await supabaseAdmin
+      .from("access_codes").select("code, customer_name, prize_won, spun_at")
+      .eq("shop_id", data.shopId).not("spun_at", "is", null)
+      .order("spun_at", { ascending: false }).limit(50);
+
+    return { shop, owner, prizes: prizes ?? [], codes: codes ?? [], spins: spins ?? [] };
+  });
+
