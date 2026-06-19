@@ -12,10 +12,9 @@ const slugSchema = z
 
 const nameSchema = z.string().trim().min(1).max(80);
 
-function publicClient() {
+async function publicClient() {
   // Server-side publishable client for anon-readable data during SSR or public fns.
-  // eslint-disable-next-line @typescript-eslint/no-var-requires
-  const { createClient } = require("@supabase/supabase-js") as typeof import("@supabase/supabase-js");
+  const { createClient } = await import("@supabase/supabase-js");
   return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
     auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
   });
@@ -36,7 +35,7 @@ async function isSuperAdmin(ctx: { supabase: any; userId: string }) {
 export const getPublicShop = createServerFn({ method: "GET" })
   .inputValidator(z.object({ slug: slugSchema }).parse)
   .handler(async ({ data }) => {
-    const sb = publicClient();
+    const sb = await publicClient();
     const { data: shop, error } = await sb
       .from("shops")
       .select("id, name, slug, logo_url, is_active")
@@ -50,7 +49,7 @@ export const getPublicShop = createServerFn({ method: "GET" })
 export const getPublicPrizes = createServerFn({ method: "GET" })
   .inputValidator(z.object({ slug: slugSchema }).parse)
   .handler(async ({ data }) => {
-    const sb = publicClient();
+    const sb = await publicClient();
     const { data: shop } = await sb
       .from("shops")
       .select("id")
