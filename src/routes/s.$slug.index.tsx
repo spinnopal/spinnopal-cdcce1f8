@@ -1,13 +1,19 @@
 import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import { getPublicShop } from "@/lib/shops.functions";
 import { validateAccessCode } from "@/lib/access-codes.functions";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 import { playClick } from "@/lib/sounds";
 
+const entrySearch = z.object({
+  code: z.string().min(1).max(64).optional(),
+});
+
 export const Route = createFileRoute("/s/$slug/")({
+  validateSearch: entrySearch,
   head: ({ params }) => ({
     meta: [
       { title: `${params.slug} — Lucky Spin` },
