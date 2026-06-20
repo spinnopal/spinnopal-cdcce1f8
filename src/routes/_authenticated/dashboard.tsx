@@ -18,6 +18,7 @@ import {
   resetSpinRecords,
 } from "@/lib/access-codes.functions";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
+import { QRCodeSVG } from "qrcode.react";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Lucky Spin" }] }),
