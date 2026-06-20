@@ -499,7 +499,7 @@ function RecordsTab({ shop }: { shop: Shop }) {
     return !s || (r.customer_name || "").toLowerCase().includes(s) || (r.prize_won || "").toLowerCase().includes(s) || r.code.toLowerCase().includes(s);
   });
 
-  const exportCsv = () => {
+  const exportCsv = async () => {
     if (rows.length === 0) return alert("No records to export.");
     const data = [["Name", "Code", "Prize", "Date", "Time"]];
     for (const r of rows) {
@@ -513,12 +513,40 @@ function RecordsTab({ shop }: { shop: Shop }) {
       ]);
     }
     const csv = "\ufeff" + data.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
+    const filename = `${shop.slug}-records-${new Date().toISOString().slice(0, 10)}.csv`;
     const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+
+    // 1) Try native share with file (best on iOS/Android).
+    try {
+      const file = new File([blob], filename, { type: "text/csv" });
+      const nav = navigator as Navigator & { canShare?: (d: { files: File[] }) => boolean; share?: (d: { files: File[]; title?: string }) => Promise<void> };
+      if (nav.canShare?.({ files: [file] }) && nav.share) {
+        await nav.share({ files: [file], title: filename });
+        return;
+      }
+    } catch { /* fall through */ }
+
+    // 2) Standard anchor download (desktop + most Android).
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
-    a.href = url; a.download = `${shop.slug}-records-${new Date().toISOString().slice(0, 10)}.csv`;
-    document.body.appendChild(a); a.click();
-    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 100);
+    a.href = url;
+    a.download = filename;
+    a.rel = "noopener";
+    a.target = "_blank";
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 1000);
+
+    // 3) iOS Safari fallback: open data URL so user can "Save to Files".
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) && !("MSStream" in window);
+    if (isIOS) {
+      const reader = new FileReader();
+      reader.onload = () => {
+        const dataUrl = String(reader.result).replace("text/csv", "application/octet-stream");
+        window.location.href = dataUrl;
+      };
+      reader.readAsDataURL(blob);
+    }
   };
 
   return (
