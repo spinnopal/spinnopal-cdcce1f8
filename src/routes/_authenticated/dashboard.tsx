@@ -123,13 +123,13 @@ function Dashboard() {
       </header>
 
       <nav className="flex gap-1 mb-4 overflow-x-auto">
-        {(["prizes", "codes", "records", "stats", "settings"] as const).map((t) => (
+        {(["prizes", "codes", "qr", "records", "stats", "settings"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
             className={`px-3 py-2 rounded-lg text-sm capitalize ${tab === t ? "bg-primary text-[#0F1115] font-bold" : "bg-white/5"}`}
           >
-            {t}
+            {t === "qr" ? "QR Codes" : t}
           </button>
         ))}
       </nav>
@@ -137,6 +137,7 @@ function Dashboard() {
       {tab === "settings" && <SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} />}
       {tab === "prizes" && <PrizesTab shop={shop} />}
       {tab === "codes" && <CodesTab shop={shop} />}
+      {tab === "qr" && <QrTab shop={shop} />}
       {tab === "records" && <RecordsTab shop={shop} />}
       {tab === "stats" && <StatsTab shop={shop} />}
     </div>
