@@ -1,5 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
+import { InstallAppButton } from "@/components/InstallAppButton";
+
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -36,12 +38,14 @@ function Landing() {
           >
             Sign in
           </Link>
+          <InstallAppButton variant="outline" size="sm" />
           <Link
             to="/auth"
             className="text-sm px-4 py-2 rounded-lg gradient-primary text-[#0F1115] font-bold glow-orange"
           >
             Create your shop
           </Link>
+
         </nav>
       </header>
 
@@ -74,7 +78,9 @@ function Landing() {
           >
             I already have a shop
           </Link>
+          <InstallAppButton variant="secondary" size="default" />
         </div>
+
 
         <div className="mt-16 grid grid-cols-1 md:grid-cols-3 gap-4 w-full">
           <div className="glass rounded-2xl p-5 text-left">

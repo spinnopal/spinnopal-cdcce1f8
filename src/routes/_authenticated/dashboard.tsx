@@ -1,6 +1,7 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { InstallAppButton } from "@/components/InstallAppButton";
 import { supabase } from "@/integrations/supabase/client";
 import { listMyShops, updateMyShop, createShop, bootstrapSuperAdmin } from "@/lib/shops.functions";
 import {
@@ -116,7 +117,8 @@ function Dashboard() {
             <p className="font-bold leading-tight">{shop.name}</p>
           </div>
         </div>
-        <div className="flex gap-2 items-center text-xs">
+        <div className="flex gap-2 items-center text-xs flex-wrap">
+          <InstallAppButton variant="outline" size="sm" />
           <Link to="/s/$slug" params={{ slug: shop.slug }} className="px-3 py-2 rounded-lg border border-white/15 hover:border-primary">
             View public page
           </Link>
@@ -127,7 +129,9 @@ function Dashboard() {
           )}
           <button onClick={signOut} className="px-3 py-2 rounded-lg bg-white/5">Sign out</button>
         </div>
+
       </header>
+
 
       <nav className="flex gap-1 mb-4 overflow-x-auto">
         {(["prizes", "codes", "qr", "records", "stats", "settings"] as const).map((t) => (
