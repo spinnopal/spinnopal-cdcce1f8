@@ -1,13 +1,19 @@
 import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
+import { z } from "zod";
 import { getPublicShop } from "@/lib/shops.functions";
 import { validateAccessCode } from "@/lib/access-codes.functions";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 import { playClick } from "@/lib/sounds";
 
+const entrySearch = z.object({
+  code: z.string().min(1).max(64).optional(),
+});
+
 export const Route = createFileRoute("/s/$slug/")({
+  validateSearch: entrySearch,
   head: ({ params }) => ({
     meta: [
       { title: `${params.slug} — Lucky Spin` },
@@ -29,6 +35,7 @@ export const Route = createFileRoute("/s/$slug/")({
 
 function ShopEntry() {
   const { slug } = Route.useParams();
+  const { code: prefillCode } = Route.useSearch();
   const navigate = useNavigate();
   const fetchShop = useServerFn(getPublicShop);
   const validate = useServerFn(validateAccessCode);
@@ -38,10 +45,14 @@ function ShopEntry() {
     queryFn: async () => (await fetchShop({ data: { slug } })).shop,
   });
 
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(prefillCode?.toUpperCase() ?? "");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (prefillCode) setCode(prefillCode.toUpperCase());
+  }, [prefillCode]);
 
   if (shopQuery.isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
