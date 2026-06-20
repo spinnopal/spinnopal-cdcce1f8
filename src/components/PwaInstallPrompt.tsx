@@ -1,88 +1,38 @@
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { X, Download } from "lucide-react";
-
-interface BeforeInstallPromptEvent extends Event {
-  readonly platforms: string[];
-  readonly userChoice: Promise<{ outcome: "accepted" | "dismissed"; platform: string }>;
-  prompt(): Promise<void>;
-}
+import { usePwaInstall } from "@/hooks/use-pwa-install";
 
 const STORAGE_KEY = "mas-spin-install-prompt-dismissed";
 
-function isPreviewOrDev() {
-  if (typeof window === "undefined") return true;
-  const host = window.location.hostname;
-  return (
-    host === "localhost" ||
-    host.startsWith("id-preview--") ||
-    host.startsWith("preview--") ||
-    host === "lovableproject.com" ||
-    host.endsWith(".lovableproject.com") ||
-    host === "lovableproject-dev.com" ||
-    host.endsWith(".lovableproject-dev.com") ||
-    host === "beta.lovable.dev" ||
-    host.endsWith(".beta.lovable.dev") ||
-    window.location.search.includes("sw=off") ||
-    window.self !== window.top
-  );
-}
-
-function isStandalone() {
-  if (typeof window === "undefined") return false;
-  return (
-    window.matchMedia("(display-mode: standalone)").matches ||
-    (window.navigator as { standalone?: boolean }).standalone === true
-  );
-}
-
 export function PwaInstallPrompt() {
-  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
+  const { deferredPrompt, canInstall, isIOS, hidden } = usePwaInstall();
   const [dismissed, setDismissed] = useState(false);
   const [visible, setVisible] = useState(false);
-  const [isIOS, setIsIOS] = useState(false);
 
   useEffect(() => {
-    if (isPreviewOrDev()) return;
-    if (isStandalone()) return;
-
+    if (hidden) return;
     try {
       const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored === "1") {
-        setDismissed(true);
-      }
+      if (stored === "1") setDismissed(true);
     } catch {
       // ignore storage errors
     }
+  }, [hidden]);
 
-    const iOS =
-      /iPad|iPhone|iPod/.test(navigator.userAgent) &&
-      !(window as { MSStream?: unknown }).MSStream;
-    setIsIOS(iOS);
+  // Auto-show the floating banner as soon as the browser signals installability.
+  useEffect(() => {
+    if (hidden || dismissed) return;
+    if (deferredPrompt || isIOS) setVisible(true);
+  }, [deferredPrompt, isIOS, hidden, dismissed]);
 
-    const handler = (event: Event) => {
-      event.preventDefault();
-      setDeferredPrompt(event as BeforeInstallPromptEvent);
-      setVisible(true);
-    };
-
-    window.addEventListener("beforeinstallprompt", handler);
-
-    return () => {
-      window.removeEventListener("beforeinstallprompt", handler);
-    };
-  }, []);
-
-  if (dismissed || (!visible && !isIOS)) return null;
+  if (hidden || dismissed || !visible) return null;
 
   const handleInstall = async () => {
     if (!deferredPrompt) return;
     await deferredPrompt.prompt();
     const choice = await deferredPrompt.userChoice;
-    if (choice.outcome === "accepted") {
-      setVisible(false);
-    }
-    setDeferredPrompt(null);
+    if (choice.outcome === "accepted") setVisible(false);
   };
 
   const handleDismiss = () => {
