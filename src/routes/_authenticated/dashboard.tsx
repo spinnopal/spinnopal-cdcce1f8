@@ -134,12 +134,12 @@ function Dashboard() {
         ))}
       </nav>
 
-      {tab === "settings" && <SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} />}
-      {tab === "prizes" && <PrizesTab shop={shop} />}
-      {tab === "codes" && <CodesTab shop={shop} />}
-      {tab === "qr" && <QrTab shop={shop} />}
-      {tab === "records" && <RecordsTab shop={shop} />}
-      {tab === "stats" && <StatsTab shop={shop} />}
+      <TabMount active={tab === "settings"}><SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} /></TabMount>
+      <TabMount active={tab === "prizes"}><PrizesTab shop={shop} /></TabMount>
+      <TabMount active={tab === "codes"}><CodesTab shop={shop} /></TabMount>
+      <TabMount active={tab === "qr"}><QrTab shop={shop} /></TabMount>
+      <TabMount active={tab === "records"}><RecordsTab shop={shop} /></TabMount>
+      <TabMount active={tab === "stats"}><StatsTab shop={shop} /></TabMount>
     </div>
   );
 }
