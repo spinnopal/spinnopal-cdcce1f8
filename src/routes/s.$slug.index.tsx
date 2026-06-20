@@ -45,10 +45,14 @@ function ShopEntry() {
     queryFn: async () => (await fetchShop({ data: { slug } })).shop,
   });
 
-  const [code, setCode] = useState("");
+  const [code, setCode] = useState(prefillCode?.toUpperCase() ?? "");
   const [name, setName] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    if (prefillCode) setCode(prefillCode.toUpperCase());
+  }, [prefillCode]);
 
   if (shopQuery.isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
