@@ -5,7 +5,7 @@ import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import confetti from "canvas-confetti";
 import { toast } from "sonner";
-import { WhatsApp, Copy } from "lucide-react";
+import { Copy } from "lucide-react";
 import { usePrizesBySlug } from "@/lib/prizes-hook";
 import { getPublicShop } from "@/lib/shops.functions";
 import { playClick } from "@/lib/sounds";
