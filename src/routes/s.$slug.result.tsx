@@ -1,9 +1,11 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
 import { z } from "zod";
 import { useQuery } from "@tanstack/react-query";
 import { useServerFn } from "@tanstack/react-start";
 import confetti from "canvas-confetti";
+import { toast } from "sonner";
+import { Copy } from "lucide-react";
 import { usePrizesBySlug } from "@/lib/prizes-hook";
 import { getPublicShop } from "@/lib/shops.functions";
 import { playClick } from "@/lib/sounds";
@@ -30,6 +32,30 @@ function ResultPage() {
     queryFn: async () => (await fetchShop({ data: { slug } })).shop,
   });
   const p = prizes.find((x) => x.id === pid);
+  const [copied, setCopied] = useState(false);
+
+  const summary =
+    p?.isWin
+      ? `🎉 I just won ${p.name} on Mas Spin! Claim code: ${code}. Play at ${typeof window !== "undefined" ? window.location.href : ""}`
+      : `I spun the wheel on Mas Spin. Code: ${code}. Try your luck too!`;
+
+  const shareToWhatsApp = () => {
+    playClick();
+    const url = `https://wa.me/?text=${encodeURIComponent(summary)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+  };
+
+  const copySummary = async () => {
+    playClick();
+    try {
+      await navigator.clipboard.writeText(summary);
+      setCopied(true);
+      toast.success("Summary copied to clipboard");
+      setTimeout(() => setCopied(false), 2000);
+    } catch {
+      toast.error("Could not copy summary");
+    }
+  };
 
   useEffect(() => {
     if (p?.isWin) {
@@ -69,6 +95,29 @@ function ResultPage() {
         >
           Done
         </button>
+
+        {p.isWin && (
+          <div className="mt-4 flex gap-3 justify-center max-w-sm mx-auto">
+            <button
+              onClick={shareToWhatsApp}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-foreground font-semibold transition-colors"
+              aria-label="Share to WhatsApp"
+            >
+              <svg viewBox="0 0 24 24" className="w-5 h-5 fill-current" aria-hidden="true">
+                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075a8.058 8.058 0 0 1-2.356-1.458 8.84 8.84 0 0 1-1.639-2.03c-.173-.297-.018-.458.13-.607.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.36 7.829h-.004c-1.054 0-2.088-.288-2.99-.821l-.214-.128-2.221.582.594-2.166-.139-.222a6.224 6.224 0 0 1-1.158-3.644c0-3.431 2.79-6.22 6.22-6.22 1.662 0 3.225.648 4.4 1.824a6.196 6.196 0 0 1 1.824 4.4c0 3.431-2.79 6.22-6.222 6.22M12 2C6.477 2 2 6.477 2 12c0 1.89.53 3.668 1.453 5.182L2 22l5.026-1.31A9.973 9.973 0 0 0 12 22c5.523 0 10-4.477 10-10S17.523 2 12 2"/>
+              </svg>
+              WhatsApp
+            </button>
+            <button
+              onClick={copySummary}
+              className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl border border-white/20 bg-white/5 hover:bg-white/10 text-foreground font-semibold transition-colors"
+              aria-label="Copy summary"
+            >
+              <Copy className="w-5 h-5" />
+              {copied ? "Copied" : "Copy"}
+            </button>
+          </div>
+        )}
       </div>
     </div>
   );
