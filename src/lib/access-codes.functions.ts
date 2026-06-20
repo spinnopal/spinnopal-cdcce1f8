@@ -81,25 +81,68 @@ export const consumeAccessCode = createServerFn({ method: "POST" })
     return { ok: true as const };
   });
 
-export const recordPrizeForCode = createServerFn({ method: "POST" })
+// Atomic: consume the code, pick a winner server-side, and record the prize.
+// Replaces the old client-driven consume + pick + record flow that allowed
+// clients to spoof which prize was recorded.
+export const spinAndRecord = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
       slug: slugSchema,
       code: codeChars,
-      prize: z.string().trim().min(1).max(100),
       name: z.string().trim().min(1).max(60).optional(),
     }).parse,
   )
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const shopId = await shopIdForSlug(data.slug);
-    if (!shopId) return { ok: false };
-    await supabaseAdmin
+    if (!shopId) return { ok: false as const, reason: "shop" as const };
+    const normalized = data.code.toUpperCase();
+
+    // 1) Atomically consume the access code (only if currently unused).
+    const { data: consumed, error: consumeErr } = await supabaseAdmin
       .from("access_codes")
-      .update({ prize_won: data.prize, customer_name: data.name ?? null })
+      .update({ is_used: true, spun_at: new Date().toISOString() })
       .eq("shop_id", shopId)
-      .eq("code", data.code.toUpperCase());
-    return { ok: true };
+      .eq("code", normalized)
+      .eq("is_used", false)
+      .select("code")
+      .maybeSingle();
+    if (consumeErr) throw new Error("Server error");
+    if (!consumed) return { ok: false as const, reason: "invalid" as const };
+
+    // 2) Server-side weighted random pick from this shop's prizes.
+    const { data: prizes, error: prizesErr } = await supabaseAdmin
+      .from("prizes")
+      .select("id, name, short, image_url, is_win, probability, sort_order")
+      .eq("shop_id", shopId)
+      .order("sort_order", { ascending: true });
+    if (prizesErr) throw new Error("Server error");
+    const items = prizes ?? [];
+    if (items.length === 0) throw new Error("No prizes configured");
+    const pool = items.filter((p) => (p.probability ?? 0) > 0);
+    const cand = pool.length > 0 ? pool : items;
+    const total = cand.reduce((s, p) => s + (p.probability || 1), 0) || 1;
+    const buf = new Uint32Array(1);
+    crypto.getRandomValues(buf);
+    let r = (buf[0] / 0xffffffff) * total;
+    let winner = cand[0];
+    for (const p of cand) {
+      r -= p.probability || 1;
+      if (r <= 0) { winner = p; break; }
+    }
+
+    // 3) Record the server-picked prize. Client never supplies the prize name.
+    const { error: recordErr } = await supabaseAdmin
+      .from("access_codes")
+      .update({
+        prize_won: String(winner.name).slice(0, 100),
+        customer_name: data.name ?? null,
+      })
+      .eq("shop_id", shopId)
+      .eq("code", normalized);
+    if (recordErr) throw new Error("Server error");
+
+    return { ok: true as const, prize: winner };
   });
 
 // ---------- AUTH (shop owner) ----------

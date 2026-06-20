@@ -5,8 +5,7 @@ import { z } from "zod";
 import { SpinWheel } from "@/components/SpinWheel";
 import type { Prize } from "@/lib/spin-store";
 import { usePrizesBySlug } from "@/lib/prizes-hook";
-import { consumeAccessCode, recordPrizeForCode } from "@/lib/access-codes.functions";
-import { pickWinnerForSlug } from "@/lib/prizes.functions";
+import { spinAndRecord } from "@/lib/access-codes.functions";
 import { playClick } from "@/lib/sounds";
 
 const search = z.object({
@@ -25,9 +24,7 @@ function SpinPage() {
   const { code, name } = Route.useSearch();
   const navigate = useNavigate();
   const { prizes, isLoading } = usePrizesBySlug(slug);
-  const consume = useServerFn(consumeAccessCode);
-  const pickWinner = useServerFn(pickWinnerForSlug);
-  const record = useServerFn(recordPrizeForCode);
+  const spin = useServerFn(spinAndRecord);
   const [spinning, setSpinning] = useState(false);
   const [target, setTarget] = useState<number | null>(null);
   const [done, setDone] = useState(false);
@@ -39,23 +36,22 @@ function SpinPage() {
     setError("");
     setSpinning(true);
     try {
-      const res = await consume({ data: { slug, code } });
-      if (!res.ok) { setSpinning(false); setError("This code is invalid or has already been used."); return; }
-    } catch { setSpinning(false); setError("Could not verify your code. Please try again."); return; }
-
-    let winnerId: string;
-    try {
-      const w = await pickWinner({ data: { slug } });
-      winnerId = w.id;
-    } catch { setSpinning(false); setError("Could not pick a prize. Please try again."); return; }
-
-    const idx = prizes.findIndex((p) => p.id === winnerId);
-    setTarget(idx >= 0 ? idx : 0);
+      const res = await spin({ data: { slug, code, name: name?.trim() || undefined } });
+      if (!res.ok) {
+        setSpinning(false);
+        setError("This code is invalid or has already been used.");
+        return;
+      }
+      const idx = prizes.findIndex((p) => p.id === res.prize.id);
+      setTarget(idx >= 0 ? idx : 0);
+    } catch {
+      setSpinning(false);
+      setError("Could not complete your spin. Please try again.");
+    }
   };
 
   const handleComplete = (prize: Prize) => {
     setDone(true);
-    record({ data: { slug, code, prize: prize.name.slice(0, 100), name: name?.trim() || undefined } }).catch(() => {});
     setTimeout(() => {
       navigate({ to: "/s/$slug/result", params: { slug }, search: { code, pid: prize.id } });
     }, 600);
