@@ -57,7 +57,7 @@ const slugRe = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 const autoSlug = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
 
-function TabMount({ active, children }: { active: boolean; children: React.ReactNode }) {
+function TabMount({ active, children }: { active: boolean; children: ReactNode }) {
   const [mounted, setMounted] = useState(active);
   useEffect(() => { if (active) setMounted(true); }, [active]);
   if (!mounted) return null;
