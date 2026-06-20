@@ -67,7 +67,7 @@ function Dashboard() {
   const [shop, setShop] = useState<Shop | null>(null);
   const [superAdmin, setSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"prizes" | "codes" | "records" | "stats" | "settings">("settings");
+  const [tab, setTab] = useState<"prizes" | "codes" | "qr" | "records" | "stats" | "settings">("settings");
 
   const loadShop = useCallback(async () => {
     setLoading(true);
