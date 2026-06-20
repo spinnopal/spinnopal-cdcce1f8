@@ -35,6 +35,7 @@ export const Route = createFileRoute("/s/$slug/")({
 
 function ShopEntry() {
   const { slug } = Route.useParams();
+  const { code: prefillCode } = Route.useSearch();
   const navigate = useNavigate();
   const fetchShop = useServerFn(getPublicShop);
   const validate = useServerFn(validateAccessCode);
