@@ -608,11 +608,15 @@ function QrTab({ shop }: { shop: Shop }) {
   return (
     <div className="space-y-4">
       <style>{`@media print {
+        @page { margin: 12mm; }
         body * { visibility: hidden; }
         #qr-print, #qr-print * { visibility: visible; }
-        #qr-print { position: absolute; left: 0; top: 0; width: 100%; background: white !important; color: black !important; padding: 16px; }
+        #qr-print { position: absolute; left: 0; top: 0; width: 100%; background: white !important; color: black !important; padding: 0; }
         .no-print { display: none !important; }
-        .qr-card { break-inside: avoid; border: 1px solid #ddd !important; background: white !important; color: black !important; }
+        .qr-card { break-inside: avoid; page-break-inside: avoid; border: 1px solid #ddd !important; background: white !important; color: black !important; padding: 20px !important; }
+        .qr-grid { gap: 24px !important; grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+        .qr-code svg { width: 170px !important; height: 170px !important; }
+        .shop-qr svg { width: 240px !important; height: 240px !important; }
       }`}</style>
 
       <div className="glass rounded-2xl p-4 no-print space-y-2">
@@ -630,31 +634,31 @@ function QrTab({ shop }: { shop: Shop }) {
         </div>
       </div>
 
-      <div id="qr-print" className="space-y-4">
+      <div id="qr-print" className="space-y-6">
         <div className="qr-card glass rounded-2xl p-6 flex flex-col items-center text-center">
           <p className="text-xs uppercase tracking-widest text-gold">Shop QR — scan to spin</p>
           <h2 className="text-2xl font-black mt-1">{shop.name}</h2>
-          <div className="mt-4 p-3 bg-white rounded-xl">
-            <QRCodeSVG value={shopUrl} size={220} level="M" includeMargin={false} />
+          <div className="qr-code mt-4 p-4 bg-white rounded-xl">
+            <QRCodeSVG value={shopUrl} size={240} level="M" includeMargin={false} />
           </div>
           <p className="mt-3 text-xs break-all opacity-80">{shopUrl}</p>
           <p className="mt-2 text-[11px] opacity-70">Point your phone camera at the code to open the spin page.</p>
         </div>
 
         <div>
-          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-2 no-print">Per-code QRs ({list.length})</p>
+          <p className="text-xs uppercase tracking-widest text-muted-foreground mb-3 no-print">Per-code QRs ({list.length})</p>
           {list.length === 0 ? (
             <p className="text-sm text-muted-foreground no-print">No codes to show. Generate codes in the Codes tab first.</p>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
+            <div className="qr-grid grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
               {list.map((r) => (
-                <div key={r.code} className="qr-card glass rounded-xl p-3 flex flex-col items-center text-center">
-                  <div className="p-2 bg-white rounded-lg">
-                    <QRCodeSVG value={codeUrl(r.code)} size={120} level="M" includeMargin={false} />
+                <div key={r.code} className="qr-card glass rounded-xl p-5 flex flex-col items-center text-center">
+                  <div className="qr-code p-3 bg-white rounded-lg">
+                    <QRCodeSVG value={codeUrl(r.code)} size={170} level="M" includeMargin={false} />
                   </div>
-                  <p className="mt-2 font-mono text-xs tracking-widest break-all">{r.code}</p>
-                  <p className="text-[10px] opacity-70">{shop.name}</p>
-                  {r.is_used && <p className="text-[10px] text-destructive no-print">used</p>}
+                  <p className="mt-3 font-mono text-sm tracking-widest break-all">{r.code}</p>
+                  <p className="text-xs opacity-70">{shop.name}</p>
+                  {r.is_used && <p className="text-xs text-destructive no-print">used</p>}
                 </div>
               ))}
             </div>
