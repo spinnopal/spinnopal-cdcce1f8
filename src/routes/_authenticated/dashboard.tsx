@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { listMyShops, updateMyShop, createShop, bootstrapSuperAdmin } from "@/lib/shops.functions";
@@ -56,6 +56,13 @@ type CodeRow = {
 const slugRe = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 const autoSlug = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
+
+function TabMount({ active, children }: { active: boolean; children: ReactNode }) {
+  const [mounted, setMounted] = useState(active);
+  useEffect(() => { if (active) setMounted(true); }, [active]);
+  if (!mounted) return null;
+  return <div style={{ display: active ? undefined : "none" }}>{children}</div>;
+}
 
 function Dashboard() {
   const navigate = useNavigate();
@@ -134,12 +141,12 @@ function Dashboard() {
         ))}
       </nav>
 
-      {tab === "settings" && <SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} />}
-      {tab === "prizes" && <PrizesTab shop={shop} />}
-      {tab === "codes" && <CodesTab shop={shop} />}
-      {tab === "qr" && <QrTab shop={shop} />}
-      {tab === "records" && <RecordsTab shop={shop} />}
-      {tab === "stats" && <StatsTab shop={shop} />}
+      <TabMount active={tab === "settings"}><SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} /></TabMount>
+      <TabMount active={tab === "prizes"}><PrizesTab shop={shop} /></TabMount>
+      <TabMount active={tab === "codes"}><CodesTab shop={shop} /></TabMount>
+      <TabMount active={tab === "qr"}><QrTab shop={shop} /></TabMount>
+      <TabMount active={tab === "records"}><RecordsTab shop={shop} /></TabMount>
+      <TabMount active={tab === "stats"}><StatsTab shop={shop} /></TabMount>
     </div>
   );
 }
