@@ -3,6 +3,7 @@ import { useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { supabase } from "@/integrations/supabase/client";
 import { createShop, listMyShops } from "@/lib/shops.functions";
+import { isValidEmail } from "@/lib/validation";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 
 export const Route = createFileRoute("/auth")({
@@ -45,6 +46,9 @@ function AuthPage() {
     setError("");
     setLoading(true);
     try {
+      if (!isValidEmail(email)) throw new Error("Please enter a valid email address");
+      if (!password || password.length < 6) throw new Error("Password must be at least 6 characters");
+
       if (mode === "signup") {
         const desiredSlug = slug || autoSlug(shopName);
         if (!shopName.trim()) throw new Error("Shop name is required");
@@ -70,7 +74,7 @@ function AuthPage() {
           setMode("signin");
           return;
         }
-        await create({ data: { name: shopName.trim(), slug: desiredSlug } });
+        await create({ data: { name: shopName.trim(), slug: desiredSlug, email } });
         navigate({ to: "/dashboard" });
       } else {
         const { error: e1 } = await supabase.auth.signInWithPassword({ email, password });
