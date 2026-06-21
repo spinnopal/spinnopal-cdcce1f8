@@ -200,7 +200,19 @@ function AuthPage() {
           </button>
         </div>
 
+        {mode === "signin" && (
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            disabled={resetLoading}
+            className="text-xs text-primary hover:underline self-end disabled:opacity-60"
+          >
+            {resetLoading ? "Sending…" : "Forgot password?"}
+          </button>
+        )}
+
         {error && <p className="text-destructive text-sm">{error}</p>}
+        {info && <p className="text-sm text-emerald-400">{info}</p>}
 
         <button
           type="submit"
