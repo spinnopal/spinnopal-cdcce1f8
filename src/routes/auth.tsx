@@ -29,7 +29,30 @@ function AuthPage() {
   const [shopName, setShopName] = useState("");
   const [slug, setSlug] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const onForgotPassword = async () => {
+    setError("");
+    setInfo("");
+    if (!isValidEmail(email)) {
+      setError("Enter your email above, then tap Forgot password");
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (err) throw err;
+      setInfo("Password reset email sent. Check your inbox.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send reset email");
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   // No auto-redirect on mount: it caused a race where a cached session
   // would navigate the user to /dashboard mid-keystroke, making it feel
