@@ -29,7 +29,30 @@ function AuthPage() {
   const [shopName, setShopName] = useState("");
   const [slug, setSlug] = useState("");
   const [error, setError] = useState("");
+  const [info, setInfo] = useState("");
   const [loading, setLoading] = useState(false);
+  const [resetLoading, setResetLoading] = useState(false);
+
+  const onForgotPassword = async () => {
+    setError("");
+    setInfo("");
+    if (!isValidEmail(email)) {
+      setError("Enter your email above, then tap Forgot password");
+      return;
+    }
+    setResetLoading(true);
+    try {
+      const { error: err } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}/reset-password`,
+      });
+      if (err) throw err;
+      setInfo("Password reset email sent. Check your inbox.");
+    } catch (err) {
+      setError(err instanceof Error ? err.message : "Could not send reset email");
+    } finally {
+      setResetLoading(false);
+    }
+  };
 
   // No auto-redirect on mount: it caused a race where a cached session
   // would navigate the user to /dashboard mid-keystroke, making it feel
@@ -46,6 +69,7 @@ function AuthPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setInfo("");
     setLoading(true);
     try {
       if (!isValidEmail(email)) throw new Error("Please enter a valid email address");
@@ -177,7 +201,19 @@ function AuthPage() {
           </button>
         </div>
 
+        {mode === "signin" && (
+          <button
+            type="button"
+            onClick={onForgotPassword}
+            disabled={resetLoading}
+            className="text-xs text-primary hover:underline self-end disabled:opacity-60"
+          >
+            {resetLoading ? "Sending…" : "Forgot password?"}
+          </button>
+        )}
+
         {error && <p className="text-destructive text-sm">{error}</p>}
+        {info && <p className="text-sm text-emerald-400">{info}</p>}
 
         <button
           type="submit"
