@@ -74,7 +74,7 @@ function AuthPage() {
           setMode("signin");
           return;
         }
-        await create({ data: { name: shopName.trim(), slug: desiredSlug } });
+        await create({ data: { name: shopName.trim(), slug: desiredSlug, email } });
         navigate({ to: "/dashboard" });
       } else {
         const { error: e1 } = await supabase.auth.signInWithPassword({ email, password });
