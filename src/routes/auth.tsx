@@ -46,6 +46,9 @@ function AuthPage() {
     setError("");
     setLoading(true);
     try {
+      if (!isValidEmail(email)) throw new Error("Please enter a valid email address");
+      if (!password || password.length < 6) throw new Error("Password must be at least 6 characters");
+
       if (mode === "signup") {
         const desiredSlug = slug || autoSlug(shopName);
         if (!shopName.trim()) throw new Error("Shop name is required");
