@@ -93,8 +93,8 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:site", content: "@Lovable" },
       { name: "twitter:title", content: "spin the luck" },
       { name: "twitter:description", content: "Spin the luck is a premium Android app for retail campaigns." },
-      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3a5398bc-1883-4147-9841-df6fa5e25b1e" },
-      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/3a5398bc-1883-4147-9841-df6fa5e25b1e" },
+      { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2ec05fa8-7ef3-4484-8784-ed06a106fa88" },
+      { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/attachments/og-images/2ec05fa8-7ef3-4484-8784-ed06a106fa88" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
