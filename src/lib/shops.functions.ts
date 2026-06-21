@@ -85,7 +85,7 @@ export const listMyShops = createServerFn({ method: "GET" })
 
 export const createShop = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ name: nameSchema, slug: slugSchema }).parse)
+  .inputValidator(z.object({ name: nameSchema, slug: slugSchema, email: emailSchema.optional() }).parse)
   .handler(async ({ data, context }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: existing } = await supabaseAdmin
