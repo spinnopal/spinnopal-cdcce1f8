@@ -69,6 +69,7 @@ function AuthPage() {
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError("");
+    setInfo("");
     setLoading(true);
     try {
       if (!isValidEmail(email)) throw new Error("Please enter a valid email address");
