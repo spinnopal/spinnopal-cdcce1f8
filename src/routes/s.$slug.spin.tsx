@@ -11,6 +11,8 @@ import { playClick } from "@/lib/sounds";
 const search = z.object({
   code: z.string().min(1).max(64),
   name: z.string().min(1).max(40).optional(),
+  contact: z.string().min(1).max(30).optional(),
+  email: z.string().min(1).max(255).optional(),
 });
 
 export const Route = createFileRoute("/s/$slug/spin")({
