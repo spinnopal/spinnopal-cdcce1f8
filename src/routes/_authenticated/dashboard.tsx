@@ -592,6 +592,12 @@ function RecordsTab({ shop }: { shop: Shop }) {
               <span className="text-gold">{r.prize_won}</span>
               <span className="font-mono">{r.code}</span>
             </div>
+            {(r.customer_contact || r.customer_email) && (
+              <div className="text-xs text-muted-foreground mt-1">
+                {r.customer_contact && <span className="mr-3">{r.customer_contact}</span>}
+                {r.customer_email && <span>{r.customer_email}</span>}
+              </div>
+            )}
             <button onClick={async () => { if (confirm("Delete this record?")) { await doDel({ data: { shopId: shop.id, code: r.code } }); load(); } }} className="text-[11px] text-destructive mt-1">Delete</button>
           </div>
         ))}
