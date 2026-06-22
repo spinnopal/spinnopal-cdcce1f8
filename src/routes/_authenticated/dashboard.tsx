@@ -500,7 +500,7 @@ function RecordsTab({ shop }: { shop: Shop }) {
 
   const filtered = rows.filter((r) => {
     const s = q.toLowerCase();
-    return !s || (r.customer_name || "").toLowerCase().includes(s) || (r.prize_won || "").toLowerCase().includes(s) || r.code.toLowerCase().includes(s);
+    return !s || (r.customer_name || "").toLowerCase().includes(s) || (r.customer_contact || "").toLowerCase().includes(s) || (r.customer_email || "").toLowerCase().includes(s) || (r.prize_won || "").toLowerCase().includes(s) || r.code.toLowerCase().includes(s);
   });
 
   const exportCsv = async () => {
