@@ -76,6 +76,10 @@ function ShopEntry() {
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) return setError("Please enter your access code");
     if (!/^[A-Z0-9-]+$/.test(trimmed)) return setError("Code can only contain letters, numbers, dashes");
+    const trimmedContact = contact.trim();
+    if (trimmedContact && !phoneRe.test(trimmedContact)) return setError("Please enter a valid contact number");
+    const trimmedEmail = email.trim();
+    if (trimmedEmail && !emailRe.test(trimmedEmail)) return setError("Please enter a valid email address");
     setLoading(true);
     setError("");
     try {
@@ -85,7 +89,16 @@ function ShopEntry() {
         setLoading(false);
         return;
       }
-      navigate({ to: "/s/$slug/spin", params: { slug }, search: { code: res.code, name: trimmedName } });
+      navigate({
+        to: "/s/$slug/spin",
+        params: { slug },
+        search: {
+          code: res.code,
+          name: trimmedName,
+          ...(trimmedContact ? { contact: trimmedContact } : {}),
+          ...(trimmedEmail ? { email: trimmedEmail } : {}),
+        },
+      });
     } catch {
       setError("Could not verify your code. Please try again.");
       setLoading(false);
