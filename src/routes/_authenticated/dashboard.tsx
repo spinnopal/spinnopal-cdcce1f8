@@ -505,11 +505,13 @@ function RecordsTab({ shop }: { shop: Shop }) {
 
   const exportCsv = async () => {
     if (rows.length === 0) return alert("No records to export.");
-    const data = [["Name", "Code", "Prize", "Date", "Time"]];
+    const data = [["Name", "Contact", "Email", "Code", "Prize", "Date", "Time"]];
     for (const r of rows) {
       const d = r.spun_at ? new Date(r.spun_at) : null;
       data.push([
         (r.customer_name || "").replace(/"/g, '""'),
+        (r.customer_contact || "").replace(/"/g, '""'),
+        (r.customer_email || "").replace(/"/g, '""'),
         r.code,
         (r.prize_won || "").replace(/"/g, '""'),
         d ? d.toLocaleDateString() : "",
