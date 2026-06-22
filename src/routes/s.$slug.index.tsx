@@ -12,6 +12,9 @@ const entrySearch = z.object({
   code: z.string().min(1).max(64).optional(),
 });
 
+const phoneRe = /^[+\d][\d\s\-()]{4,29}$/;
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const Route = createFileRoute("/s/$slug/")({
   validateSearch: entrySearch,
   head: ({ params }) => ({
@@ -47,6 +50,8 @@ function ShopEntry() {
 
   const [code, setCode] = useState(prefillCode?.toUpperCase() ?? "");
   const [name, setName] = useState("");
+  const [contact, setContact] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -71,6 +76,10 @@ function ShopEntry() {
     const trimmed = code.trim().toUpperCase();
     if (!trimmed) return setError("Please enter your access code");
     if (!/^[A-Z0-9-]+$/.test(trimmed)) return setError("Code can only contain letters, numbers, dashes");
+    const trimmedContact = contact.trim();
+    if (trimmedContact && !phoneRe.test(trimmedContact)) return setError("Please enter a valid contact number");
+    const trimmedEmail = email.trim();
+    if (trimmedEmail && !emailRe.test(trimmedEmail)) return setError("Please enter a valid email address");
     setLoading(true);
     setError("");
     try {
@@ -80,7 +89,16 @@ function ShopEntry() {
         setLoading(false);
         return;
       }
-      navigate({ to: "/s/$slug/spin", params: { slug }, search: { code: res.code, name: trimmedName } });
+      navigate({
+        to: "/s/$slug/spin",
+        params: { slug },
+        search: {
+          code: res.code,
+          name: trimmedName,
+          ...(trimmedContact ? { contact: trimmedContact } : {}),
+          ...(trimmedEmail ? { email: trimmedEmail } : {}),
+        },
+      });
     } catch {
       setError("Could not verify your code. Please try again.");
       setLoading(false);
@@ -110,6 +128,33 @@ function ShopEntry() {
           maxLength={40}
           className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
         />
+
+        <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Contact Number</label>
+        <input
+          value={contact}
+          onChange={(e) => { setContact(e.target.value); setError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder="Enter your contact number"
+          inputMode="tel"
+          maxLength={30}
+          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
+        />
+
+        <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Email Address</label>
+        <input
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder="Enter your email address"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          maxLength={255}
+          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
+        />
+
+
 
         <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Access Code</label>
         <input

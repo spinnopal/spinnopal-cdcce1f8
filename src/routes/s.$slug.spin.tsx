@@ -11,6 +11,8 @@ import { playClick } from "@/lib/sounds";
 const search = z.object({
   code: z.string().min(1).max(64),
   name: z.string().min(1).max(40).optional(),
+  contact: z.string().min(1).max(30).optional(),
+  email: z.string().min(1).max(255).optional(),
 });
 
 export const Route = createFileRoute("/s/$slug/spin")({
@@ -21,7 +23,7 @@ export const Route = createFileRoute("/s/$slug/spin")({
 
 function SpinPage() {
   const { slug } = Route.useParams();
-  const { code, name } = Route.useSearch();
+  const { code, name, contact, email } = Route.useSearch();
   const navigate = useNavigate();
   const { prizes, isLoading } = usePrizesBySlug(slug);
   const spin = useServerFn(spinAndRecord);
@@ -36,7 +38,7 @@ function SpinPage() {
     setError("");
     setSpinning(true);
     try {
-      const res = await spin({ data: { slug, code, name: name?.trim() || undefined } });
+      const res = await spin({ data: { slug, code, name: name?.trim() || undefined, contact: contact?.trim() || undefined, email: email?.trim() || undefined } });
       if (!res.ok) {
         setSpinning(false);
         setError("This code is invalid or has already been used.");

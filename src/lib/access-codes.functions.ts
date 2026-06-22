@@ -90,6 +90,8 @@ export const spinAndRecord = createServerFn({ method: "POST" })
       slug: slugSchema,
       code: codeChars,
       name: z.string().trim().min(1).max(60).optional(),
+      contact: z.union([z.string().trim().min(5).max(30).regex(/^[+\d][\d\s\-()]{4,29}$/), z.literal("")]).optional(),
+      email: z.union([z.string().trim().toLowerCase().email().max(255), z.literal("")]).optional(),
     }).parse,
   )
   .handler(async ({ data }) => {
@@ -137,6 +139,8 @@ export const spinAndRecord = createServerFn({ method: "POST" })
       .update({
         prize_won: String(winner.name).slice(0, 100),
         customer_name: data.name ?? null,
+        customer_contact: data.contact ? data.contact : null,
+        customer_email: data.email ? data.email : null,
       })
       .eq("shop_id", shopId)
       .eq("code", normalized);
@@ -181,7 +185,7 @@ export const listAccessCodes = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("access_codes")
-      .select("code, is_used, spun_at, prize_won, customer_name, created_at")
+      .select("code, is_used, spun_at, prize_won, customer_name, customer_contact, customer_email, created_at")
       .eq("shop_id", data.shopId)
       .order("created_at", { ascending: false })
       .limit(1000);
@@ -212,7 +216,7 @@ export const listSpinRecords = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("access_codes")
-      .select("code, spun_at, prize_won, customer_name")
+      .select("code, spun_at, prize_won, customer_name, customer_contact, customer_email")
       .eq("shop_id", data.shopId)
       .not("prize_won", "is", null)
       .order("spun_at", { ascending: false })
