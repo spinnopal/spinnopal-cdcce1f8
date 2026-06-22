@@ -328,11 +328,11 @@ export const getShopDetails = createServerFn({ method: "GET" })
       .eq("shop_id", data.shopId).order("sort_order", { ascending: true });
 
     const { data: codes } = await supabaseAdmin
-      .from("access_codes").select("code, is_used, customer_name, prize_won, spun_at, created_at")
+      .from("access_codes").select("code, is_used, customer_name, customer_contact, customer_email, prize_won, spun_at, created_at")
       .eq("shop_id", data.shopId).order("created_at", { ascending: false }).limit(500);
 
     const { data: spins } = await supabaseAdmin
-      .from("access_codes").select("code, customer_name, prize_won, spun_at")
+      .from("access_codes").select("code, customer_name, customer_contact, customer_email, prize_won, spun_at")
       .eq("shop_id", data.shopId).not("spun_at", "is", null)
       .order("spun_at", { ascending: false }).limit(50);
 
