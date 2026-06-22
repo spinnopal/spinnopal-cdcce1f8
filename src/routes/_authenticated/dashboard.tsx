@@ -483,7 +483,7 @@ function CodesTab({ shop }: { shop: Shop }) {
 }
 
 // ---------- RECORDS ----------
-type RecordRow = { code: string; spun_at: string | null; prize_won: string | null; customer_name: string | null };
+type RecordRow = { code: string; spun_at: string | null; prize_won: string | null; customer_name: string | null; customer_contact: string | null; customer_email: string | null };
 
 function RecordsTab({ shop }: { shop: Shop }) {
   const fetchRecords = useServerFn(listSpinRecords);
