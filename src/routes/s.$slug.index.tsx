@@ -12,6 +12,9 @@ const entrySearch = z.object({
   code: z.string().min(1).max(64).optional(),
 });
 
+const phoneRe = /^[+\d][\d\s\-()]{4,29}$/;
+const emailRe = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export const Route = createFileRoute("/s/$slug/")({
   validateSearch: entrySearch,
   head: ({ params }) => ({
