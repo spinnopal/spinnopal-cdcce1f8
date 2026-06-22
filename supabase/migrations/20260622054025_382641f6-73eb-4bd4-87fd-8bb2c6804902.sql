@@ -1,0 +1,1 @@
+ALTER TABLE public.access_codes ADD COLUMN IF NOT EXISTS customer_contact TEXT, ADD COLUMN IF NOT EXISTS customer_email TEXT;

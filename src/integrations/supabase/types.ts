@@ -18,6 +18,8 @@ export type Database = {
         Row: {
           code: string
           created_at: string
+          customer_contact: string | null
+          customer_email: string | null
           customer_name: string | null
           is_used: boolean
           prize_won: string | null
@@ -27,6 +29,8 @@ export type Database = {
         Insert: {
           code: string
           created_at?: string
+          customer_contact?: string | null
+          customer_email?: string | null
           customer_name?: string | null
           is_used?: boolean
           prize_won?: string | null
@@ -36,6 +40,8 @@ export type Database = {
         Update: {
           code?: string
           created_at?: string
+          customer_contact?: string | null
+          customer_email?: string | null
           customer_name?: string | null
           is_used?: boolean
           prize_won?: string | null
