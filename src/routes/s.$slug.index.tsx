@@ -127,6 +127,8 @@ function ShopEntry() {
           placeholder="Enter your full name"
           maxLength={40}
           className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
+        />
+
         <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Contact Number</label>
         <input
           value={contact}
@@ -151,7 +153,7 @@ function ShopEntry() {
           maxLength={255}
           className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
         />
-        />
+
 
 
         <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Access Code</label>
