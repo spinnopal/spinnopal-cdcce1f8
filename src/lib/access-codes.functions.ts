@@ -90,6 +90,8 @@ export const spinAndRecord = createServerFn({ method: "POST" })
       slug: slugSchema,
       code: codeChars,
       name: z.string().trim().min(1).max(60).optional(),
+      contact: z.union([z.string().trim().min(5).max(30).regex(/^[+\d][\d\s\-()]{4,29}$/), z.literal("")]).optional(),
+      email: z.union([z.string().trim().toLowerCase().email().max(255), z.literal("")]).optional(),
     }).parse,
   )
   .handler(async ({ data }) => {
