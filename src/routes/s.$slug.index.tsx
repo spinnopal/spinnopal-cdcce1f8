@@ -127,7 +127,32 @@ function ShopEntry() {
           placeholder="Enter your full name"
           maxLength={40}
           className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
+        <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Contact Number</label>
+        <input
+          value={contact}
+          onChange={(e) => { setContact(e.target.value); setError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder="Enter your contact number"
+          inputMode="tel"
+          maxLength={30}
+          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
         />
+
+        <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Email Address</label>
+        <input
+          value={email}
+          onChange={(e) => { setEmail(e.target.value); setError(""); }}
+          onKeyDown={(e) => e.key === "Enter" && submit()}
+          placeholder="Enter your email address"
+          inputMode="email"
+          autoCapitalize="none"
+          autoCorrect="off"
+          spellCheck={false}
+          maxLength={255}
+          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
+        />
+        />
+
 
         <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Access Code</label>
         <input
