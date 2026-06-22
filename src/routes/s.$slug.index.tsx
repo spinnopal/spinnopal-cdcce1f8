@@ -50,6 +50,8 @@ function ShopEntry() {
 
   const [code, setCode] = useState(prefillCode?.toUpperCase() ?? "");
   const [name, setName] = useState("");
+  const [contact, setContact] = useState("");
+  const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
 
