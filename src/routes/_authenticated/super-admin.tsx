@@ -237,13 +237,15 @@ function SuperAdminPage() {
                   <div className="max-h-56 overflow-auto rounded-lg border border-white/10">
                     <table className="w-full text-xs">
                       <thead className="bg-white/5 text-left">
-                        <tr><th className="p-2">When</th><th className="p-2">Customer</th><th className="p-2">Code</th><th className="p-2">Prize</th></tr>
+                        <tr><th className="p-2">When</th><th className="p-2">Customer</th><th className="p-2">Contact</th><th className="p-2">Email</th><th className="p-2">Code</th><th className="p-2">Prize</th></tr>
                       </thead>
                       <tbody>
                         {details.spins.map((s) => (
                           <tr key={s.code} className="border-t border-white/5">
                             <td className="p-2 whitespace-nowrap">{fmt(s.spun_at)}</td>
                             <td className="p-2">{s.customer_name ?? "—"}</td>
+                            <td className="p-2">{s.customer_contact ?? "—"}</td>
+                            <td className="p-2">{s.customer_email ?? "—"}</td>
                             <td className="p-2 font-mono">{s.code}</td>
                             <td className="p-2">{s.prize_won ?? "—"}</td>
                           </tr>
@@ -258,7 +260,7 @@ function SuperAdminPage() {
                   <div className="max-h-56 overflow-auto rounded-lg border border-white/10">
                     <table className="w-full text-xs">
                       <thead className="bg-white/5 text-left">
-                        <tr><th className="p-2">Code</th><th className="p-2">Used</th><th className="p-2">Customer</th><th className="p-2">Prize</th><th className="p-2">Created</th></tr>
+                        <tr><th className="p-2">Code</th><th className="p-2">Used</th><th className="p-2">Customer</th><th className="p-2">Contact</th><th className="p-2">Email</th><th className="p-2">Prize</th><th className="p-2">Created</th></tr>
                       </thead>
                       <tbody>
                         {details.codes.map((c) => (
@@ -266,6 +268,8 @@ function SuperAdminPage() {
                             <td className="p-2 font-mono">{c.code}</td>
                             <td className="p-2">{c.is_used ? <span className="text-emerald-400">yes</span> : <span className="text-muted-foreground">no</span>}</td>
                             <td className="p-2">{c.customer_name ?? "—"}</td>
+                            <td className="p-2">{c.customer_contact ?? "—"}</td>
+                            <td className="p-2">{c.customer_email ?? "—"}</td>
                             <td className="p-2">{c.prize_won ?? "—"}</td>
                             <td className="p-2 whitespace-nowrap">{new Date(c.created_at).toLocaleDateString()}</td>
                           </tr>

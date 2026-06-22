@@ -483,7 +483,7 @@ function CodesTab({ shop }: { shop: Shop }) {
 }
 
 // ---------- RECORDS ----------
-type RecordRow = { code: string; spun_at: string | null; prize_won: string | null; customer_name: string | null };
+type RecordRow = { code: string; spun_at: string | null; prize_won: string | null; customer_name: string | null; customer_contact: string | null; customer_email: string | null };
 
 function RecordsTab({ shop }: { shop: Shop }) {
   const fetchRecords = useServerFn(listSpinRecords);
@@ -500,16 +500,18 @@ function RecordsTab({ shop }: { shop: Shop }) {
 
   const filtered = rows.filter((r) => {
     const s = q.toLowerCase();
-    return !s || (r.customer_name || "").toLowerCase().includes(s) || (r.prize_won || "").toLowerCase().includes(s) || r.code.toLowerCase().includes(s);
+    return !s || (r.customer_name || "").toLowerCase().includes(s) || (r.customer_contact || "").toLowerCase().includes(s) || (r.customer_email || "").toLowerCase().includes(s) || (r.prize_won || "").toLowerCase().includes(s) || r.code.toLowerCase().includes(s);
   });
 
   const exportCsv = async () => {
     if (rows.length === 0) return alert("No records to export.");
-    const data = [["Name", "Code", "Prize", "Date", "Time"]];
+    const data = [["Name", "Contact", "Email", "Code", "Prize", "Date", "Time"]];
     for (const r of rows) {
       const d = r.spun_at ? new Date(r.spun_at) : null;
       data.push([
         (r.customer_name || "").replace(/"/g, '""'),
+        (r.customer_contact || "").replace(/"/g, '""'),
+        (r.customer_email || "").replace(/"/g, '""'),
         r.code,
         (r.prize_won || "").replace(/"/g, '""'),
         d ? d.toLocaleDateString() : "",
@@ -574,7 +576,7 @@ function RecordsTab({ shop }: { shop: Shop }) {
   return (
     <div className="space-y-3">
       <div className="flex gap-2 items-center">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name / code / prize" className="flex-1 bg-[#0F1115]/70 border border-white/10 rounded-lg px-3 py-2 outline-none" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name / contact / email / code / prize" className="flex-1 bg-[#0F1115]/70 border border-white/10 rounded-lg px-3 py-2 outline-none" />
         <button onClick={exportCsv} className="px-3 py-2 rounded-lg bg-white/5 text-sm">Export CSV</button>
         <button onClick={async () => { if (confirm("Reset all spin records?")) { await doReset({ data: { shopId: shop.id } }); load(); } }} className="px-3 py-2 rounded-lg bg-destructive/20 text-destructive text-sm">Reset all</button>
       </div>
@@ -590,6 +592,12 @@ function RecordsTab({ shop }: { shop: Shop }) {
               <span className="text-gold">{r.prize_won}</span>
               <span className="font-mono">{r.code}</span>
             </div>
+            {(r.customer_contact || r.customer_email) && (
+              <div className="text-xs text-muted-foreground mt-1">
+                {r.customer_contact && <span className="mr-3">{r.customer_contact}</span>}
+                {r.customer_email && <span>{r.customer_email}</span>}
+              </div>
+            )}
             <button onClick={async () => { if (confirm("Delete this record?")) { await doDel({ data: { shopId: shop.id, code: r.code } }); load(); } }} className="text-[11px] text-destructive mt-1">Delete</button>
           </div>
         ))}
