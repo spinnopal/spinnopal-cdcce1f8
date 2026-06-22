@@ -23,7 +23,7 @@ export const Route = createFileRoute("/s/$slug/spin")({
 
 function SpinPage() {
   const { slug } = Route.useParams();
-  const { code, name } = Route.useSearch();
+  const { code, name, contact, email } = Route.useSearch();
   const navigate = useNavigate();
   const { prizes, isLoading } = usePrizesBySlug(slug);
   const spin = useServerFn(spinAndRecord);
