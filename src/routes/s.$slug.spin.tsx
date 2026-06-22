@@ -38,7 +38,7 @@ function SpinPage() {
     setError("");
     setSpinning(true);
     try {
-      const res = await spin({ data: { slug, code, name: name?.trim() || undefined } });
+      const res = await spin({ data: { slug, code, name: name?.trim() || undefined, contact: contact?.trim() || undefined, email: email?.trim() || undefined } });
       if (!res.ok) {
         setSpinning(false);
         setError("This code is invalid or has already been used.");
