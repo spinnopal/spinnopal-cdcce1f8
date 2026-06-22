@@ -185,7 +185,7 @@ export const listAccessCodes = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("access_codes")
-      .select("code, is_used, spun_at, prize_won, customer_name, created_at")
+      .select("code, is_used, spun_at, prize_won, customer_name, customer_contact, customer_email, created_at")
       .eq("shop_id", data.shopId)
       .order("created_at", { ascending: false })
       .limit(1000);
