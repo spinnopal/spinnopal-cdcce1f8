@@ -216,7 +216,7 @@ export const listSpinRecords = createServerFn({ method: "POST" })
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const { data: rows, error } = await supabaseAdmin
       .from("access_codes")
-      .select("code, spun_at, prize_won, customer_name")
+      .select("code, spun_at, prize_won, customer_name, customer_contact, customer_email")
       .eq("shop_id", data.shopId)
       .not("prize_won", "is", null)
       .order("spun_at", { ascending: false })
