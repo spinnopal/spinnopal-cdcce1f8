@@ -139,6 +139,8 @@ export const spinAndRecord = createServerFn({ method: "POST" })
       .update({
         prize_won: String(winner.name).slice(0, 100),
         customer_name: data.name ?? null,
+        customer_contact: data.contact ? data.contact : null,
+        customer_email: data.email ? data.email : null,
       })
       .eq("shop_id", shopId)
       .eq("code", normalized);
