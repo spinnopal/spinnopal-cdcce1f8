@@ -20,6 +20,7 @@ import {
 } from "@/lib/access-codes.functions";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 import { QRCodeSVG } from "qrcode.react";
+import { MessagingTab } from "@/components/MessagingTab";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
   head: () => ({ meta: [{ title: "Dashboard — Lucky Spin" }] }),
@@ -75,7 +76,7 @@ function Dashboard() {
   const [shop, setShop] = useState<Shop | null>(null);
   const [superAdmin, setSuperAdmin] = useState(false);
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"prizes" | "codes" | "qr" | "records" | "stats" | "settings">("settings");
+  const [tab, setTab] = useState<"prizes" | "codes" | "qr" | "records" | "messages" | "stats" | "settings">("settings");
 
   const loadShop = useCallback(async () => {
     setLoading(true);
@@ -134,7 +135,7 @@ function Dashboard() {
 
 
       <nav className="flex gap-1 mb-4 overflow-x-auto">
-        {(["prizes", "codes", "qr", "records", "stats", "settings"] as const).map((t) => (
+        {(["prizes", "codes", "qr", "records", "messages", "stats", "settings"] as const).map((t) => (
           <button
             key={t}
             onClick={() => setTab(t)}
@@ -150,6 +151,7 @@ function Dashboard() {
       <TabMount active={tab === "codes"}><CodesTab shop={shop} /></TabMount>
       <TabMount active={tab === "qr"}><QrTab shop={shop} /></TabMount>
       <TabMount active={tab === "records"}><RecordsTab shop={shop} /></TabMount>
+      <TabMount active={tab === "messages"}><MessagingTab shop={shop} /></TabMount>
       <TabMount active={tab === "stats"}><StatsTab shop={shop} /></TabMount>
     </div>
   );
