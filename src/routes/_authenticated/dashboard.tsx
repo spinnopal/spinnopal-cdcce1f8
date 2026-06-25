@@ -133,6 +133,10 @@ function Dashboard() {
 
       </header>
 
+      <SubscriptionBanner />
+
+
+
 
       <nav className="flex gap-1 mb-4 overflow-x-auto">
         {(["prizes", "codes", "qr", "records", "messages", "stats", "settings"] as const).map((t) => (
