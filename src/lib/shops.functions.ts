@@ -40,13 +40,23 @@ export const getPublicShop = createServerFn({ method: "GET" })
     const sb = await publicClient();
     const { data: shop, error } = await sb
       .from("shops")
-      .select("id, name, slug, logo_url, is_active")
+      .select("id, name, slug, logo_url, is_active, subscription_status, trial_ends_at, current_period_end")
       .eq("slug", data.slug)
       .maybeSingle();
     if (error) throw new Error("Server error");
     if (!shop || !shop.is_active) return { shop: null as null };
+    // Hide shop when subscription is suspended or trial/period expired
+    const now = Date.now();
+    const status = shop.subscription_status as string;
+    const trialEnd = shop.trial_ends_at ? new Date(shop.trial_ends_at).getTime() : null;
+    const periodEnd = shop.current_period_end ? new Date(shop.current_period_end).getTime() : null;
+    if (status === "suspended") return { shop: null as null };
+    if (status === "trial" && trialEnd && trialEnd < now) return { shop: null as null };
+    if (status === "active" && periodEnd && periodEnd < now) return { shop: null as null };
+    if (status === "past_due" && periodEnd && periodEnd < now) return { shop: null as null };
     return { shop };
   });
+
 
 export const getPublicPrizes = createServerFn({ method: "GET" })
   .inputValidator(z.object({ slug: slugSchema }).parse)
