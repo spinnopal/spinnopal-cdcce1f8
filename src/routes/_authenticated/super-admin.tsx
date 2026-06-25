@@ -56,6 +56,10 @@ function SuperAdminPage() {
   const doForcePw = useServerFn(forceSetOwnerPassword);
   const doSignOut = useServerFn(signOutOwner);
   const fetchDetails = useServerFn(getShopDetails);
+  const doUpdateSub = useServerFn(updateShopSubscription);
+  const doExtend = useServerFn(extendShopPeriod);
+  const doRecordPayment = useServerFn(recordShopPayment);
+
 
   const [shops, setShops] = useState<EnrichedShop[]>([]);
   const [err, setErr] = useState("");
