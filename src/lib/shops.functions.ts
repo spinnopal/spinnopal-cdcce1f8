@@ -380,7 +380,7 @@ export const updateShopSubscription = createServerFn({ method: "POST" })
     // Mirror suspension into is_active so public page hides shop immediately
     if (data.subscription_status === "suspended") patch.is_active = false;
     if (data.subscription_status === "active" || data.subscription_status === "trial") patch.is_active = true;
-    const { error } = await supabaseAdmin.from("shops").update(patch).eq("id", data.shopId);
+    const { error } = await supabaseAdmin.from("shops").update(patch as never).eq("id", data.shopId);
     if (error) throw new Error(error.message);
     return { ok: true };
   });
