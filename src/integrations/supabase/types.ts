@@ -119,35 +119,107 @@ export type Database = {
           },
         ]
       }
+      shop_payments: {
+        Row: {
+          amount: number
+          created_at: string
+          currency: string
+          id: string
+          method: string | null
+          notes: string | null
+          period_end: string | null
+          period_start: string | null
+          recorded_by: string | null
+          reference: string | null
+          shop_id: string
+        }
+        Insert: {
+          amount: number
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          recorded_by?: string | null
+          reference?: string | null
+          shop_id: string
+        }
+        Update: {
+          amount?: number
+          created_at?: string
+          currency?: string
+          id?: string
+          method?: string | null
+          notes?: string | null
+          period_end?: string | null
+          period_start?: string | null
+          recorded_by?: string | null
+          reference?: string | null
+          shop_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "shop_payments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "shop_payments_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       shops: {
         Row: {
+          billing_notes: string | null
           created_at: string
+          current_period_end: string | null
           id: string
           is_active: boolean
           logo_url: string | null
           name: string
           owner_user_id: string | null
+          plan: Database["public"]["Enums"]["shop_plan"]
           slug: string
+          subscription_status: Database["public"]["Enums"]["shop_sub_status"]
+          trial_ends_at: string | null
           updated_at: string
         }
         Insert: {
+          billing_notes?: string | null
           created_at?: string
+          current_period_end?: string | null
           id?: string
           is_active?: boolean
           logo_url?: string | null
           name: string
           owner_user_id?: string | null
+          plan?: Database["public"]["Enums"]["shop_plan"]
           slug: string
+          subscription_status?: Database["public"]["Enums"]["shop_sub_status"]
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Update: {
+          billing_notes?: string | null
           created_at?: string
+          current_period_end?: string | null
           id?: string
           is_active?: boolean
           logo_url?: string | null
           name?: string
           owner_user_id?: string | null
+          plan?: Database["public"]["Enums"]["shop_plan"]
           slug?: string
+          subscription_status?: Database["public"]["Enums"]["shop_sub_status"]
+          trial_ends_at?: string | null
           updated_at?: string
         }
         Relationships: []
@@ -211,6 +283,8 @@ export type Database = {
     }
     Enums: {
       app_role: "super_admin"
+      shop_plan: "free" | "pro" | "lifetime"
+      shop_sub_status: "trial" | "active" | "past_due" | "suspended"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -339,6 +413,8 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["super_admin"],
+      shop_plan: ["free", "pro", "lifetime"],
+      shop_sub_status: ["trial", "active", "past_due", "suspended"],
     },
   },
 } as const

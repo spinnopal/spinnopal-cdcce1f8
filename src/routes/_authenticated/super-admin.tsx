@@ -10,7 +10,11 @@ import {
   forceSetOwnerPassword,
   signOutOwner,
   getShopDetails,
+  updateShopSubscription,
+  extendShopPeriod,
+  recordShopPayment,
 } from "@/lib/shops.functions";
+
 
 export const Route = createFileRoute("/_authenticated/super-admin")({
   head: () => ({ meta: [{ title: "Super admin — Lucky Spin" }] }),
@@ -30,7 +34,12 @@ type EnrichedShop = {
   owner_email_confirmed_at: string | null;
   codes_count: number;
   spins_count: number;
+  plan: "free" | "pro" | "lifetime";
+  subscription_status: "trial" | "active" | "past_due" | "suspended";
+  trial_ends_at: string | null;
+  current_period_end: string | null;
 };
+
 
 type ShopDetails = Awaited<ReturnType<typeof getShopDetails>>;
 
@@ -47,6 +56,10 @@ function SuperAdminPage() {
   const doForcePw = useServerFn(forceSetOwnerPassword);
   const doSignOut = useServerFn(signOutOwner);
   const fetchDetails = useServerFn(getShopDetails);
+  const doUpdateSub = useServerFn(updateShopSubscription);
+  const doExtend = useServerFn(extendShopPeriod);
+  const doRecordPayment = useServerFn(recordShopPayment);
+
 
   const [shops, setShops] = useState<EnrichedShop[]>([]);
   const [err, setErr] = useState("");
@@ -129,6 +142,19 @@ function SuperAdminPage() {
                     {s.codes_count} codes · {s.spins_count} spins ·{" "}
                     {s.is_active ? <span className="text-emerald-400">active</span> : <span className="text-destructive">suspended</span>}
                   </p>
+                  <p className="text-xs mt-1">
+                    <span className="px-1.5 py-0.5 rounded bg-white/10 uppercase font-bold mr-1">{s.plan}</span>
+                    <span className={
+                      s.subscription_status === "active" ? "text-emerald-400" :
+                      s.subscription_status === "trial" ? "text-amber-300" :
+                      s.subscription_status === "past_due" ? "text-orange-400" : "text-destructive"
+                    }>{s.subscription_status}</span>
+                    {s.current_period_end && <span className="text-muted-foreground"> · renews {new Date(s.current_period_end).toLocaleDateString()}</span>}
+                    {!s.current_period_end && s.trial_ends_at && s.subscription_status === "trial" && (
+                      <span className="text-muted-foreground"> · trial ends {new Date(s.trial_ends_at).toLocaleDateString()}</span>
+                    )}
+                  </p>
+
                 </div>
               </div>
               <div className="flex gap-1 flex-wrap text-xs">
@@ -215,6 +241,29 @@ function SuperAdminPage() {
                   <p className="text-[11px] text-muted-foreground mt-2">Passwords are stored as one-way hashes and cannot be viewed. Use the actions on the row to send a reset email or force-set a new password.</p>
                 </section>
 
+                <SubscriptionSection
+                  shop={details.shop as any}
+                  payments={(details as any).payments ?? []}
+                  busy={busy}
+                  onUpdate={async (patch) => {
+                    await run(`sub${details.shop.id}`, () => doUpdateSub({ data: { shopId: details.shop.id, ...patch } }), "Subscription updated");
+                    const d = await fetchDetails({ data: { shopId: details.shop.id } });
+                    setDetails(d); load();
+                  }}
+                  onExtend={async (months) => {
+                    await run(`ext${details.shop.id}`, () => doExtend({ data: { shopId: details.shop.id, months } }), `Extended by ${months} month(s)`);
+                    const d = await fetchDetails({ data: { shopId: details.shop.id } });
+                    setDetails(d); load();
+                  }}
+                  onRecordPayment={async (p) => {
+                    await run(`pay${details.shop.id}`, () => doRecordPayment({ data: { shopId: details.shop.id, ...p } }), "Payment recorded");
+                    const d = await fetchDetails({ data: { shopId: details.shop.id } });
+                    setDetails(d); load();
+                  }}
+                />
+
+
+
                 <section>
                   <h3 className="font-bold mb-2">Prizes ({details.prizes.length})</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
@@ -286,3 +335,139 @@ function SuperAdminPage() {
     </div>
   );
 }
+
+type SubShop = {
+  id: string;
+  plan: "free" | "pro" | "lifetime";
+  subscription_status: "trial" | "active" | "past_due" | "suspended";
+  trial_ends_at: string | null;
+  current_period_end: string | null;
+  billing_notes: string | null;
+};
+
+type SubPayment = {
+  amount: number;
+  currency: string;
+  method: string | null;
+  reference: string | null;
+  period_start: string | null;
+  period_end: string | null;
+  notes: string | null;
+  created_at: string;
+};
+
+type SubPatch = {
+  plan?: "free" | "pro" | "lifetime";
+  subscription_status?: "trial" | "active" | "past_due" | "suspended";
+  current_period_end?: string | null;
+  trial_ends_at?: string | null;
+  billing_notes?: string | null;
+};
+
+type PayInput = {
+  amount: number;
+  currency: string;
+  method?: string;
+  reference?: string;
+  months?: number;
+  notes?: string;
+};
+
+function SubscriptionSection({
+  shop, payments, busy, onUpdate, onExtend, onRecordPayment,
+}: {
+  shop: SubShop;
+  payments: SubPayment[];
+  busy: string | null;
+  onUpdate: (patch: SubPatch) => Promise<void>;
+  onExtend: (months: number) => Promise<void>;
+  onRecordPayment: (p: PayInput) => Promise<void>;
+}) {
+  const [plan, setPlan] = useState<SubShop["plan"]>(shop.plan);
+  const [status, setStatus] = useState<SubShop["subscription_status"]>(shop.subscription_status);
+  const [notes, setNotes] = useState(shop.billing_notes ?? "");
+  const [amount, setAmount] = useState("");
+  const [currency, setCurrency] = useState("NPR");
+  const [method, setMethod] = useState("eSewa");
+  const [reference, setReference] = useState("");
+  const [months, setMonths] = useState("1");
+  const [payNotes, setPayNotes] = useState("");
+
+  return (
+    <section>
+      <h3 className="font-bold mb-2">Subscription & billing</h3>
+      <div className="rounded-lg bg-white/5 p-3 space-y-3 text-xs">
+        <div className="grid grid-cols-2 gap-2">
+          <label className="space-y-1">
+            <span className="text-muted-foreground">Plan</span>
+            <select value={plan} onChange={(e) => setPlan(e.target.value as SubShop["plan"])} className="w-full bg-[#0F1115] border border-white/10 rounded px-2 py-1">
+              <option value="free">free</option><option value="pro">pro</option><option value="lifetime">lifetime</option>
+            </select>
+          </label>
+          <label className="space-y-1">
+            <span className="text-muted-foreground">Status</span>
+            <select value={status} onChange={(e) => setStatus(e.target.value as SubShop["subscription_status"])} className="w-full bg-[#0F1115] border border-white/10 rounded px-2 py-1">
+              <option value="trial">trial</option><option value="active">active</option><option value="past_due">past_due</option><option value="suspended">suspended</option>
+            </select>
+          </label>
+        </div>
+        <div className="text-muted-foreground">
+          {shop.current_period_end ? <>Period ends: <span className="text-foreground">{new Date(shop.current_period_end).toLocaleString()}</span></> :
+           shop.trial_ends_at ? <>Trial ends: <span className="text-foreground">{new Date(shop.trial_ends_at).toLocaleString()}</span></> : "No end date set"}
+        </div>
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Internal billing notes" className="w-full bg-[#0F1115] border border-white/10 rounded px-2 py-1 min-h-[60px]" />
+        <div className="flex gap-2 flex-wrap">
+          <button disabled={busy === `sub${shop.id}`} onClick={() => onUpdate({ plan, subscription_status: status, billing_notes: notes })} className="px-3 py-1.5 rounded bg-primary text-[#0F1115] font-bold">Save</button>
+          <button disabled={busy === `ext${shop.id}`} onClick={() => onExtend(1)} className="px-3 py-1.5 rounded bg-white/10">+1 month</button>
+          <button disabled={busy === `ext${shop.id}`} onClick={() => onExtend(3)} className="px-3 py-1.5 rounded bg-white/10">+3 months</button>
+          <button disabled={busy === `ext${shop.id}`} onClick={() => onExtend(12)} className="px-3 py-1.5 rounded bg-white/10">+12 months</button>
+        </div>
+
+        <div className="pt-3 border-t border-white/10">
+          <p className="font-bold mb-2">Record a payment</p>
+          <div className="grid grid-cols-2 gap-2">
+            <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" inputMode="decimal" className="bg-[#0F1115] border border-white/10 rounded px-2 py-1" />
+            <input value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder="NPR" className="bg-[#0F1115] border border-white/10 rounded px-2 py-1" />
+            <input value={method} onChange={(e) => setMethod(e.target.value)} placeholder="eSewa / Khalti / Bank" className="bg-[#0F1115] border border-white/10 rounded px-2 py-1" />
+            <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference / txn id" className="bg-[#0F1115] border border-white/10 rounded px-2 py-1" />
+            <input value={months} onChange={(e) => setMonths(e.target.value)} placeholder="Months to extend" inputMode="numeric" className="bg-[#0F1115] border border-white/10 rounded px-2 py-1" />
+            <input value={payNotes} onChange={(e) => setPayNotes(e.target.value)} placeholder="Notes" className="bg-[#0F1115] border border-white/10 rounded px-2 py-1" />
+          </div>
+          <button
+            disabled={busy === `pay${shop.id}` || !amount}
+            onClick={() => onRecordPayment({
+              amount: Number(amount),
+              currency: currency || "NPR",
+              method: method || undefined,
+              reference: reference || undefined,
+              months: months ? Number(months) : 0,
+              notes: payNotes || undefined,
+            })}
+            className="mt-2 px-3 py-1.5 rounded bg-primary text-[#0F1115] font-bold disabled:opacity-50"
+          >Record payment</button>
+        </div>
+
+        {payments.length > 0 && (
+          <div className="pt-3 border-t border-white/10">
+            <p className="font-bold mb-2">Recent payments</p>
+            <table className="w-full text-xs">
+              <thead className="text-left text-muted-foreground"><tr><th className="py-1">Date</th><th>Amount</th><th>Method</th><th>Ref</th><th>Covers</th></tr></thead>
+              <tbody>
+                {payments.map((p, i) => (
+                  <tr key={i} className="border-t border-white/5">
+                    <td className="py-1">{new Date(p.created_at).toLocaleDateString()}</td>
+                    <td>{p.currency} {Number(p.amount).toLocaleString()}</td>
+                    <td>{p.method ?? "—"}</td>
+                    <td className="font-mono truncate max-w-[100px]">{p.reference ?? "—"}</td>
+                    <td>{p.period_end ? new Date(p.period_end).toLocaleDateString() : "—"}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </section>
+  );
+}
+

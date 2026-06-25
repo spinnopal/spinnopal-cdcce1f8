@@ -40,13 +40,23 @@ export const getPublicShop = createServerFn({ method: "GET" })
     const sb = await publicClient();
     const { data: shop, error } = await sb
       .from("shops")
-      .select("id, name, slug, logo_url, is_active")
+      .select("id, name, slug, logo_url, is_active, subscription_status, trial_ends_at, current_period_end")
       .eq("slug", data.slug)
       .maybeSingle();
     if (error) throw new Error("Server error");
     if (!shop || !shop.is_active) return { shop: null as null };
+    // Hide shop when subscription is suspended or trial/period expired
+    const now = Date.now();
+    const status = shop.subscription_status as string;
+    const trialEnd = shop.trial_ends_at ? new Date(shop.trial_ends_at).getTime() : null;
+    const periodEnd = shop.current_period_end ? new Date(shop.current_period_end).getTime() : null;
+    if (status === "suspended") return { shop: null as null };
+    if (status === "trial" && trialEnd && trialEnd < now) return { shop: null as null };
+    if (status === "active" && periodEnd && periodEnd < now) return { shop: null as null };
+    if (status === "past_due" && periodEnd && periodEnd < now) return { shop: null as null };
     return { shop };
   });
+
 
 export const getPublicPrizes = createServerFn({ method: "GET" })
   .inputValidator(z.object({ slug: slugSchema }).parse)
@@ -336,6 +346,121 @@ export const getShopDetails = createServerFn({ method: "GET" })
       .eq("shop_id", data.shopId).not("spun_at", "is", null)
       .order("spun_at", { ascending: false }).limit(50);
 
-    return { shop, owner, prizes: prizes ?? [], codes: codes ?? [], spins: spins ?? [] };
+    const { data: payments } = await supabaseAdmin
+      .from("shop_payments").select("*").eq("shop_id", data.shopId)
+      .order("created_at", { ascending: false }).limit(50);
+
+    return { shop, owner, prizes: prizes ?? [], codes: codes ?? [], spins: spins ?? [], payments: payments ?? [] };
   });
+
+// ------------ SUBSCRIPTION (super admin) ------------
+
+const planSchema = z.enum(["free", "pro", "lifetime"]);
+const statusSchema = z.enum(["trial", "active", "past_due", "suspended"]);
+
+export const updateShopSubscription = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      shopId: z.string().uuid(),
+      plan: planSchema.optional(),
+      subscription_status: statusSchema.optional(),
+      current_period_end: z.string().datetime().nullable().optional(),
+      trial_ends_at: z.string().datetime().nullable().optional(),
+      billing_notes: z.string().max(2000).nullable().optional(),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isSuperAdmin(context))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const patch: Record<string, unknown> = {};
+    for (const k of ["plan", "subscription_status", "current_period_end", "trial_ends_at", "billing_notes"] as const) {
+      if (data[k] !== undefined) patch[k] = data[k];
+    }
+    // Mirror suspension into is_active so public page hides shop immediately
+    if (data.subscription_status === "suspended") patch.is_active = false;
+    if (data.subscription_status === "active" || data.subscription_status === "trial") patch.is_active = true;
+    const { error } = await supabaseAdmin.from("shops").update(patch as never).eq("id", data.shopId);
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const extendShopPeriod = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(z.object({ shopId: z.string().uuid(), months: z.number().int().min(1).max(60) }).parse)
+  .handler(async ({ data, context }) => {
+    if (!(await isSuperAdmin(context))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: shop } = await supabaseAdmin
+      .from("shops").select("current_period_end").eq("id", data.shopId).maybeSingle();
+    const base = shop?.current_period_end ? new Date(shop.current_period_end) : new Date();
+    const next = base.getTime() < Date.now() ? new Date() : base;
+    next.setMonth(next.getMonth() + data.months);
+    const { error } = await supabaseAdmin.from("shops")
+      .update({ current_period_end: next.toISOString(), subscription_status: "active", is_active: true })
+      .eq("id", data.shopId);
+    if (error) throw new Error(error.message);
+    return { ok: true, current_period_end: next.toISOString() };
+  });
+
+export const recordShopPayment = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator(
+    z.object({
+      shopId: z.string().uuid(),
+      amount: z.number().positive().max(10_000_000),
+      currency: z.string().min(1).max(8).default("NPR"),
+      method: z.string().max(40).optional(),
+      reference: z.string().max(120).optional(),
+      months: z.number().int().min(0).max(60).optional(),
+      notes: z.string().max(1000).optional(),
+    }).parse,
+  )
+  .handler(async ({ data, context }) => {
+    if (!(await isSuperAdmin(context))) throw new Error("Forbidden");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    let period_start: string | null = null;
+    let period_end: string | null = null;
+    if (data.months && data.months > 0) {
+      const { data: shop } = await supabaseAdmin
+        .from("shops").select("current_period_end").eq("id", data.shopId).maybeSingle();
+      const base = shop?.current_period_end ? new Date(shop.current_period_end) : new Date();
+      const start = base.getTime() < Date.now() ? new Date() : base;
+      period_start = start.toISOString();
+      const end = new Date(start);
+      end.setMonth(end.getMonth() + data.months);
+      period_end = end.toISOString();
+      await supabaseAdmin.from("shops")
+        .update({ current_period_end: period_end, subscription_status: "active", is_active: true })
+        .eq("id", data.shopId);
+    }
+    const { error } = await supabaseAdmin.from("shop_payments").insert({
+      shop_id: data.shopId,
+      amount: data.amount,
+      currency: data.currency,
+      method: data.method ?? null,
+      reference: data.reference ?? null,
+      period_start, period_end,
+      notes: data.notes ?? null,
+      recorded_by: context.userId,
+    });
+    if (error) throw new Error(error.message);
+    return { ok: true };
+  });
+
+export const getMySubscription = createServerFn({ method: "GET" })
+  .middleware([requireSupabaseAuth])
+  .handler(async ({ context }) => {
+    const { data: shop } = await context.supabase
+      .from("shops")
+      .select("id, plan, subscription_status, trial_ends_at, current_period_end, billing_notes")
+      .eq("owner_user_id", context.userId)
+      .maybeSingle();
+    if (!shop) return { shop: null, payments: [] };
+    const { data: payments } = await context.supabase
+      .from("shop_payments").select("amount, currency, method, reference, period_start, period_end, notes, created_at")
+      .eq("shop_id", shop.id).order("created_at", { ascending: false }).limit(20);
+    return { shop, payments: payments ?? [] };
+  });
+
 
