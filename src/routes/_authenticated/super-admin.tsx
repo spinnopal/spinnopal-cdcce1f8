@@ -34,7 +34,12 @@ type EnrichedShop = {
   owner_email_confirmed_at: string | null;
   codes_count: number;
   spins_count: number;
+  plan: "free" | "pro" | "lifetime";
+  subscription_status: "trial" | "active" | "past_due" | "suspended";
+  trial_ends_at: string | null;
+  current_period_end: string | null;
 };
+
 
 type ShopDetails = Awaited<ReturnType<typeof getShopDetails>>;
 
