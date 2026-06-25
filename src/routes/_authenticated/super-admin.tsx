@@ -241,6 +241,29 @@ function SuperAdminPage() {
                   <p className="text-[11px] text-muted-foreground mt-2">Passwords are stored as one-way hashes and cannot be viewed. Use the actions on the row to send a reset email or force-set a new password.</p>
                 </section>
 
+                <SubscriptionSection
+                  shop={details.shop as any}
+                  payments={(details as any).payments ?? []}
+                  busy={busy}
+                  onUpdate={async (patch) => {
+                    await run(`sub${details.shop.id}`, () => doUpdateSub({ data: { shopId: details.shop.id, ...patch } }), "Subscription updated");
+                    const d = await fetchDetails({ data: { shopId: details.shop.id } });
+                    setDetails(d); load();
+                  }}
+                  onExtend={async (months) => {
+                    await run(`ext${details.shop.id}`, () => doExtend({ data: { shopId: details.shop.id, months } }), `Extended by ${months} month(s)`);
+                    const d = await fetchDetails({ data: { shopId: details.shop.id } });
+                    setDetails(d); load();
+                  }}
+                  onRecordPayment={async (p) => {
+                    await run(`pay${details.shop.id}`, () => doRecordPayment({ data: { shopId: details.shop.id, ...p } }), "Payment recorded");
+                    const d = await fetchDetails({ data: { shopId: details.shop.id } });
+                    setDetails(d); load();
+                  }}
+                />
+
+
+
                 <section>
                   <h3 className="font-bold mb-2">Prizes ({details.prizes.length})</h3>
                   <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
