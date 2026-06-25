@@ -142,6 +142,19 @@ function SuperAdminPage() {
                     {s.codes_count} codes · {s.spins_count} spins ·{" "}
                     {s.is_active ? <span className="text-emerald-400">active</span> : <span className="text-destructive">suspended</span>}
                   </p>
+                  <p className="text-xs mt-1">
+                    <span className="px-1.5 py-0.5 rounded bg-white/10 uppercase font-bold mr-1">{s.plan}</span>
+                    <span className={
+                      s.subscription_status === "active" ? "text-emerald-400" :
+                      s.subscription_status === "trial" ? "text-amber-300" :
+                      s.subscription_status === "past_due" ? "text-orange-400" : "text-destructive"
+                    }>{s.subscription_status}</span>
+                    {s.current_period_end && <span className="text-muted-foreground"> · renews {new Date(s.current_period_end).toLocaleDateString()}</span>}
+                    {!s.current_period_end && s.trial_ends_at && s.subscription_status === "trial" && (
+                      <span className="text-muted-foreground"> · trial ends {new Date(s.trial_ends_at).toLocaleDateString()}</span>
+                    )}
+                  </p>
+
                 </div>
               </div>
               <div className="flex gap-1 flex-wrap text-xs">
