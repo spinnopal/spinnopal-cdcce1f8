@@ -29,88 +29,130 @@
   --color-input: var(--input);
   --color-ring: var(--ring);
   --color-gold: var(--gold);
+  --color-emerald-deep: var(--emerald-deep);
+  --color-emerald-mid: var(--emerald-mid);
+  --color-cream: var(--cream);
   --font-display: "Space Grotesk", system-ui, sans-serif;
+  --font-sans: "DM Sans", system-ui, sans-serif;
 }
 
 :root {
   --radius: 1rem;
-  --background: oklch(0.17 0.015 260);
-  --foreground: oklch(1 0 0);
-  --card: oklch(0.22 0.018 260);
-  --card-foreground: oklch(1 0 0);
-  --popover: oklch(0.22 0.018 260);
-  --popover-foreground: oklch(1 0 0);
-  --primary: oklch(0.72 0.19 50);
-  --primary-foreground: oklch(0.15 0 0);
-  --secondary: oklch(0.27 0.02 260);
-  --secondary-foreground: oklch(1 0 0);
-  --muted: oklch(0.27 0.02 260);
-  --muted-foreground: oklch(0.82 0.015 260);
-  --accent: oklch(0.72 0.19 50);
-  --accent-foreground: oklch(0.15 0 0);
+
+  /* Emerald Prestige palette
+     deep emerald #064e3b, mid emerald #0d7a5f, gold #c9a84c, cream #f5f0e0 */
+  --emerald-deep: #064e3b;
+  --emerald-mid: #0d7a5f;
+  --gold: #c9a84c;
+  --cream: #f5f0e0;
+
+  --background: #04382a;
+  --foreground: #f5f0e0;
+  --card: #064e3b;
+  --card-foreground: #f5f0e0;
+  --popover: #064e3b;
+  --popover-foreground: #f5f0e0;
+  --primary: #c9a84c;
+  --primary-foreground: #064e3b;
+  --secondary: #0d7a5f;
+  --secondary-foreground: #f5f0e0;
+  --muted: #0d5a45;
+  --muted-foreground: #cfd8c8;
+  --accent: #c9a84c;
+  --accent-foreground: #064e3b;
   --destructive: oklch(0.6 0.22 25);
-  --destructive-foreground: oklch(1 0 0);
-  --border: oklch(0.32 0.02 260 / 0.6);
-  --input: oklch(0.27 0.02 260);
-  --ring: oklch(0.72 0.19 50);
-  --gold: oklch(0.84 0.15 90);
+  --destructive-foreground: #f5f0e0;
+  --border: rgba(201, 168, 76, 0.2);
+  --input: #0d5a45;
+  --ring: #c9a84c;
 }
 
 @layer base {
   * { border-color: var(--color-border); }
   html, body, #root { height: 100%; }
   body {
-    background: radial-gradient(ellipse at top, oklch(0.24 0.04 50 / 0.25), transparent 60%), var(--color-background);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, rgba(13, 122, 95, 0.35), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(201, 168, 76, 0.08), transparent 60%),
+      var(--color-background);
     color: var(--color-foreground);
-    font-family: var(--font-display);
+    font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     overscroll-behavior: none;
+  }
+  h1, h2, h3, h4, h5, h6 {
+    font-family: var(--font-display);
+    letter-spacing: -0.01em;
   }
 }
 
 @layer utilities {
-  .glow-orange {
-    box-shadow: 0 0 60px -10px oklch(0.72 0.19 50 / 0.55), 0 0 30px -5px oklch(0.72 0.19 50 / 0.4);
-  }
-  .glow-gold {
-    box-shadow: 0 0 50px -10px oklch(0.84 0.15 90 / 0.5);
-  }
+  .font-display { font-family: var(--font-display); }
   .text-gold { color: var(--gold); }
   .bg-gold { background-color: var(--gold); }
+  .border-gold { border-color: var(--gold); }
+  .text-cream { color: var(--cream); }
+  .bg-emerald-deep { background-color: var(--emerald-deep); }
+  .bg-emerald-mid { background-color: var(--emerald-mid); }
+
   .gradient-primary {
-    background: linear-gradient(135deg, oklch(0.72 0.19 50), oklch(0.84 0.15 90));
+    background: linear-gradient(135deg, #d8b85a 0%, #c9a84c 45%, #a8862f 100%);
   }
-  /* Solid translucent surface — backdrop-filter is GPU-expensive on mobile
-     and was the main cause of lag. Use an opaque-ish background instead. */
-  .glass {
-    background: linear-gradient(180deg, oklch(0.24 0.02 260 / 0.96), oklch(0.18 0.018 260 / 0.96));
-    border: 1px solid oklch(1 0 0 / 0.06);
-  }
-  /* Opt-in heavy blur for desktop only, where it's cheap. */
-  @media (min-width: 1024px) and (hover: hover) {
-    .glass { backdrop-filter: blur(16px) saturate(140%); }
-  }
-  .metallic-ring {
-    background: conic-gradient(from 0deg,
-      oklch(0.45 0.04 260), oklch(0.82 0.02 260), oklch(0.35 0.03 260),
-      oklch(0.84 0.15 90), oklch(0.45 0.04 260), oklch(0.82 0.02 260),
-      oklch(0.35 0.03 260), oklch(0.84 0.15 90), oklch(0.45 0.04 260));
-  }
-  @keyframes pulse-glow {
-    0%,100% { box-shadow: 0 0 30px -5px oklch(0.72 0.19 50 / 0.45); }
-    50% { box-shadow: 0 0 60px -5px oklch(0.72 0.19 50 / 0.8); }
-  }
-  .animate-pulse-glow {
-    animation: pulse-glow 2.4s ease-in-out infinite;
-    will-change: box-shadow;
-  }
-  @media (prefers-reduced-motion: reduce) {
-    .animate-pulse-glow, .animate-float-up { animation: none !important; }
+  .gradient-gold-text {
+    background: linear-gradient(135deg, #f0d78c, #c9a84c 60%, #a8862f);
+    -webkit-background-clip: text;
+    background-clip: text;
+    color: transparent;
   }
 
+  .glow-gold {
+    box-shadow:
+      0 0 40px -10px rgba(201, 168, 76, 0.55),
+      0 0 20px -5px rgba(201, 168, 76, 0.4);
+  }
+
+  .glass {
+    background: linear-gradient(180deg, rgba(13, 122, 95, 0.18), rgba(6, 78, 59, 0.55));
+    border: 1px solid rgba(201, 168, 76, 0.18);
+  }
+  @media (min-width: 1024px) and (hover: hover) {
+    .glass { backdrop-filter: blur(14px) saturate(140%); }
+  }
+
+  .hairline {
+    background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.5), transparent);
+    height: 1px;
+  }
+
+  @keyframes pulse-gold {
+    0%, 100% {
+      opacity: 0.55;
+      transform: scale(1);
+      box-shadow: 0 0 60px 10px rgba(201, 168, 76, 0.35);
+    }
+    50% {
+      opacity: 1;
+      transform: scale(1.08);
+      box-shadow: 0 0 120px 30px rgba(201, 168, 76, 0.7);
+    }
+  }
+  .animate-pulse-gold {
+    animation: pulse-gold 3.2s ease-in-out infinite;
+    will-change: opacity, transform, box-shadow;
+  }
+
+  @keyframes slow-spin {
+    to { transform: rotate(360deg); }
+  }
+  .animate-slow-spin { animation: slow-spin 28s linear infinite; }
+
   @keyframes float-up {
-    0% { opacity: 0; transform: translateY(20px) scale(0.9); }
+    0% { opacity: 0; transform: translateY(20px) scale(0.96); }
     100% { opacity: 1; transform: translateY(0) scale(1); }
   }
   .animate-float-up { animation: float-up 0.7s cubic-bezier(.2,.8,.2,1) both; }
+
+  @media (prefers-reduced-motion: reduce) {
+    .animate-pulse-gold, .animate-slow-spin, .animate-float-up { animation: none !important; }
+  }
 }
