@@ -84,12 +84,12 @@ function ResetPasswordPage() {
                 required
                 minLength={6}
                 autoComplete="new-password"
-                className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 pr-12 outline-none focus:border-primary"
+                className="w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 pr-12 text-base text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword((v) => !v)}
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0c2340]/50 hover:text-[#0c2340]"
                 aria-label={showPassword ? "Hide password" : "Show password"}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
@@ -103,7 +103,7 @@ function ResetPasswordPage() {
               required
               minLength={6}
               autoComplete="new-password"
-              className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary"
+              className="w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 text-base text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
             />
           </>
         )}

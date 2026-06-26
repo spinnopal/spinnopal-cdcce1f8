@@ -126,7 +126,7 @@ function ShopEntry() {
           onKeyDown={(e) => e.key === "Enter" && submit()}
           placeholder="Enter your full name"
           maxLength={40}
-          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
+          className="mt-2 w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 text-base text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
         />
 
         <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Contact Number</label>
@@ -137,7 +137,7 @@ function ShopEntry() {
           placeholder="Enter your contact number"
           inputMode="tel"
           maxLength={30}
-          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
+          className="mt-2 w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 text-base text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
         />
 
         <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Email Address</label>
@@ -151,7 +151,7 @@ function ShopEntry() {
           autoCorrect="off"
           spellCheck={false}
           maxLength={255}
-          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base outline-none focus:border-primary"
+          className="mt-2 w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 text-base text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
         />
 
 
@@ -161,12 +161,12 @@ function ShopEntry() {
           value={code}
           onChange={(e) => { setCode(e.target.value.toUpperCase()); setError(""); }}
           onKeyDown={(e) => e.key === "Enter" && submit()}
-          placeholder="Enter your unique access code"
+          placeholder="Access code"
           maxLength={32}
           autoCapitalize="characters"
           autoCorrect="off"
           spellCheck={false}
-          className="mt-2 w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 text-base tracking-widest text-center font-mono outline-none focus:border-primary"
+          className="mt-2 w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 text-base tracking-widest text-center font-mono text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
         />
         {error && <p className="text-destructive text-sm mt-2 text-center">{error}</p>}
 

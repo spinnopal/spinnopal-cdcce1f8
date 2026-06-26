@@ -131,14 +131,14 @@ function AuthPage() {
           <button
             type="button"
             onClick={() => setMode("signup")}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold ${mode === "signup" ? "bg-primary text-[#0F1115]" : "bg-white/5 text-muted-foreground"}`}
+            className={`flex-1 py-2 rounded-lg text-sm font-semibold ${mode === "signup" ? "gradient-primary text-[#0c2340]" : "bg-[#0c2340]/10 text-[#0c2340]/70"}`}
           >
             Create shop
           </button>
           <button
             type="button"
             onClick={() => setMode("signin")}
-            className={`flex-1 py-2 rounded-lg text-sm font-semibold ${mode === "signin" ? "bg-primary text-[#0F1115]" : "bg-white/5 text-muted-foreground"}`}
+            className={`flex-1 py-2 rounded-lg text-sm font-semibold ${mode === "signin" ? "gradient-primary text-[#0c2340]" : "bg-[#0c2340]/10 text-[#0c2340]/70"}`}
           >
             Sign in
           </button>
@@ -155,17 +155,17 @@ function AuthPage() {
               }}
               placeholder="My Mobile Shop"
               maxLength={80}
-              className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary"
+              className="w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 text-base text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
             />
             <label className="text-xs uppercase tracking-widest text-muted-foreground">Shop URL</label>
-            <div className="flex items-center bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3">
-              <span className="text-muted-foreground text-sm mr-1">/s/</span>
+            <div className="flex items-center bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3">
+              <span className="text-[#0c2340]/50 text-sm mr-1">/s/</span>
               <input
                 value={slug}
                 onChange={(e) => setSlug(autoSlug(e.target.value))}
                 placeholder="my-mobile-shop"
                 maxLength={40}
-                className="flex-1 bg-transparent outline-none"
+                className="flex-1 bg-transparent text-base text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none"
               />
             </div>
           </>
@@ -178,7 +178,7 @@ function AuthPage() {
           onChange={(e) => setEmail(e.target.value)}
           required
           autoComplete="email"
-          className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary"
+          className="w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 text-base text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
         />
         <label className="text-xs uppercase tracking-widest text-muted-foreground">Password</label>
         <div className="relative">
@@ -189,12 +189,12 @@ function AuthPage() {
             required
             minLength={6}
             autoComplete={mode === "signup" ? "new-password" : "current-password"}
-            className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 pr-12 outline-none focus:border-primary"
+            className="w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 pr-12 text-base text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
           />
           <button
             type="button"
             onClick={() => setShowPassword((v) => !v)}
-            className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-[#0c2340]/50 hover:text-[#0c2340]"
             aria-label={showPassword ? "Hide password" : "Show password"}
           >
             {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
