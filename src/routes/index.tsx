@@ -1,16 +1,17 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { InstallAppButton } from "@/components/InstallAppButton";
+import { DEFAULT_LOGO } from "@/lib/spin-store";
 
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Lucky Spin — Premium prize campaigns for boutique shops" },
+      { title: "The Luck Spin — Premium prize campaigns for boutique shops" },
       {
         name: "description",
         content:
-          "A premium Lucky Spin platform for shop owners. Brand your spin page, generate access codes, and watch every win in your dashboard.",
+          "The Luck Spin — Spin · Win · Enjoy. Brand your spin page, generate access codes, and watch every win in your dashboard.",
       },
-      { property: "og:title", content: "Lucky Spin — Premium prize campaigns for boutique shops" },
+      { property: "og:title", content: "The Luck Spin — Spin · Win · Enjoy" },
       {
         property: "og:description",
         content:
@@ -21,16 +22,13 @@ export const Route = createFileRoute("/")({
   component: Landing,
 });
 
-function BrandMark({ size = 32 }: { size?: number }) {
+function BrandMark({ size = 36 }: { size?: number }) {
   return (
     <div
-      className="rounded-full bg-gradient-to-tr from-gold to-cream flex items-center justify-center shadow-[0_0_20px_-4px_rgba(201,168,76,0.6)]"
+      className="rounded-full bg-cream overflow-hidden flex items-center justify-center shadow-[0_0_20px_-4px_rgba(184,204,224,0.7)] ring-1 ring-[rgba(184,204,224,0.4)]"
       style={{ width: size, height: size }}
     >
-      <div
-        className="rounded-full bg-emerald-deep"
-        style={{ width: size * 0.72, height: size * 0.72 }}
-      />
+      <img src={DEFAULT_LOGO} alt="The Luck Spin" className="w-full h-full object-contain" />
     </div>
   );
 }
@@ -47,7 +45,7 @@ function Landing() {
             <span
               className="font-display font-bold tracking-tight text-lg md:text-xl text-cream"
             >
-              LUCKY SPIN
+              theluckspin
             </span>
           </Link>
           <div className="hidden md:flex items-center gap-7">
