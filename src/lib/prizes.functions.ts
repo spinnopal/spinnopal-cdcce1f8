@@ -30,25 +30,35 @@ async function assertOwner(ctx: { supabase: any; userId: string }, shopId: strin
   if (error || !data) throw new Error("Not authorized for this shop");
 }
 
+async function publicShopIdForSlug(slug: string): Promise<string | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: shop, error } = await supabaseAdmin
+    .from("shops")
+    .select("id, is_active, subscription_status, trial_ends_at, current_period_end")
+    .eq("slug", slug)
+    .maybeSingle();
+  if (error || !shop || !shop.is_active) return null;
+
+  const now = Date.now();
+  const trialEnd = shop.trial_ends_at ? new Date(shop.trial_ends_at).getTime() : null;
+  const periodEnd = shop.current_period_end ? new Date(shop.current_period_end).getTime() : null;
+  if (shop.subscription_status === "suspended") return null;
+  if (shop.subscription_status === "trial" && trialEnd && trialEnd < now) return null;
+  if ((shop.subscription_status === "active" || shop.subscription_status === "past_due") && periodEnd && periodEnd < now) return null;
+  return shop.id;
+}
+
 // PUBLIC: list prizes by slug (used by customer spin page)
 export const listPrizesBySlug = createServerFn({ method: "GET" })
   .inputValidator(z.object({ slug: slugSchema }).parse)
   .handler(async ({ data }) => {
-    const { createClient } = await import("@supabase/supabase-js");
-    const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-    });
-    const { data: shop } = await sb
-      .from("shops_public")
-      .select("id")
-      .eq("slug", data.slug)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (!shop) return { prizes: [] };
-    const { data: prizes, error } = await sb
+    const shopId = await publicShopIdForSlug(data.slug);
+    if (!shopId) return { prizes: [] };
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: prizes, error } = await supabaseAdmin
       .from("prizes")
       .select("id, name, short, image_url, is_win, probability, sort_order")
-      .eq("shop_id", shop.id)
+      .eq("shop_id", shopId)
       .order("sort_order", { ascending: true });
     if (error) throw new Error(error.message);
     return { prizes: prizes ?? [] };
@@ -122,21 +132,13 @@ export const updateProbabilities = createServerFn({ method: "POST" })
 export const pickWinnerForSlug = createServerFn({ method: "POST" })
   .inputValidator(z.object({ slug: slugSchema }).parse)
   .handler(async ({ data }) => {
-    const { createClient } = await import("@supabase/supabase-js");
-    const sb = createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-      auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-    });
-    const { data: shop } = await sb
-      .from("shops_public")
-      .select("id")
-      .eq("slug", data.slug)
-      .eq("is_active", true)
-      .maybeSingle();
-    if (!shop) throw new Error("Shop not found");
-    const { data: list, error } = await sb
+    const shopId = await publicShopIdForSlug(data.slug);
+    if (!shopId) throw new Error("Shop not found");
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: list, error } = await supabaseAdmin
       .from("prizes")
       .select("id, probability")
-      .eq("shop_id", shop.id)
+      .eq("shop_id", shopId)
       .order("sort_order", { ascending: true });
     if (error) throw new Error(error.message);
     const items = list ?? [];
