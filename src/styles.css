@@ -39,32 +39,32 @@
 :root {
   --radius: 1rem;
 
-  /* Emerald Prestige palette
-     deep emerald #064e3b, mid emerald #0d7a5f, gold #c9a84c, cream #f5f0e0 */
-  --emerald-deep: #064e3b;
-  --emerald-mid: #0d7a5f;
-  --gold: #c9a84c;
-  --cream: #f5f0e0;
+  /* The Luck Spin palette
+     deep navy #1f3460, mid navy #3b5a8c, light blue #b8cce0, cream #f5f7fb */
+  --emerald-deep: #1f3460;
+  --emerald-mid: #3b5a8c;
+  --gold: #b8cce0;
+  --cream: #f5f7fb;
 
-  --background: #04382a;
-  --foreground: #f5f0e0;
-  --card: #064e3b;
-  --card-foreground: #f5f0e0;
-  --popover: #064e3b;
-  --popover-foreground: #f5f0e0;
-  --primary: #c9a84c;
-  --primary-foreground: #064e3b;
-  --secondary: #0d7a5f;
-  --secondary-foreground: #f5f0e0;
-  --muted: #0d5a45;
-  --muted-foreground: #cfd8c8;
-  --accent: #c9a84c;
-  --accent-foreground: #064e3b;
+  --background: #0f1f3d;
+  --foreground: #f5f7fb;
+  --card: #1f3460;
+  --card-foreground: #f5f7fb;
+  --popover: #1f3460;
+  --popover-foreground: #f5f7fb;
+  --primary: #b8cce0;
+  --primary-foreground: #1f3460;
+  --secondary: #3b5a8c;
+  --secondary-foreground: #f5f7fb;
+  --muted: #2a4470;
+  --muted-foreground: #cfd8e8;
+  --accent: #b8cce0;
+  --accent-foreground: #1f3460;
   --destructive: oklch(0.6 0.22 25);
-  --destructive-foreground: #f5f0e0;
-  --border: rgba(201, 168, 76, 0.2);
-  --input: #0d5a45;
-  --ring: #c9a84c;
+  --destructive-foreground: #f5f7fb;
+  --border: rgba(184, 204, 224, 0.22);
+  --input: #2a4470;
+  --ring: #b8cce0;
 }
 
 @layer base {
