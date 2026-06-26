@@ -45,7 +45,7 @@ function Landing() {
             <span
               className="font-display font-bold tracking-tight text-lg md:text-xl text-cream"
             >
-              LUCKY SPIN
+              theluckspin
             </span>
           </Link>
           <div className="hidden md:flex items-center gap-7">
