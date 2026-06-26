@@ -36,8 +36,8 @@ function ResultPage() {
 
   const summary =
     p?.isWin
-      ? `🎉 I just won ${p.name} on Mas Spin! Claim code: ${code}. Play at ${typeof window !== "undefined" ? window.location.href : ""}`
-      : `I spun the wheel on Mas Spin. Code: ${code}. Try your luck too!`;
+      ? `🎉 I just won ${p.name} on The Luck Spin! Claim code: ${code}. Play at ${typeof window !== "undefined" ? window.location.href : ""}`
+      : `I spun the wheel on The Luck Spin. Code: ${code}. Try your luck too!`;
 
   const shareToWhatsApp = () => {
     playClick();
