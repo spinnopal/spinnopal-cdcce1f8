@@ -99,9 +99,9 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     links: [
       { rel: "stylesheet", href: appCss },
       { rel: "manifest", href: "/manifest.webmanifest" },
-      { rel: "icon", href: "/__l5e/assets-v1/b52cdff7-0234-43f2-b971-987d8416f06d/icon-192.png", type: "image/png", sizes: "192x192" },
-      { rel: "icon", href: "/__l5e/assets-v1/73b045be-1b40-407b-8e12-a5468d5b6c64/icon-512.png", type: "image/png", sizes: "512x512" },
-      { rel: "apple-touch-icon", href: "/__l5e/assets-v1/b52cdff7-0234-43f2-b971-987d8416f06d/icon-192.png" },
+      { rel: "icon", href: "/__l5e/assets-v1/412709c2-768d-4a30-b325-1e88aebae07c/icon-192.png", type: "image/png", sizes: "192x192" },
+      { rel: "icon", href: "/__l5e/assets-v1/43fc1e94-79a4-4c63-8358-be23662e1856/icon-512.png", type: "image/png", sizes: "512x512" },
+      { rel: "apple-touch-icon", href: "/__l5e/assets-v1/412709c2-768d-4a30-b325-1e88aebae07c/icon-192.png" },
       { rel: "preconnect", href: "https://fonts.googleapis.com" },
       { rel: "preconnect", href: "https://fonts.gstatic.com", crossOrigin: "anonymous" },
       {
