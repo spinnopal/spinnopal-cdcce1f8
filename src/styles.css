@@ -97,10 +97,10 @@
   .bg-emerald-mid { background-color: var(--emerald-mid); }
 
   .gradient-primary {
-    background: linear-gradient(135deg, #d6e3f2 0%, #b8cce0 45%, #7c9bc2 100%);
+    background: linear-gradient(135deg, #ff8a3d 0%, #ff6b1a 50%, #e85a0c 100%);
   }
   .gradient-gold-text {
-    background: linear-gradient(135deg, #e6eef8, #b8cce0 60%, #7c9bc2);
+    background: linear-gradient(135deg, #ff8a3d, #ff6b1a 60%, #e85a0c);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -108,20 +108,20 @@
 
   .glow-gold {
     box-shadow:
-      0 0 40px -10px rgba(184, 204, 224, 0.6),
-      0 0 20px -5px rgba(184, 204, 224, 0.45);
+      0 10px 40px -10px rgba(255, 107, 26, 0.55),
+      0 0 0 1px rgba(255, 107, 26, 0.25);
   }
 
   .glass {
-    background: linear-gradient(180deg, rgba(59, 90, 140, 0.22), rgba(31, 52, 96, 0.6));
-    border: 1px solid rgba(184, 204, 224, 0.22);
+    background: rgba(255, 255, 255, 0.7);
+    border: 1px solid rgba(12, 35, 64, 0.08);
   }
   @media (min-width: 1024px) and (hover: hover) {
     .glass { backdrop-filter: blur(14px) saturate(140%); }
   }
 
   .hairline {
-    background: linear-gradient(90deg, transparent, rgba(184, 204, 224, 0.55), transparent);
+    background: linear-gradient(90deg, transparent, rgba(255, 107, 26, 0.55), transparent);
     height: 1px;
   }
 
@@ -129,14 +129,15 @@
     0%, 100% {
       opacity: 0.55;
       transform: scale(1);
-      box-shadow: 0 0 60px 10px rgba(184, 204, 224, 0.35);
+      box-shadow: 0 0 60px 10px rgba(255, 107, 26, 0.25);
     }
     50% {
       opacity: 1;
       transform: scale(1.08);
-      box-shadow: 0 0 120px 30px rgba(184, 204, 224, 0.7);
+      box-shadow: 0 0 120px 30px rgba(255, 107, 26, 0.55);
     }
   }
+
   .animate-pulse-gold {
     animation: pulse-gold 3.2s ease-in-out infinite;
     will-change: opacity, transform, box-shadow;
