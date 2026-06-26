@@ -1,4 +1,4 @@
-import logoAsset from "@/assets/logo.png.asset.json";
+import logoAsset from "@/assets/theluckspin-logo.png.asset.json";
 
 // Default platform logo used on marketing/landing pages and as a fallback
 // when a shop hasn't uploaded its own logo yet.
