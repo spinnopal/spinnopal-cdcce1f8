@@ -112,7 +112,7 @@ function Dashboard() {
     <div className="min-h-screen px-4 py-5 max-w-5xl mx-auto">
       <header className="flex items-center justify-between mb-4 gap-2 flex-wrap">
         <div className="flex items-center gap-3">
-          <img src={shop.logo_url || DEFAULT_LOGO} alt="" className="w-10 h-10 rounded-full object-cover border border-white/10" />
+          <img src={shop.logo_url || DEFAULT_LOGO} alt="" className="w-10 h-10 rounded-full object-cover border border-[#0c2340]/10" />
           <div>
             <p className="text-xs uppercase tracking-widest text-gold">Dashboard</p>
             <p className="font-bold leading-tight">{shop.name}</p>
@@ -143,7 +143,7 @@ function Dashboard() {
           <button
             key={t}
             onClick={() => setTab(t)}
-            className={`px-3 py-2 rounded-lg text-sm capitalize ${tab === t ? "bg-primary text-[#0F1115] font-bold" : "bg-white/5"}`}
+            className={`px-3 py-2 rounded-lg text-sm capitalize ${tab === t ? "bg-primary text-white font-bold" : "bg-white/5"}`}
           >
             {t === "qr" ? "QR Codes" : t}
           </button>
@@ -188,13 +188,13 @@ function CreateShopForm({ onCreated, onSignOut, doCreate }: { onCreated: () => v
     <div className="min-h-screen flex items-center justify-center px-6">
       <form onSubmit={submit} className="glass rounded-2xl p-6 w-full max-w-sm space-y-3">
         <p className="text-xs uppercase tracking-widest text-gold">Create your shop</p>
-        <input value={name} onChange={(e) => { setName(e.target.value); if (!slug) setSlug(autoSlug(e.target.value)); }} placeholder="Shop name" className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary" />
-        <div className="flex items-center bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3">
+        <input value={name} onChange={(e) => { setName(e.target.value); if (!slug) setSlug(autoSlug(e.target.value)); }} placeholder="Shop name" className="w-full bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-xl px-4 py-3 outline-none focus:border-primary" />
+        <div className="flex items-center bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-xl px-4 py-3">
           <span className="text-muted-foreground text-sm mr-1">/s/</span>
           <input value={slug} onChange={(e) => setSlug(autoSlug(e.target.value))} placeholder="my-shop" className="flex-1 bg-transparent outline-none" />
         </div>
         {err && <p className="text-destructive text-sm">{err}</p>}
-        <button disabled={busy} className="w-full gradient-primary text-[#0F1115] font-bold py-3 rounded-xl disabled:opacity-60">
+        <button disabled={busy} className="w-full gradient-primary text-white font-bold py-3 rounded-xl disabled:opacity-60">
           {busy ? "Creating..." : "Create shop"}
         </button>
         <button type="button" onClick={onSignOut} className="w-full text-xs text-muted-foreground">Sign out</button>
@@ -259,7 +259,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap }: { sho
         <p className="text-xs uppercase tracking-widest text-gold">Branding</p>
 
         <div className="flex items-center gap-4">
-          <img src={logoUrl || DEFAULT_LOGO} alt="" className="w-20 h-20 rounded-full object-cover border border-white/10" />
+          <img src={logoUrl || DEFAULT_LOGO} alt="" className="w-20 h-20 rounded-full object-cover border border-[#0c2340]/10" />
           <div className="flex flex-col gap-2">
             <label className="cursor-pointer text-sm px-3 py-2 rounded-lg bg-white/5 inline-block">
               Upload logo
@@ -273,10 +273,10 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap }: { sho
         </div>
 
         <label className="text-xs uppercase tracking-widest text-muted-foreground">Shop name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} className="w-full bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3 outline-none focus:border-primary" />
+        <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} className="w-full bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-xl px-4 py-3 outline-none focus:border-primary" />
 
         <label className="text-xs uppercase tracking-widest text-muted-foreground">Public URL</label>
-        <div className="flex items-center bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-3">
+        <div className="flex items-center bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-xl px-4 py-3">
           <span className="text-muted-foreground text-sm mr-1">/s/</span>
           <input value={slug} onChange={(e) => setSlug(autoSlug(e.target.value))} maxLength={40} className="flex-1 bg-transparent outline-none" />
         </div>
@@ -284,7 +284,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap }: { sho
 
         {err && <p className="text-destructive text-sm">{err}</p>}
         {msg && <p className="text-sm text-gold">{msg}</p>}
-        <button onClick={save} disabled={busy} className="w-full gradient-primary text-[#0F1115] font-bold py-3 rounded-xl disabled:opacity-60">
+        <button onClick={save} disabled={busy} className="w-full gradient-primary text-white font-bold py-3 rounded-xl disabled:opacity-60">
           {busy ? "Saving..." : "Save changes"}
         </button>
       </div>
@@ -294,7 +294,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap }: { sho
           <p className="text-xs uppercase tracking-widest text-muted-foreground">Platform admin (optional)</p>
           <p className="text-xs text-muted-foreground">If you are the platform owner, enter the admin password to unlock the super-admin panel.</p>
           <div className="flex gap-2">
-            <input type="password" value={bootstrapPw} onChange={(e) => setBootstrapPw(e.target.value)} placeholder="Admin password" className="flex-1 bg-[#0F1115]/70 border border-white/10 rounded-xl px-4 py-2 outline-none" />
+            <input type="password" value={bootstrapPw} onChange={(e) => setBootstrapPw(e.target.value)} placeholder="Admin password" className="flex-1 bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-xl px-4 py-2 outline-none" />
             <button onClick={tryBootstrap} className="px-3 py-2 rounded-lg bg-white/5">Unlock</button>
           </div>
           {bootstrapMsg && <p className="text-xs">{bootstrapMsg}</p>}
@@ -367,13 +367,13 @@ function PrizesTab({ shop }: { shop: Shop }) {
     <div className="space-y-4">
       <div className="flex justify-between items-center">
         <p className="text-sm text-muted-foreground">{prizes.length} prizes</p>
-        <button onClick={() => setEditing(newPrize())} className="px-3 py-2 rounded-lg bg-primary text-[#0F1115] font-bold text-sm">+ Add prize</button>
+        <button onClick={() => setEditing(newPrize())} className="px-3 py-2 rounded-lg bg-primary text-white font-bold text-sm">+ Add prize</button>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {prizes.map((p) => (
           <div key={p.id} className="glass rounded-xl p-3 flex gap-3 items-center">
-            <img src={p.image_url} alt="" className="w-14 h-14 rounded-lg object-cover bg-[#0F1115]" />
+            <img src={p.image_url} alt="" className="w-14 h-14 rounded-lg object-cover bg-[#F5F7FA] text-[#0c2340]" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold truncate">{p.name}</p>
               <p className="text-xs text-muted-foreground">{p.is_win ? "Win" : "Try again"} · weight {p.probability}</p>
@@ -394,14 +394,14 @@ function PrizesTab({ shop }: { shop: Shop }) {
           <div className="glass rounded-2xl p-4 w-full max-w-sm space-y-2">
             <p className="text-xs uppercase tracking-widest text-gold">{prizes.find((p) => p.id === editing.id) ? "Edit prize" : "New prize"}</p>
             <div className="flex items-center gap-3">
-              <img src={editing.image_url || DEFAULT_LOGO} alt="" className="w-16 h-16 rounded-lg object-cover bg-[#0F1115]" />
+              <img src={editing.image_url || DEFAULT_LOGO} alt="" className="w-16 h-16 rounded-lg object-cover bg-[#F5F7FA] text-[#0c2340]" />
               <label className="text-sm px-3 py-2 rounded-lg bg-white/5 cursor-pointer">
                 Upload image
                 <input type="file" accept="image/*" onChange={onImage} className="hidden" />
               </label>
             </div>
-            <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} placeholder="Prize name" maxLength={80} className="w-full bg-[#0F1115]/70 border border-white/10 rounded-lg px-3 py-2 outline-none" />
-            <input value={editing.short} onChange={(e) => setEditing({ ...editing, short: e.target.value })} placeholder="Short label (for wheel)" maxLength={40} className="w-full bg-[#0F1115]/70 border border-white/10 rounded-lg px-3 py-2 outline-none" />
+            <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} placeholder="Prize name" maxLength={80} className="w-full bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-lg px-3 py-2 outline-none" />
+            <input value={editing.short} onChange={(e) => setEditing({ ...editing, short: e.target.value })} placeholder="Short label (for wheel)" maxLength={40} className="w-full bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-lg px-3 py-2 outline-none" />
             <div className="flex items-center gap-2">
               <label className="text-sm flex items-center gap-2">
                 <input type="checkbox" checked={editing.is_win} onChange={(e) => setEditing({ ...editing, is_win: e.target.checked })} />
@@ -411,16 +411,16 @@ function PrizesTab({ shop }: { shop: Shop }) {
             <div className="flex gap-2 text-sm">
               <label className="flex-1">
                 Weight (odds)
-                <input type="number" min={0} max={1000} value={editing.probability} onChange={(e) => setEditing({ ...editing, probability: parseInt(e.target.value || "0") })} className="w-full bg-[#0F1115]/70 border border-white/10 rounded-lg px-3 py-2 outline-none" />
+                <input type="number" min={0} max={1000} value={editing.probability} onChange={(e) => setEditing({ ...editing, probability: parseInt(e.target.value || "0") })} className="w-full bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-lg px-3 py-2 outline-none" />
               </label>
               <label className="flex-1">
                 Sort order
-                <input type="number" min={0} max={1000} value={editing.sort_order} onChange={(e) => setEditing({ ...editing, sort_order: parseInt(e.target.value || "0") })} className="w-full bg-[#0F1115]/70 border border-white/10 rounded-lg px-3 py-2 outline-none" />
+                <input type="number" min={0} max={1000} value={editing.sort_order} onChange={(e) => setEditing({ ...editing, sort_order: parseInt(e.target.value || "0") })} className="w-full bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-lg px-3 py-2 outline-none" />
               </label>
             </div>
             <div className="flex gap-2 pt-1">
               <button onClick={() => setEditing(null)} className="flex-1 py-2 rounded-lg bg-white/5">Cancel</button>
-              <button onClick={save} disabled={busy} className="flex-1 py-2 rounded-lg gradient-primary text-[#0F1115] font-bold disabled:opacity-60">{busy ? "Saving..." : "Save"}</button>
+              <button onClick={save} disabled={busy} className="flex-1 py-2 rounded-lg gradient-primary text-white font-bold disabled:opacity-60">{busy ? "Saving..." : "Save"}</button>
             </div>
           </div>
         </div>
@@ -459,12 +459,12 @@ function CodesTab({ shop }: { shop: Shop }) {
   return (
     <div className="space-y-3">
       <div className="glass rounded-xl p-3 flex gap-2 items-center flex-wrap">
-        <input type="number" min={1} max={500} value={count} onChange={(e) => setCount(parseInt(e.target.value || "0"))} className="w-20 bg-[#0F1115]/70 border border-white/10 rounded-lg px-2 py-2 outline-none" />
-        <button onClick={gen} className="px-3 py-2 rounded-lg bg-primary text-[#0F1115] font-bold text-sm">Generate</button>
+        <input type="number" min={1} max={500} value={count} onChange={(e) => setCount(parseInt(e.target.value || "0"))} className="w-20 bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-lg px-2 py-2 outline-none" />
+        <button onClick={gen} className="px-3 py-2 rounded-lg bg-primary text-white font-bold text-sm">Generate</button>
         <button onClick={delUnused} className="px-3 py-2 rounded-lg bg-destructive/20 text-destructive text-sm">Delete unused</button>
         <div className="ml-auto flex gap-1 text-xs">
           {(["all", "unused", "used"] as const).map((f) => (
-            <button key={f} onClick={() => setFilter(f)} className={`px-2 py-1 rounded ${filter === f ? "bg-primary text-[#0F1115] font-bold" : "bg-white/5"}`}>{f}</button>
+            <button key={f} onClick={() => setFilter(f)} className={`px-2 py-1 rounded ${filter === f ? "bg-primary text-white font-bold" : "bg-white/5"}`}>{f}</button>
           ))}
         </div>
       </div>
@@ -582,7 +582,7 @@ function RecordsTab({ shop }: { shop: Shop }) {
   return (
     <div className="space-y-3">
       <div className="flex gap-2 items-center">
-        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name / contact / email / code / prize" className="flex-1 bg-[#0F1115]/70 border border-white/10 rounded-lg px-3 py-2 outline-none" />
+        <input value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search name / contact / email / code / prize" className="flex-1 bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-lg px-3 py-2 outline-none" />
         <button onClick={exportCsv} className="px-3 py-2 rounded-lg bg-white/5 text-sm">Export CSV</button>
         <button onClick={async () => { if (confirm("Reset all spin records?")) { await doReset({ data: { shopId: shop.id } }); load(); } }} className="px-3 py-2 rounded-lg bg-destructive/20 text-destructive text-sm">Reset all</button>
       </div>
@@ -698,7 +698,7 @@ function QrTab({ shop }: { shop: Shop }) {
           A <span className="text-foreground font-semibold">Per-code QR</span> opens the entry page with the code already filled in — they just type their name and spin.
         </p>
         <div className="flex gap-2 flex-wrap pt-2">
-          <button onClick={() => window.print()} className="px-3 py-2 rounded-lg bg-primary text-[#0F1115] font-bold text-sm">Print this page</button>
+          <button onClick={() => window.print()} className="px-3 py-2 rounded-lg bg-primary text-white font-bold text-sm">Print this page</button>
           <button onClick={() => setFilter(filter === "all" ? "unused" : "all")} className="px-3 py-2 rounded-lg bg-white/5 text-sm">
             Showing: {filter === "all" ? "All codes" : "Unused only"}
           </button>

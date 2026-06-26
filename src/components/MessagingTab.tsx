@@ -153,7 +153,7 @@ export function MessagingTab({ shop }: { shop: { id: string; name: string } }) {
             <button
               key={k}
               onClick={() => setChannel(k)}
-              className={`px-2 py-2 rounded-lg ${channel === k ? "bg-primary text-[#0F1115] font-bold" : "bg-white/5"}`}
+              className={`px-2 py-2 rounded-lg ${channel === k ? "bg-primary text-white font-bold" : "bg-white/5"}`}
             >
               {label}
             </button>
@@ -181,7 +181,7 @@ export function MessagingTab({ shop }: { shop: { id: string; name: string } }) {
         <div className="flex gap-1 text-xs">
           {(["all", "won", "lost"] as const).map((o) => (
             <button key={o} onClick={() => setOutcome(o)}
-              className={`px-2 py-1 rounded capitalize ${outcome === o ? "bg-primary text-[#0F1115] font-bold" : "bg-white/5"}`}>
+              className={`px-2 py-1 rounded capitalize ${outcome === o ? "bg-primary text-white font-bold" : "bg-white/5"}`}>
               {o}
             </button>
           ))}
@@ -189,11 +189,11 @@ export function MessagingTab({ shop }: { shop: { id: string; name: string } }) {
         <div className="flex gap-2 text-xs">
           <label className="flex-1">From
             <input type="date" value={from} onChange={(e) => setFrom(e.target.value)}
-              className="w-full mt-1 bg-[#0F1115]/70 border border-white/10 rounded-lg px-2 py-2 outline-none" />
+              className="w-full mt-1 bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-lg px-2 py-2 outline-none" />
           </label>
           <label className="flex-1">To
             <input type="date" value={to} onChange={(e) => setTo(e.target.value)}
-              className="w-full mt-1 bg-[#0F1115]/70 border border-white/10 rounded-lg px-2 py-2 outline-none" />
+              className="w-full mt-1 bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-lg px-2 py-2 outline-none" />
           </label>
         </div>
       </div>
@@ -206,7 +206,7 @@ export function MessagingTab({ shop }: { shop: { id: string; name: string } }) {
             onChange={(e) => setSubject(e.target.value)}
             placeholder="Subject"
             maxLength={200}
-            className="w-full bg-[#0F1115]/70 border border-white/10 rounded-lg px-3 py-2 outline-none"
+            className="w-full bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-lg px-3 py-2 outline-none"
           />
         )}
         <textarea
@@ -214,7 +214,7 @@ export function MessagingTab({ shop }: { shop: { id: string; name: string } }) {
           onChange={(e) => setBody(e.target.value)}
           rows={5}
           maxLength={4000}
-          className="w-full bg-[#0F1115]/70 border border-white/10 rounded-lg px-3 py-2 outline-none resize-none"
+          className="w-full bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-lg px-3 py-2 outline-none resize-none"
         />
         <p className="text-[11px] text-muted-foreground">
           You can use <span className="font-mono">{"{{name}}"}</span> and <span className="font-mono">{"{{prize}}"}</span> — they'll be replaced per customer.
@@ -258,7 +258,7 @@ export function MessagingTab({ shop }: { shop: { id: string; name: string } }) {
           <button
             onClick={openWhatsAppLinks}
             disabled={chosen.length === 0}
-            className="w-full gradient-primary text-[#0F1115] font-bold py-3 rounded-xl disabled:opacity-60"
+            className="w-full gradient-primary text-white font-bold py-3 rounded-xl disabled:opacity-60"
           >
             Open {chosen.length} WhatsApp chats
           </button>
@@ -267,7 +267,7 @@ export function MessagingTab({ shop }: { shop: { id: string; name: string } }) {
           <button
             onClick={sendWhatsAppApi}
             disabled={chosen.length === 0 || busy}
-            className="w-full gradient-primary text-[#0F1115] font-bold py-3 rounded-xl disabled:opacity-60"
+            className="w-full gradient-primary text-white font-bold py-3 rounded-xl disabled:opacity-60"
           >
             {busy ? "Sending…" : `Send WhatsApp to ${chosen.length}`}
           </button>
@@ -276,7 +276,7 @@ export function MessagingTab({ shop }: { shop: { id: string; name: string } }) {
           <button
             onClick={sendEmail}
             disabled={chosen.length === 0 || busy}
-            className="w-full gradient-primary text-[#0F1115] font-bold py-3 rounded-xl disabled:opacity-60"
+            className="w-full gradient-primary text-white font-bold py-3 rounded-xl disabled:opacity-60"
           >
             {busy ? "Sending…" : `Email ${chosen.length} customers`}
           </button>
