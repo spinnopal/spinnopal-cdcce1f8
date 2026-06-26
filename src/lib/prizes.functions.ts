@@ -127,7 +127,7 @@ export const pickWinnerForSlug = createServerFn({ method: "POST" })
       auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
     });
     const { data: shop } = await sb
-      .from("shops")
+      .from("shops_public")
       .select("id")
       .eq("slug", data.slug)
       .eq("is_active", true)
