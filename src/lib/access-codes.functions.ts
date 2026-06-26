@@ -22,7 +22,7 @@ async function publicClient() {
 async function shopIdForSlug(slug: string): Promise<string | null> {
   const sb = await publicClient();
   const { data } = await sb
-    .from("shops")
+    .from("shops_public")
     .select("id")
     .eq("slug", slug)
     .eq("is_active", true)
