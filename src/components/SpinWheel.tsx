@@ -83,10 +83,10 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
 
   return (
     <div className="relative w-full aspect-square">
-      <div className="absolute inset-0 rounded-full metallic-ring p-[3%] glow-orange">
-        <div className="w-full h-full rounded-full bg-[#0F1115] p-[2%]">
+      <div className="absolute inset-0 rounded-full p-[3%]" style={{ background: "linear-gradient(135deg,#1f3460,#3b5a8c)", boxShadow: "0 0 40px -8px rgba(31,52,96,0.6)" }}>
+        <div className="w-full h-full rounded-full bg-[#f5f7fb] p-[2%]">
           <div className="w-full h-full rounded-full relative overflow-hidden"
-               style={{ background: "radial-gradient(circle, #2a2f3a 0%, #14171d 70%)" }}>
+               style={{ background: "radial-gradient(circle, #e6edf7 0%, #c8d6ea 70%)" }}>
             <svg
               viewBox={`0 0 ${size} ${size}`}
               className="w-full h-full"
