@@ -72,8 +72,8 @@
   html, body, #root { height: 100%; }
   body {
     background:
-      radial-gradient(1200px 600px at 80% -10%, rgba(13, 122, 95, 0.35), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgba(201, 168, 76, 0.08), transparent 60%),
+      radial-gradient(1200px 600px at 80% -10%, rgba(59, 90, 140, 0.45), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(184, 204, 224, 0.18), transparent 60%),
       var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
@@ -96,10 +96,10 @@
   .bg-emerald-mid { background-color: var(--emerald-mid); }
 
   .gradient-primary {
-    background: linear-gradient(135deg, #d8b85a 0%, #c9a84c 45%, #a8862f 100%);
+    background: linear-gradient(135deg, #d6e3f2 0%, #b8cce0 45%, #7c9bc2 100%);
   }
   .gradient-gold-text {
-    background: linear-gradient(135deg, #f0d78c, #c9a84c 60%, #a8862f);
+    background: linear-gradient(135deg, #e6eef8, #b8cce0 60%, #7c9bc2);
     -webkit-background-clip: text;
     background-clip: text;
     color: transparent;
@@ -107,20 +107,20 @@
 
   .glow-gold {
     box-shadow:
-      0 0 40px -10px rgba(201, 168, 76, 0.55),
-      0 0 20px -5px rgba(201, 168, 76, 0.4);
+      0 0 40px -10px rgba(184, 204, 224, 0.6),
+      0 0 20px -5px rgba(184, 204, 224, 0.45);
   }
 
   .glass {
-    background: linear-gradient(180deg, rgba(13, 122, 95, 0.18), rgba(6, 78, 59, 0.55));
-    border: 1px solid rgba(201, 168, 76, 0.18);
+    background: linear-gradient(180deg, rgba(59, 90, 140, 0.22), rgba(31, 52, 96, 0.6));
+    border: 1px solid rgba(184, 204, 224, 0.22);
   }
   @media (min-width: 1024px) and (hover: hover) {
     .glass { backdrop-filter: blur(14px) saturate(140%); }
   }
 
   .hairline {
-    background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.5), transparent);
+    background: linear-gradient(90deg, transparent, rgba(184, 204, 224, 0.55), transparent);
     height: 1px;
   }
 
@@ -128,12 +128,12 @@
     0%, 100% {
       opacity: 0.55;
       transform: scale(1);
-      box-shadow: 0 0 60px 10px rgba(201, 168, 76, 0.35);
+      box-shadow: 0 0 60px 10px rgba(184, 204, 224, 0.35);
     }
     50% {
       opacity: 1;
       transform: scale(1.08);
-      box-shadow: 0 0 120px 30px rgba(201, 168, 76, 0.7);
+      box-shadow: 0 0 120px 30px rgba(184, 204, 224, 0.7);
     }
   }
   .animate-pulse-gold {
