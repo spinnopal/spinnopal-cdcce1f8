@@ -373,7 +373,7 @@ function PrizesTab({ shop }: { shop: Shop }) {
       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
         {prizes.map((p) => (
           <div key={p.id} className="glass rounded-xl p-3 flex gap-3 items-center">
-            <img src={p.image_url} alt="" className="w-14 h-14 rounded-lg object-cover bg-[#0F1115]" />
+            <img src={p.image_url} alt="" className="w-14 h-14 rounded-lg object-cover bg-[#F5F7FA] text-[#0c2340]" />
             <div className="flex-1 min-w-0">
               <p className="font-semibold truncate">{p.name}</p>
               <p className="text-xs text-muted-foreground">{p.is_win ? "Win" : "Try again"} · weight {p.probability}</p>
@@ -394,7 +394,7 @@ function PrizesTab({ shop }: { shop: Shop }) {
           <div className="glass rounded-2xl p-4 w-full max-w-sm space-y-2">
             <p className="text-xs uppercase tracking-widest text-gold">{prizes.find((p) => p.id === editing.id) ? "Edit prize" : "New prize"}</p>
             <div className="flex items-center gap-3">
-              <img src={editing.image_url || DEFAULT_LOGO} alt="" className="w-16 h-16 rounded-lg object-cover bg-[#0F1115]" />
+              <img src={editing.image_url || DEFAULT_LOGO} alt="" className="w-16 h-16 rounded-lg object-cover bg-[#F5F7FA] text-[#0c2340]" />
               <label className="text-sm px-3 py-2 rounded-lg bg-white/5 cursor-pointer">
                 Upload image
                 <input type="file" accept="image/*" onChange={onImage} className="hidden" />

@@ -207,7 +207,7 @@ function SuperAdminPage() {
 
       {openId && (
         <div className="fixed inset-0 z-50 bg-black/70 grid place-items-center p-3" onClick={() => setOpenId(null)}>
-          <div className="bg-[#0F1115] border border-[#0c2340]/10 rounded-2xl w-full max-w-3xl max-h-[88vh] overflow-auto p-5" onClick={(e) => e.stopPropagation()}>
+          <div className="bg-[#F5F7FA] text-[#0c2340] border border-[#0c2340]/10 rounded-2xl w-full max-w-3xl max-h-[88vh] overflow-auto p-5" onClick={(e) => e.stopPropagation()}>
             <div className="flex justify-between items-center mb-3">
               <h2 className="text-lg font-bold">Shop details</h2>
               <button onClick={() => setOpenId(null)} className="text-sm px-2 py-1 rounded bg-white/5">Close</button>
@@ -400,13 +400,13 @@ function SubscriptionSection({
         <div className="grid grid-cols-2 gap-2">
           <label className="space-y-1">
             <span className="text-muted-foreground">Plan</span>
-            <select value={plan} onChange={(e) => setPlan(e.target.value as SubShop["plan"])} className="w-full bg-[#0F1115] border border-[#0c2340]/10 rounded px-2 py-1">
+            <select value={plan} onChange={(e) => setPlan(e.target.value as SubShop["plan"])} className="w-full bg-[#F5F7FA] text-[#0c2340] border border-[#0c2340]/10 rounded px-2 py-1">
               <option value="free">free</option><option value="pro">pro</option><option value="lifetime">lifetime</option>
             </select>
           </label>
           <label className="space-y-1">
             <span className="text-muted-foreground">Status</span>
-            <select value={status} onChange={(e) => setStatus(e.target.value as SubShop["subscription_status"])} className="w-full bg-[#0F1115] border border-[#0c2340]/10 rounded px-2 py-1">
+            <select value={status} onChange={(e) => setStatus(e.target.value as SubShop["subscription_status"])} className="w-full bg-[#F5F7FA] text-[#0c2340] border border-[#0c2340]/10 rounded px-2 py-1">
               <option value="trial">trial</option><option value="active">active</option><option value="past_due">past_due</option><option value="suspended">suspended</option>
             </select>
           </label>
@@ -415,7 +415,7 @@ function SubscriptionSection({
           {shop.current_period_end ? <>Period ends: <span className="text-foreground">{new Date(shop.current_period_end).toLocaleString()}</span></> :
            shop.trial_ends_at ? <>Trial ends: <span className="text-foreground">{new Date(shop.trial_ends_at).toLocaleString()}</span></> : "No end date set"}
         </div>
-        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Internal billing notes" className="w-full bg-[#0F1115] border border-[#0c2340]/10 rounded px-2 py-1 min-h-[60px]" />
+        <textarea value={notes} onChange={(e) => setNotes(e.target.value)} placeholder="Internal billing notes" className="w-full bg-[#F5F7FA] text-[#0c2340] border border-[#0c2340]/10 rounded px-2 py-1 min-h-[60px]" />
         <div className="flex gap-2 flex-wrap">
           <button disabled={busy === `sub${shop.id}`} onClick={() => onUpdate({ plan, subscription_status: status, billing_notes: notes })} className="px-3 py-1.5 rounded bg-primary text-white font-bold">Save</button>
           <button disabled={busy === `ext${shop.id}`} onClick={() => onExtend(1)} className="px-3 py-1.5 rounded bg-white/10">+1 month</button>
@@ -426,12 +426,12 @@ function SubscriptionSection({
         <div className="pt-3 border-t border-[#0c2340]/10">
           <p className="font-bold mb-2">Record a payment</p>
           <div className="grid grid-cols-2 gap-2">
-            <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" inputMode="decimal" className="bg-[#0F1115] border border-[#0c2340]/10 rounded px-2 py-1" />
-            <input value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder="NPR" className="bg-[#0F1115] border border-[#0c2340]/10 rounded px-2 py-1" />
-            <input value={method} onChange={(e) => setMethod(e.target.value)} placeholder="eSewa / Khalti / Bank" className="bg-[#0F1115] border border-[#0c2340]/10 rounded px-2 py-1" />
-            <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference / txn id" className="bg-[#0F1115] border border-[#0c2340]/10 rounded px-2 py-1" />
-            <input value={months} onChange={(e) => setMonths(e.target.value)} placeholder="Months to extend" inputMode="numeric" className="bg-[#0F1115] border border-[#0c2340]/10 rounded px-2 py-1" />
-            <input value={payNotes} onChange={(e) => setPayNotes(e.target.value)} placeholder="Notes" className="bg-[#0F1115] border border-[#0c2340]/10 rounded px-2 py-1" />
+            <input value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount" inputMode="decimal" className="bg-[#F5F7FA] text-[#0c2340] border border-[#0c2340]/10 rounded px-2 py-1" />
+            <input value={currency} onChange={(e) => setCurrency(e.target.value)} placeholder="NPR" className="bg-[#F5F7FA] text-[#0c2340] border border-[#0c2340]/10 rounded px-2 py-1" />
+            <input value={method} onChange={(e) => setMethod(e.target.value)} placeholder="eSewa / Khalti / Bank" className="bg-[#F5F7FA] text-[#0c2340] border border-[#0c2340]/10 rounded px-2 py-1" />
+            <input value={reference} onChange={(e) => setReference(e.target.value)} placeholder="Reference / txn id" className="bg-[#F5F7FA] text-[#0c2340] border border-[#0c2340]/10 rounded px-2 py-1" />
+            <input value={months} onChange={(e) => setMonths(e.target.value)} placeholder="Months to extend" inputMode="numeric" className="bg-[#F5F7FA] text-[#0c2340] border border-[#0c2340]/10 rounded px-2 py-1" />
+            <input value={payNotes} onChange={(e) => setPayNotes(e.target.value)} placeholder="Notes" className="bg-[#F5F7FA] text-[#0c2340] border border-[#0c2340]/10 rounded px-2 py-1" />
           </div>
           <button
             disabled={busy === `pay${shop.id}` || !amount}
