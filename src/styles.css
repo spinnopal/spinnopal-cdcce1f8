@@ -72,14 +72,15 @@
   html, body, #root { height: 100%; }
   body {
     background:
-      radial-gradient(1200px 600px at 80% -10%, rgba(59, 90, 140, 0.45), transparent 60%),
-      radial-gradient(900px 500px at -10% 110%, rgba(184, 204, 224, 0.18), transparent 60%),
+      radial-gradient(900px 500px at 90% -10%, rgba(255, 107, 26, 0.10), transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, rgba(12, 35, 64, 0.06), transparent 60%),
       var(--color-background);
     color: var(--color-foreground);
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     overscroll-behavior: none;
   }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-display);
     letter-spacing: -0.01em;
