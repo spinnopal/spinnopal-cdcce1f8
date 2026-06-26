@@ -117,7 +117,7 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
                 const y1 = cy + r * Math.sin(a1);
                 const x2 = cx + r * Math.cos(a2);
                 const y2 = cy + r * Math.sin(a2);
-                const fill = i % 2 === 0 ? "#1f242e" : "#FF7A00";
+                const fill = i % 2 === 0 ? "#1f3460" : "#b8cce0";
                 const largeArc = SEG > 180 ? 1 : 0;
                 const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
                 const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
