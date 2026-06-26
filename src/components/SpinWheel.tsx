@@ -162,7 +162,8 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
               onPointerUp={endPress}
               onPointerLeave={endPress}
               onPointerCancel={endPress}
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] rounded-full overflow-hidden border-2 border-[var(--gold)] glow-gold bg-[#0F1115]"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] rounded-full overflow-hidden border-2 border-[#1f3460] bg-[#f5f7fb]"
+              style={{ boxShadow: "0 0 24px -6px rgba(31,52,96,0.55)" }}
               aria-label={centerLabel || "Lucky Spin"}
             >
               <img src={centerLogo || DEFAULT_LOGO} alt={centerLabel || "Lucky Spin"} className="w-full h-full object-cover" />
@@ -171,17 +172,17 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
         </div>
       </div>
 
-      <div className="absolute left-1/2 -top-2 -translate-x-1/2 z-10 drop-shadow-[0_4px_10px_rgba(245,197,66,0.6)]">
+      <div className="absolute left-1/2 -top-2 -translate-x-1/2 z-10 drop-shadow-[0_4px_10px_rgba(31,52,96,0.5)]">
         <svg width="44" height="56" viewBox="0 0 44 56">
           <defs>
             <linearGradient id="gp" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#FCE38A" />
-              <stop offset="50%" stopColor="#F5C542" />
-              <stop offset="100%" stopColor="#A8800A" />
+              <stop offset="0%" stopColor="#3b5a8c" />
+              <stop offset="50%" stopColor="#1f3460" />
+              <stop offset="100%" stopColor="#0f1f3d" />
             </linearGradient>
           </defs>
-          <path d="M22 54 L4 12 Q22 0 40 12 Z" fill="url(#gp)" stroke="#5a4106" strokeWidth="1.5" />
-          <circle cx="22" cy="14" r="4" fill="#0F1115" />
+          <path d="M22 54 L4 12 Q22 0 40 12 Z" fill="url(#gp)" stroke="#0f1f3d" strokeWidth="1.5" />
+          <circle cx="22" cy="14" r="4" fill="#f5f7fb" />
         </svg>
       </div>
     </div>
