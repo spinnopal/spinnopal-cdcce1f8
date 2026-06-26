@@ -52,7 +52,7 @@ export function PwaInstallPrompt() {
           <Download className="h-5 w-5 text-primary-foreground" />
         </div>
         <div className="flex-1">
-          <p className="font-semibold text-foreground">Install Mas Spin</p>
+          <p className="font-semibold text-foreground">Install The Luck Spin</p>
           <p className="text-sm text-muted-foreground">
             {deferredPrompt
               ? "Add this app to your home screen for the best experience."
