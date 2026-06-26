@@ -37,15 +37,16 @@ async function isSuperAdmin(ctx: { supabase: any; userId: string }) {
 export const getPublicShop = createServerFn({ method: "GET" })
   .inputValidator(z.object({ slug: slugSchema }).parse)
   .handler(async ({ data }) => {
-    const sb = await publicClient();
-    const { data: shop, error } = await sb
+    // Use admin client server-side to evaluate subscription gating without exposing
+    // sensitive columns (subscription_status, trial_ends_at, etc.) to anon over the Data API.
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: shop, error } = await supabaseAdmin
       .from("shops")
       .select("id, name, slug, logo_url, is_active, subscription_status, trial_ends_at, current_period_end")
       .eq("slug", data.slug)
       .maybeSingle();
     if (error) throw new Error("Server error");
     if (!shop || !shop.is_active) return { shop: null as null };
-    // Hide shop when subscription is suspended or trial/period expired
     const now = Date.now();
     const status = shop.subscription_status as string;
     const trialEnd = shop.trial_ends_at ? new Date(shop.trial_ends_at).getTime() : null;
@@ -54,7 +55,16 @@ export const getPublicShop = createServerFn({ method: "GET" })
     if (status === "trial" && trialEnd && trialEnd < now) return { shop: null as null };
     if (status === "active" && periodEnd && periodEnd < now) return { shop: null as null };
     if (status === "past_due" && periodEnd && periodEnd < now) return { shop: null as null };
-    return { shop };
+    // Return only safe public fields — never leak sensitive columns to the client.
+    return {
+      shop: {
+        id: shop.id,
+        name: shop.name,
+        slug: shop.slug,
+        logo_url: shop.logo_url,
+        is_active: shop.is_active,
+      },
+    };
   });
 
 
