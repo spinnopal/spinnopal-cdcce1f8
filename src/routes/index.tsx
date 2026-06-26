@@ -25,7 +25,7 @@ export const Route = createFileRoute("/")({
 function BrandMark({ size = 36 }: { size?: number }) {
   return (
     <div
-      className="rounded-full bg-cream overflow-hidden flex items-center justify-center shadow-[0_0_20px_-4px_rgba(184,204,224,0.7)] ring-1 ring-[rgba(184,204,224,0.4)]"
+      className="rounded-full bg-white overflow-hidden flex items-center justify-center ring-1 ring-[rgba(12,35,64,0.12)] shadow-sm"
       style={{ width: size, height: size }}
     >
       <img src={DEFAULT_LOGO} alt="The Luck Spin" className="w-full h-full object-contain" />
@@ -33,177 +33,213 @@ function BrandMark({ size = 36 }: { size?: number }) {
   );
 }
 
+function WheelVisual() {
+  // Decorative SVG wheel — navy + orange segments
+  const segs = 8;
+  const colors = ["#0c2340", "#ff6b1a"];
+  return (
+    <div className="relative w-full max-w-[460px] aspect-square mx-auto">
+      <div
+        aria-hidden
+        className="absolute inset-6 rounded-full animate-pulse-gold"
+        style={{ background: "radial-gradient(circle, rgba(255,107,26,0.35), transparent 65%)" }}
+      />
+      <div className="absolute inset-0 rounded-full bg-white shadow-[0_30px_80px_-20px_rgba(12,35,64,0.35)] ring-[10px] ring-[#0c2340]">
+        <svg viewBox="0 0 200 200" className="w-full h-full animate-slow-spin">
+          {Array.from({ length: segs }).map((_, i) => {
+            const a1 = ((i * 360) / segs - 90) * (Math.PI / 180);
+            const a2 = (((i + 1) * 360) / segs - 90) * (Math.PI / 180);
+            const x1 = 100 + 100 * Math.cos(a1);
+            const y1 = 100 + 100 * Math.sin(a1);
+            const x2 = 100 + 100 * Math.cos(a2);
+            const y2 = 100 + 100 * Math.sin(a2);
+            return (
+              <path
+                key={i}
+                d={`M100 100 L${x1} ${y1} A100 100 0 0 1 ${x2} ${y2} Z`}
+                fill={colors[i % 2]}
+                stroke="#ffffff"
+                strokeWidth="1.5"
+              />
+            );
+          })}
+        </svg>
+      </div>
+      {/* pointer */}
+      <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 w-0 h-0 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-[#ff6b1a] drop-shadow" />
+      {/* center hub */}
+      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white border-[6px] border-[#0c2340] shadow-xl flex items-center justify-center">
+        <span className="font-display font-bold text-[#ff6b1a] tracking-[0.2em] text-sm">SPIN</span>
+      </div>
+    </div>
+  );
+}
+
 function Landing() {
   return (
-    <div className="min-h-screen w-full flex flex-col items-center px-3 py-6 md:p-10 select-none">
-      {/* Framed boutique card */}
-      <div className="max-w-7xl w-full bg-emerald-deep rounded-3xl overflow-hidden shadow-2xl border border-[rgba(201,168,76,0.22)] flex flex-col animate-float-up">
-        {/* Navigation */}
-        <nav className="w-full flex items-center justify-between px-5 md:px-8 py-5 md:py-6 border-b border-[rgba(201,168,76,0.12)]">
-          <Link to="/" className="flex items-center gap-2.5">
-            <BrandMark size={32} />
-            <span
-              className="font-display font-bold tracking-tight text-lg md:text-xl text-cream"
-            >
-              theluckspin
-            </span>
-          </Link>
-          <div className="hidden md:flex items-center gap-7">
-            <Link
-              to="/auth"
-              className="text-cream/70 hover:text-gold text-xs font-semibold transition-colors uppercase tracking-[0.2em]"
-            >
-              Sign in
-            </Link>
-            <InstallAppButton
-              variant="ghost"
-              size="sm"
-              className="!text-cream/70 hover:!text-gold uppercase tracking-[0.2em] text-xs font-semibold"
-            />
-            <Link
-              to="/auth"
-              className="px-5 py-2.5 bg-gold text-emerald-deep rounded-full text-[11px] font-bold uppercase tracking-[0.2em] hover:bg-cream transition-all duration-300 glow-gold"
-            >
-              Create your shop
-            </Link>
-          </div>
-          {/* Mobile compact CTA */}
+    <div className="min-h-screen w-full bg-white text-[#0c2340]">
+      {/* Nav */}
+      <nav className="max-w-7xl mx-auto flex items-center justify-between px-5 md:px-8 py-5">
+        <Link to="/" className="flex items-center gap-2.5">
+          <BrandMark size={36} />
+          <span className="font-display font-bold tracking-tight text-lg text-[#0c2340]">
+            theluckspin
+          </span>
+        </Link>
+        <div className="hidden md:flex items-center gap-6">
           <Link
             to="/auth"
-            className="md:hidden px-3.5 py-2 bg-gold text-emerald-deep rounded-full text-[10px] font-bold uppercase tracking-[0.18em]"
+            className="text-[#0c2340]/70 hover:text-[#ff6b1a] text-sm font-semibold transition-colors"
           >
             Sign in
           </Link>
-        </nav>
+          <InstallAppButton
+            variant="ghost"
+            size="sm"
+            className="!text-[#0c2340]/70 hover:!text-[#ff6b1a] text-sm font-semibold"
+          />
+          <Link
+            to="/auth"
+            className="px-5 py-2.5 bg-[#ff6b1a] text-white rounded-full text-sm font-bold hover:bg-[#e85a0c] transition-all shadow-[0_8px_24px_-8px_rgba(255,107,26,0.6)]"
+          >
+            Create your shop
+          </Link>
+        </div>
+        <Link
+          to="/auth"
+          className="md:hidden px-4 py-2 bg-[#ff6b1a] text-white rounded-full text-xs font-bold"
+        >
+          Sign in
+        </Link>
+      </nav>
 
-        {/* Hero split */}
-        <div className="flex flex-col lg:flex-row min-h-[560px]">
-          {/* Left */}
-          <div className="flex-1 flex flex-col justify-center px-6 md:px-10 lg:px-16 py-12 lg:py-16">
-            <span className="text-gold text-[11px] font-bold uppercase tracking-[0.3em] mb-5">
-              Growth &amp; retention SaaS
-            </span>
-            <h1 className="font-display text-cream text-4xl md:text-5xl lg:text-7xl font-light leading-[1.05] mb-6">
-              Run a{" "}
-              <span className="text-gold italic font-normal">Lucky Spin</span> campaign for your shop
-            </h1>
-            <p className="text-cream/65 text-base md:text-lg max-w-lg mb-10 leading-relaxed">
-              Brand your spin page, generate access codes, and turn every visit into a memorable
-              moment. Built for boutique shops that care how they're seen.
-            </p>
+      {/* Hero split-screen */}
+      <section className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center px-5 md:px-8 pt-6 pb-16 lg:py-20">
+        {/* Left copy */}
+        <div className="animate-float-up">
+          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#fff1e8] text-[#ff6b1a] text-[11px] font-bold uppercase tracking-[0.18em]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#ff6b1a]" />
+            Growth &amp; retention SaaS
+          </span>
+          <h1 className="font-display mt-5 text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight">
+            Run a{" "}
+            <span className="relative inline-block">
+              <span className="text-[#ff6b1a]">Lucky Spin</span>
+              <span className="absolute left-0 right-0 -bottom-1 h-2 bg-[#ff6b1a]/20 -z-0" />
+            </span>{" "}
+            campaign for your shop.
+          </h1>
+          <p className="mt-5 text-base md:text-lg text-[#4a5b78] max-w-lg leading-relaxed">
+            Brand your spin page, generate access codes, and turn every visit into a memorable
+            moment. Built for boutique shops that care how they're seen.
+          </p>
 
-            <div className="flex flex-wrap items-center gap-3 md:gap-4">
-              <Link
-                to="/auth"
-                className="px-7 py-3.5 md:px-8 md:py-4 bg-gold text-emerald-deep rounded-full font-bold uppercase tracking-[0.2em] text-xs md:text-sm shadow-lg shadow-[rgba(201,168,76,0.25)] hover:scale-[1.03] transition-transform"
-              >
-                Get started
-              </Link>
-              <InstallAppButton
-                variant="outline"
-                size="lg"
-                className="!rounded-full !border-[rgba(201,168,76,0.35)] !text-cream uppercase tracking-[0.2em] !text-xs md:!text-sm font-bold !px-6 !py-4 hover:!bg-emerald-mid hover:!text-cream"
-              />
-              <Link
-                to="/auth"
-                className="text-gold text-[11px] font-bold uppercase tracking-[0.22em] hover:underline underline-offset-4"
-              >
-                I already have a shop
-              </Link>
-            </div>
+          <div className="mt-8 flex flex-wrap items-center gap-3">
+            <Link
+              to="/auth"
+              className="px-7 py-3.5 bg-[#0c2340] text-white rounded-full font-bold text-sm hover:bg-[#1a3a66] transition-all shadow-[0_10px_30px_-10px_rgba(12,35,64,0.5)] hover:scale-[1.02]"
+            >
+              Get started — it's free
+            </Link>
+            <InstallAppButton
+              variant="outline"
+              size="lg"
+              className="!rounded-full !border-[#0c2340]/20 !text-[#0c2340] !font-semibold !text-sm !px-6 hover:!bg-[#f4f6fa]"
+            />
           </div>
 
-          {/* Right visual */}
-          <div className="flex-1 bg-[rgba(13,122,95,0.28)] flex items-center justify-center p-8 md:p-10 relative overflow-hidden min-h-[340px]">
-            <div className="absolute inset-0 bg-[radial-gradient(circle_at_center,rgba(13,122,95,0.45),transparent_65%)]" />
-            {/* Pulsing gold halo */}
-            <div
-              aria-hidden
-              className="absolute rounded-full bg-gold/30 blur-3xl animate-pulse-gold"
-              style={{ width: 340, height: 340 }}
-            />
-
-            {/* Wheel */}
-            <div className="relative w-72 h-72 md:w-[420px] md:h-[420px] rounded-full border-[10px] md:border-[12px] border-emerald-deep shadow-[0_0_80px_rgba(201,168,76,0.18)] flex items-center justify-center">
-              {/* Rotating hairline ring */}
-              <div className="absolute inset-0 rounded-full border-2 border-[rgba(201,168,76,0.35)] animate-slow-spin" />
-              <div className="absolute inset-3 rounded-full border border-[rgba(201,168,76,0.18)]" />
-
-              {/* Segments */}
-              <div className="absolute inset-[10px] rounded-full overflow-hidden opacity-80">
-                <div className="absolute inset-0 grid grid-cols-2 grid-rows-2">
-                  <div className="border-r border-b border-[rgba(201,168,76,0.12)] bg-gradient-to-br from-emerald-deep to-emerald-mid" />
-                  <div className="border-b border-[rgba(201,168,76,0.12)] bg-gradient-to-bl from-emerald-mid to-emerald-deep" />
-                  <div className="border-r border-[rgba(201,168,76,0.12)] bg-gradient-to-tr from-emerald-mid to-emerald-deep" />
-                  <div className="bg-gradient-to-tl from-emerald-deep to-emerald-mid" />
-                </div>
+          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-4">
+            {[
+              { k: "10k+", v: "Spins delivered" },
+              { k: "98%", v: "Customer delight" },
+              { k: "<1min", v: "Setup time" },
+            ].map((s) => (
+              <div key={s.v}>
+                <div className="font-display text-2xl font-bold text-[#0c2340]">{s.k}</div>
+                <div className="text-xs uppercase tracking-wider text-[#4a5b78] mt-1">{s.v}</div>
               </div>
-
-              {/* Top indicator */}
-              <div className="absolute -top-3 left-1/2 -translate-x-1/2 w-0 h-0 border-l-[10px] border-r-[10px] border-t-[16px] border-l-transparent border-r-transparent border-t-gold drop-shadow-[0_2px_6px_rgba(0,0,0,0.35)]" />
-
-              {/* Gold center */}
-              <div className="relative z-10 w-20 h-20 md:w-24 md:h-24 rounded-full bg-gold border-[6px] md:border-[8px] border-emerald-deep shadow-2xl flex items-center justify-center">
-                <span className="text-emerald-deep font-display font-bold text-[11px] tracking-[0.18em]">
-                  SPIN
-                </span>
-              </div>
-            </div>
+            ))}
           </div>
         </div>
 
-        {/* 3 steps */}
-        <div className="grid grid-cols-1 md:grid-cols-3 border-t border-[rgba(201,168,76,0.12)] bg-[rgba(13,122,95,0.1)]">
-          {[
-            {
-              n: "01",
-              t: "Set up",
-              d: "Upload your logo, name your shop, and claim your branded URL in under a minute.",
-            },
-            {
-              n: "02",
-              t: "Configure",
-              d: "Add prizes with photos, tune win odds, and generate access codes to hand out.",
-            },
-            {
-              n: "03",
-              t: "Launch",
-              d: "Share one link. Customers spin, you see every winner in your dashboard.",
-            },
-          ].map((s, i) => (
-            <div
-              key={s.n}
-              className={`p-8 md:p-12 group hover:bg-emerald-deep transition-colors ${
-                i < 2 ? "md:border-r border-b md:border-b-0 border-[rgba(201,168,76,0.12)]" : ""
-              }`}
+        {/* Right visual */}
+        <div className="relative">
+          <div className="absolute -inset-6 bg-gradient-to-br from-[#fff1e8] via-white to-[#eef3fb] rounded-[2rem] -z-10" />
+          <WheelVisual />
+        </div>
+      </section>
+
+      {/* Steps strip */}
+      <section className="bg-[#0c2340] text-white py-16">
+        <div className="max-w-7xl mx-auto px-5 md:px-8">
+          <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
+            <h2 className="font-display text-3xl md:text-4xl font-bold max-w-md leading-tight">
+              Launch in three simple steps.
+            </h2>
+            <Link
+              to="/auth"
+              className="text-[#ff6b1a] text-sm font-bold hover:underline underline-offset-4"
             >
-              <span className="text-gold text-[10px] font-bold uppercase tracking-[0.4em] mb-4 block">
-                Step {s.n}
-              </span>
-              <h3 className="font-display text-cream text-xl md:text-2xl font-medium mb-3">
-                {s.t}
-              </h3>
-              <p className="text-cream/45 text-sm leading-relaxed group-hover:text-cream/65 transition-colors">
-                {s.d}
-              </p>
-              <div className="mt-6 hairline w-0 group-hover:w-full transition-[width] duration-500" />
-            </div>
+              Start your shop →
+            </Link>
+          </div>
+          <div className="grid md:grid-cols-3 gap-5">
+            {[
+              {
+                n: "01",
+                t: "Set up",
+                d: "Upload your logo, name your shop, and claim your branded URL in under a minute.",
+              },
+              {
+                n: "02",
+                t: "Configure",
+                d: "Add prizes with photos, tune win odds, and generate access codes to hand out.",
+              },
+              {
+                n: "03",
+                t: "Launch",
+                d: "Share one link. Customers spin, you see every winner in your dashboard.",
+              },
+            ].map((s) => (
+              <div
+                key={s.n}
+                className="group bg-white/5 border border-white/10 rounded-2xl p-7 hover:bg-[#ff6b1a] hover:border-[#ff6b1a] transition-all duration-300"
+              >
+                <div className="flex items-center justify-between mb-5">
+                  <span className="font-display text-3xl font-bold text-[#ff6b1a] group-hover:text-white transition-colors">
+                    {s.n}
+                  </span>
+                  <span className="w-10 h-10 rounded-full border border-white/20 group-hover:border-white flex items-center justify-center text-white/60 group-hover:text-white transition-colors">
+                    →
+                  </span>
+                </div>
+                <h3 className="font-display text-xl font-bold mb-2">{s.t}</h3>
+                <p className="text-white/60 text-sm leading-relaxed group-hover:text-white/90 transition-colors">
+                  {s.d}
+                </p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Footer trust */}
+      <footer className="max-w-7xl mx-auto px-5 md:px-8 py-10 flex flex-wrap items-center justify-between gap-4 border-t border-[#0c2340]/10">
+        <div className="flex items-center gap-2.5">
+          <BrandMark size={28} />
+          <span className="font-display font-bold text-[#0c2340]">theluckspin</span>
+        </div>
+        <div className="flex flex-wrap gap-x-6 gap-y-2">
+          {["Built for boutique retail", "Secure access codes", "Installable PWA"].map((t) => (
+            <span
+              key={t}
+              className="text-[10px] uppercase font-bold tracking-[0.22em] text-[#4a5b78]"
+            >
+              {t}
+            </span>
           ))}
         </div>
-      </div>
-
-      {/* Trust strip */}
-      <div className="mt-7 mb-2 flex flex-wrap justify-center gap-x-8 gap-y-2 text-center">
-        <span className="text-cream/40 text-[10px] uppercase font-bold tracking-[0.3em]">
-          Built for boutique retail
-        </span>
-        <span className="text-cream/40 text-[10px] uppercase font-bold tracking-[0.3em]">
-          Secure access codes
-        </span>
-        <span className="text-cream/40 text-[10px] uppercase font-bold tracking-[0.3em]">
-          Installable PWA
-        </span>
-      </div>
+      </footer>
     </div>
   );
 }
