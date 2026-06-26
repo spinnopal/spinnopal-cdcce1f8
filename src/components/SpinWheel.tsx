@@ -117,7 +117,8 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
                 const y1 = cy + r * Math.sin(a1);
                 const x2 = cx + r * Math.cos(a2);
                 const y2 = cy + r * Math.sin(a2);
-                const fill = i % 2 === 0 ? "#1f3460" : "#b8cce0";
+                const isDark = i % 2 === 0;
+                const fill = isDark ? "#1f3460" : "#b8cce0";
                 const largeArc = SEG > 180 ? 1 : 0;
                 const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
                 const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
@@ -126,8 +127,8 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
                 const ty = cy + textR * Math.sin((centerAngle - 90) * Math.PI / 180);
                 return (
                   <g key={prize.id}>
-                    <path d={path} fill={fill} stroke="#0F1115" strokeWidth="2" />
-                    <circle cx={ix} cy={iy} r={iconRadius} fill="#0F1115" stroke="#F5C542" strokeWidth="2" />
+                    <path d={path} fill={fill} stroke="#f5f7fb" strokeWidth="2" />
+                    <circle cx={ix} cy={iy} r={iconRadius} fill="#f5f7fb" stroke="#1f3460" strokeWidth="2" />
                     <image
                       href={prize.image}
                       x={ix - iconRadius}
@@ -141,7 +142,7 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
                     <text
                       x={tx}
                       y={ty}
-                      fill="#FFFFFF"
+                      fill={isDark ? "#FFFFFF" : "#1f3460"}
                       fontSize={fontSize}
                       fontWeight="800"
                       textAnchor="middle"
@@ -152,7 +153,8 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
                   </g>
                 );
               })}
-              <circle cx={cx} cy={cy} r={r * 0.22} fill="#0F1115" stroke="#F5C542" strokeWidth="2" />
+              <circle cx={cx} cy={cy} r={r * 0.22} fill="#f5f7fb" stroke="#1f3460" strokeWidth="2" />
+
             </svg>
 
             <button
