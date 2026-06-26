@@ -12,22 +12,22 @@ const slugSchema = z
 
 const codeChars = z.string().trim().min(1).max(64).regex(/^[A-Za-z0-9-]+$/);
 
-async function publicClient() {
-  const { createClient } = await import("@supabase/supabase-js");
-  return createClient(process.env.SUPABASE_URL!, process.env.SUPABASE_PUBLISHABLE_KEY!, {
-    auth: { storage: undefined, persistSession: false, autoRefreshToken: false },
-  });
-}
-
 async function shopIdForSlug(slug: string): Promise<string | null> {
-  const sb = await publicClient();
-  const { data } = await sb
-    .from("shops_public")
-    .select("id")
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: shop, error } = await supabaseAdmin
+    .from("shops")
+    .select("id, is_active, subscription_status, trial_ends_at, current_period_end")
     .eq("slug", slug)
-    .eq("is_active", true)
     .maybeSingle();
-  return data?.id ?? null;
+  if (error || !shop || !shop.is_active) return null;
+
+  const now = Date.now();
+  const trialEnd = shop.trial_ends_at ? new Date(shop.trial_ends_at).getTime() : null;
+  const periodEnd = shop.current_period_end ? new Date(shop.current_period_end).getTime() : null;
+  if (shop.subscription_status === "suspended") return null;
+  if (shop.subscription_status === "trial" && trialEnd && trialEnd < now) return null;
+  if ((shop.subscription_status === "active" || shop.subscription_status === "past_due") && periodEnd && periodEnd < now) return null;
+  return shop.id;
 }
 
 async function assertOwner(ctx: { supabase: any; userId: string }, shopId: string) {
