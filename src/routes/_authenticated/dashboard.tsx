@@ -182,7 +182,7 @@ function Dashboard() {
         <TabMount active={tab === "overview"}>
           <OverviewTab shop={shop} onNavigate={setTab} />
         </TabMount>
-        <TabMount active={tab === "campaign"}><PrizesTab shop={shop} /></TabMount>
+        <TabMount active={tab === "campaign"}><CampaignHub shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} /></TabMount>
         <TabMount active={tab === "customers"}><RecordsTab shop={shop} /></TabMount>
         <TabMount active={tab === "analytics"}><StatsTab shop={shop} /></TabMount>
         <TabMount active={tab === "settings"}>
