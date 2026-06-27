@@ -137,7 +137,7 @@ function AuthPage() {
       <h1 className="text-2xl font-black tracking-wider mb-1">LUCKY SPIN</h1>
       <p className="text-xs tracking-[0.3em] text-gold uppercase mb-8">Shop Owner Portal</p>
 
-      <form onSubmit={onSubmit} className="glass rounded-2xl p-5 w-full max-w-sm space-y-3">
+      <form onSubmit={onSubmit} onInput={() => { interactedRef.current = true; }} className="glass rounded-2xl p-5 w-full max-w-sm space-y-3">
         <div className="flex gap-2 mb-1">
           <button
             type="button"
