@@ -405,8 +405,30 @@ function Landing() {
         {/* Right visual */}
         <div className="relative">
           <div className="absolute -inset-6 bg-gradient-to-br from-[#fff1e8] via-white to-[#eef3fb] rounded-[2rem] -z-10" />
-          <WheelVisual />
+          <WheelVisual reducedMotion={reducedMotion} />
+          <button
+            type="button"
+            onClick={() => setReducedMotion(!reducedMotion)}
+            className="mx-auto mt-5 flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-[#0c2340]/10 bg-white/80 text-xs font-semibold text-[#4a5b78] hover:text-[#0c2340] hover:border-[#0c2340]/20 transition-colors"
+            aria-pressed={reducedMotion}
+            aria-label={reducedMotion ? "Enable full wheel motion and sound" : "Reduce wheel motion and sound"}
+          >
+            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden>
+              {reducedMotion ? (
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+              ) : (
+                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z" />
+              )}
+            </svg>
+            <span>{reducedMotion ? "Motion reduced" : "Reduce motion"}</span>
+          </button>
+          <p className="text-center mt-2 text-[11px] text-[#4a5b78]/70">
+            {reducedMotion
+              ? "Short spins, no haptics, no sound."
+              : "Honours your device’s reduced-motion preference."}
+          </p>
         </div>
+
       </section>
 
       {/* Steps strip */}
