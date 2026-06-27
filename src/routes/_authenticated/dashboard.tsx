@@ -7,6 +7,7 @@ import {
   TrendingUp, Trophy, Activity, Sparkles, ChevronRight, ChevronLeft,
   CircleDot, Calendar, Ticket, Hash, PlayCircle, Power,
   Search, Download, Trash2, X, Phone, Mail, Award, CheckCircle2, XCircle, ArrowUpDown, Loader2,
+  Building2, ShieldCheck, Bell, CreditCard, Plug, LifeBuoy, Moon, Sun, KeyRound, Globe, Upload,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, CartesianGrid,
@@ -188,23 +189,7 @@ function Dashboard() {
         <TabMount active={tab === "customers"}><RecordsTab shop={shop} /></TabMount>
         <TabMount active={tab === "analytics"}><StatsTab shop={shop} /></TabMount>
         <TabMount active={tab === "settings"}>
-          <div className="space-y-4">
-            <SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} />
-            <div className="glass rounded-2xl p-4 flex flex-wrap gap-2">
-              <InstallAppButton variant="outline" size="sm" />
-              <Link to="/s/$slug" params={{ slug: shop.slug }} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#F5F7FA] text-[#0c2340] text-sm hover:bg-[#ECEFF5]">
-                <ExternalLink className="w-4 h-4" /> View public page
-              </Link>
-              {superAdmin && (
-                <Link to="/super-admin" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#F5F7FA] text-[#0c2340] text-sm hover:bg-[#ECEFF5]">
-                  <Shield className="w-4 h-4" /> Super admin
-                </Link>
-              )}
-              <button onClick={signOut} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#F5F7FA] text-[#0c2340] text-sm hover:bg-[#ECEFF5]">
-                <LogOut className="w-4 h-4" /> Sign out
-              </button>
-            </div>
-          </div>
+          <SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} onSignOut={signOut} />
         </TabMount>
 
         {/* Secondary tabs (reached via quick actions) */}
@@ -490,15 +475,85 @@ function CreateShopForm({ onCreated, onSignOut, doCreate }: { onCreated: () => v
 }
 
 // ---------- SETTINGS ----------
-function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap }: { shop: Shop; onSaved: () => void; doUpdate: ReturnType<typeof useServerFn<typeof updateMyShop>>; superAdmin: boolean; doBootstrap: ReturnType<typeof useServerFn<typeof bootstrapSuperAdmin>> }) {
+function SettingsSection({ icon: Icon, title, subtitle, accent = "#FF6B00", children }: { icon: typeof SettingsIcon; title: string; subtitle?: string; accent?: string; children: ReactNode }) {
+  return (
+    <section className="bg-white rounded-2xl shadow-[0_2px_12px_rgba(12,35,64,0.06)] border border-[#0c2340]/5 overflow-hidden">
+      <header className="flex items-center gap-3 px-5 pt-5 pb-3">
+        <span className="w-10 h-10 rounded-xl flex items-center justify-center" style={{ background: `${accent}14`, color: accent }}>
+          <Icon className="w-5 h-5" />
+        </span>
+        <div className="min-w-0">
+          <h3 className="text-[15px] font-bold text-[#0c2340] leading-tight">{title}</h3>
+          {subtitle && <p className="text-xs text-[#6b7a93] mt-0.5">{subtitle}</p>}
+        </div>
+      </header>
+      <div className="px-5 pb-5 space-y-3">{children}</div>
+    </section>
+  );
+}
+
+function SettingsRow({ icon: Icon, label, hint, right, onClick, danger }: { icon: typeof SettingsIcon; label: string; hint?: string; right?: ReactNode; onClick?: () => void; danger?: boolean }) {
+  const Cmp = onClick ? "button" : "div";
+  return (
+    <Cmp
+      onClick={onClick}
+      className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl text-left transition ${onClick ? "hover:bg-[#F5F7FA] active:bg-[#ECEFF5]" : ""} ${danger ? "text-[#b3261e]" : "text-[#0c2340]"}`}
+    >
+      <span className={`w-8 h-8 rounded-lg flex items-center justify-center ${danger ? "bg-[#fde8e6]" : "bg-[#F5F7FA]"}`}>
+        <Icon className={`w-4 h-4 ${danger ? "text-[#b3261e]" : "text-[#4a5b78]"}`} />
+      </span>
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-semibold leading-tight">{label}</p>
+        {hint && <p className="text-[11px] text-[#6b7a93] mt-0.5 truncate">{hint}</p>}
+      </div>
+      {right ?? (onClick && <ChevronRight className="w-4 h-4 text-[#6b7a93]" />)}
+    </Cmp>
+  );
+}
+
+function Toggle({ checked, onChange }: { checked: boolean; onChange: (v: boolean) => void }) {
+  return (
+    <button
+      onClick={(e) => { e.stopPropagation(); onChange(!checked); }}
+      className={`relative w-11 h-6 rounded-full transition ${checked ? "bg-[#FF6B00]" : "bg-[#d6dbe5]"}`}
+      aria-pressed={checked}
+    >
+      <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition ${checked ? "translate-x-5" : ""}`} />
+    </button>
+  );
+}
+
+function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignOut }: { shop: Shop; onSaved: () => void; doUpdate: ReturnType<typeof useServerFn<typeof updateMyShop>>; superAdmin: boolean; doBootstrap: ReturnType<typeof useServerFn<typeof bootstrapSuperAdmin>>; onSignOut: () => void | Promise<void> }) {
   const [name, setName] = useState(shop.name);
   const [slug, setSlug] = useState(shop.slug);
   const [logoUrl, setLogoUrl] = useState<string | null>(shop.logo_url);
   const [msg, setMsg] = useState("");
   const [err, setErr] = useState("");
   const [busy, setBusy] = useState(false);
+  const [email, setEmail] = useState("");
   const [bootstrapPw, setBootstrapPw] = useState("");
   const [bootstrapMsg, setBootstrapMsg] = useState("");
+  const [showAdminUnlock, setShowAdminUnlock] = useState(false);
+
+  // Preferences (persisted locally)
+  const [darkMode, setDarkMode] = useState<boolean>(() => typeof window !== "undefined" && localStorage.getItem("pref:darkMode") === "1");
+  const [emailNotif, setEmailNotif] = useState<boolean>(() => typeof window !== "undefined" && localStorage.getItem("pref:emailNotif") !== "0");
+  const [smsNotif, setSmsNotif] = useState<boolean>(() => typeof window !== "undefined" && localStorage.getItem("pref:smsNotif") === "1");
+  const [language, setLanguage] = useState<string>(() => (typeof window !== "undefined" && localStorage.getItem("pref:lang")) || "en");
+
+  // Change-password mini form
+  const [showPwForm, setShowPwForm] = useState(false);
+  const [newPw, setNewPw] = useState("");
+  const [pwMsg, setPwMsg] = useState("");
+
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => setEmail(data.user?.email ?? ""));
+  }, []);
+
+  useEffect(() => { if (typeof window !== "undefined") localStorage.setItem("pref:darkMode", darkMode ? "1" : "0"); }, [darkMode]);
+  useEffect(() => { if (typeof window !== "undefined") localStorage.setItem("pref:emailNotif", emailNotif ? "1" : "0"); }, [emailNotif]);
+  useEffect(() => { if (typeof window !== "undefined") localStorage.setItem("pref:smsNotif", smsNotif ? "1" : "0"); }, [smsNotif]);
+  useEffect(() => { if (typeof window !== "undefined") localStorage.setItem("pref:lang", language); }, [language]);
 
   const onLogo = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const f = e.target.files?.[0];
@@ -537,55 +592,148 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap }: { sho
     }
   };
 
+  const changePassword = async () => {
+    setPwMsg("");
+    if (newPw.length < 8) { setPwMsg("Password must be at least 8 characters."); return; }
+    const { error } = await supabase.auth.updateUser({ password: newPw });
+    if (error) { setPwMsg(error.message); return; }
+    setPwMsg("Password updated.");
+    setNewPw("");
+    setTimeout(() => { setShowPwForm(false); setPwMsg(""); }, 1500);
+  };
+
+  const requestDelete = () => {
+    if (!confirm("Delete your account? This will sign you out and email our team to permanently remove your data within 30 days.")) return;
+    const subject = encodeURIComponent(`Account deletion request — ${shop.name}`);
+    const body = encodeURIComponent(`Please delete the account for ${email} (shop: ${shop.name}, id: ${shop.id}).`);
+    window.location.href = `mailto:theluckspin@gmail.com?subject=${subject}&body=${body}`;
+  };
+
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/s/${shop.slug}` : `/s/${shop.slug}`;
+  const inputCls = "w-full bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-xl px-4 py-3 outline-none focus:border-[#FF6B00] focus:ring-2 focus:ring-[#FF6B00]/15 transition";
 
   return (
-    <div className="space-y-4">
-      <div className="glass rounded-2xl p-5 space-y-3">
-        <p className="text-xs uppercase tracking-widest text-gold">Branding</p>
-
+    <div className="space-y-4 max-w-2xl mx-auto">
+      {/* Business Profile */}
+      <SettingsSection icon={Building2} title="Business Profile" subtitle="How your shop appears to customers">
         <div className="flex items-center gap-4">
-          <img src={logoUrl || DEFAULT_LOGO} alt="" className="w-20 h-20 rounded-full object-cover border border-[#0c2340]/10" />
-          <div className="flex flex-col gap-2">
-            <label className="cursor-pointer text-sm px-3 py-2 rounded-lg bg-white/5 inline-block">
-              Upload logo
+          <img src={logoUrl || DEFAULT_LOGO} alt="" className="w-16 h-16 rounded-2xl object-cover border border-[#0c2340]/10 shadow-sm" />
+          <div className="flex flex-col gap-1.5">
+            <label className="cursor-pointer text-xs font-semibold px-3 py-2 rounded-lg bg-[#FF6B00] text-white inline-flex items-center gap-1.5 hover:opacity-90">
+              <Upload className="w-3.5 h-3.5" /> Upload logo
               <input type="file" accept="image/*" onChange={onLogo} className="hidden" />
             </label>
-            {logoUrl && (
-              <button onClick={() => setLogoUrl(null)} className="text-xs text-muted-foreground text-left">Remove logo</button>
-            )}
-            <p className="text-[11px] text-muted-foreground">PNG/JPG, up to 10 MB. Square works best.</p>
+            {logoUrl && <button onClick={() => setLogoUrl(null)} className="text-[11px] text-[#6b7a93] text-left">Remove logo</button>}
+            <p className="text-[11px] text-[#6b7a93]">PNG/JPG, up to 10 MB.</p>
           </div>
         </div>
 
-        <label className="text-xs uppercase tracking-widest text-muted-foreground">Shop name</label>
-        <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} className="w-full bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-xl px-4 py-3 outline-none focus:border-primary" />
-
-        <label className="text-xs uppercase tracking-widest text-muted-foreground">Public URL</label>
-        <div className="flex items-center bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-xl px-4 py-3">
-          <span className="text-muted-foreground text-sm mr-1">/s/</span>
-          <input value={slug} onChange={(e) => setSlug(autoSlug(e.target.value))} maxLength={40} className="flex-1 bg-transparent outline-none" />
+        <div className="space-y-1.5">
+          <label className="text-[11px] uppercase tracking-widest text-[#6b7a93] font-semibold">Shop name</label>
+          <input value={name} onChange={(e) => setName(e.target.value)} maxLength={80} className={inputCls} />
         </div>
-        <p className="text-[11px] text-muted-foreground break-all">Share: {publicUrl}</p>
 
-        {err && <p className="text-destructive text-sm">{err}</p>}
-        {msg && <p className="text-sm text-gold">{msg}</p>}
-        <button onClick={save} disabled={busy} className="w-full gradient-primary text-white font-bold py-3 rounded-xl disabled:opacity-60">
+        <div className="space-y-1.5">
+          <label className="text-[11px] uppercase tracking-widest text-[#6b7a93] font-semibold">Public URL</label>
+          <div className="flex items-center bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 focus-within:border-[#FF6B00]">
+            <span className="text-[#6b7a93] text-sm mr-1">/s/</span>
+            <input value={slug} onChange={(e) => setSlug(autoSlug(e.target.value))} maxLength={40} className="flex-1 bg-transparent text-[#0c2340] outline-none" />
+          </div>
+          <p className="text-[11px] text-[#6b7a93] break-all">{publicUrl}</p>
+        </div>
+
+        {err && <p className="text-[#b3261e] text-sm">{err}</p>}
+        {msg && <p className="text-sm text-emerald-600 font-semibold">{msg}</p>}
+        <button onClick={save} disabled={busy} className="w-full bg-[#FF6B00] hover:bg-[#e85f00] text-white font-bold py-3 rounded-xl disabled:opacity-60 transition shadow-sm">
           {busy ? "Saving..." : "Save changes"}
         </button>
-      </div>
+      </SettingsSection>
 
-      {!superAdmin && (
-        <div className="glass rounded-2xl p-5 space-y-2">
-          <p className="text-xs uppercase tracking-widest text-muted-foreground">Platform admin (optional)</p>
-          <p className="text-xs text-muted-foreground">If you are the platform owner, enter the admin password to unlock the super-admin panel.</p>
-          <div className="flex gap-2">
-            <input type="password" value={bootstrapPw} onChange={(e) => setBootstrapPw(e.target.value)} placeholder="Admin password" className="flex-1 bg-[#F5F7FA] text-[#0c2340] placeholder:text-[#6b7a93] border border-[#0c2340]/10 rounded-xl px-4 py-2 outline-none" />
-            <button onClick={tryBootstrap} className="px-3 py-2 rounded-lg bg-white/5">Unlock</button>
+      {/* Account & Security */}
+      <SettingsSection icon={ShieldCheck} title="Account & Security" subtitle="Email, password, and access" accent="#2563eb">
+        <SettingsRow icon={Mail} label="Email" hint={email || "—"} />
+        <SettingsRow icon={KeyRound} label="Change password" hint="Update your sign-in password" onClick={() => setShowPwForm((v) => !v)} />
+        {showPwForm && (
+          <div className="space-y-2 pl-1">
+            <input type="password" value={newPw} onChange={(e) => setNewPw(e.target.value)} placeholder="New password (min 8 chars)" className={inputCls} />
+            {pwMsg && <p className={`text-xs ${pwMsg === "Password updated." ? "text-emerald-600" : "text-[#b3261e]"}`}>{pwMsg}</p>}
+            <div className="flex gap-2">
+              <button onClick={changePassword} className="flex-1 bg-[#FF6B00] text-white font-semibold py-2 rounded-lg text-sm">Update password</button>
+              <button onClick={() => { setShowPwForm(false); setNewPw(""); setPwMsg(""); }} className="px-3 py-2 rounded-lg bg-[#F5F7FA] text-sm">Cancel</button>
+            </div>
           </div>
-          {bootstrapMsg && <p className="text-xs">{bootstrapMsg}</p>}
-        </div>
-      )}
+        )}
+        {superAdmin ? (
+          <SettingsRow icon={Shield} label="Super admin panel" hint="Manage platform & subscriptions" onClick={() => { window.location.href = "/super-admin"; }} />
+        ) : (
+          <>
+            <SettingsRow icon={Shield} label="Platform admin" hint="Unlock super-admin (owners only)" onClick={() => setShowAdminUnlock((v) => !v)} />
+            {showAdminUnlock && (
+              <div className="space-y-2 pl-1">
+                <input type="password" value={bootstrapPw} onChange={(e) => setBootstrapPw(e.target.value)} placeholder="Admin password" className={inputCls} />
+                <div className="flex gap-2">
+                  <button onClick={tryBootstrap} className="flex-1 bg-[#0c2340] text-white font-semibold py-2 rounded-lg text-sm">Unlock</button>
+                  <button onClick={() => setShowAdminUnlock(false)} className="px-3 py-2 rounded-lg bg-[#F5F7FA] text-sm">Cancel</button>
+                </div>
+                {bootstrapMsg && <p className="text-xs text-[#0c2340]">{bootstrapMsg}</p>}
+              </div>
+            )}
+          </>
+        )}
+      </SettingsSection>
+
+      {/* Campaign Defaults */}
+      <SettingsSection icon={Megaphone} title="Campaign Defaults" subtitle="Prizes, wheel, codes & rules" accent="#9333ea">
+        <SettingsRow icon={Gift} label="Manage prizes & odds" onClick={() => { window.location.hash = ""; const el = document.querySelector('[data-tab="campaign"]') as HTMLElement | null; el?.click(); }} />
+        <SettingsRow icon={CircleDot} label="Spin wheel preview" hint="Open the Campaign Hub" />
+        <SettingsRow icon={QrCode} label="QR & access codes" hint="Generate, download, print" />
+        <SettingsRow icon={ExternalLink} label="View public page" hint={`/s/${shop.slug}`} onClick={() => window.open(publicUrl, "_blank")} />
+      </SettingsSection>
+
+      {/* Notifications */}
+      <SettingsSection icon={Bell} title="Notifications" subtitle="Choose how we reach you" accent="#0891b2">
+        <SettingsRow icon={Mail} label="Email notifications" hint="Activity & weekly summary" right={<Toggle checked={emailNotif} onChange={setEmailNotif} />} />
+        <SettingsRow icon={Phone} label="SMS alerts" hint="Important account events" right={<Toggle checked={smsNotif} onChange={setSmsNotif} />} />
+      </SettingsSection>
+
+      {/* Subscription & Billing */}
+      <SettingsSection icon={CreditCard} title="Subscription & Billing" subtitle="Plan, renewal and invoices" accent="#16a34a">
+        <SettingsRow icon={Sparkles} label="Current plan" hint={shop.is_active ? "Active" : "Inactive"} right={<span className={`text-[11px] font-bold px-2 py-1 rounded-full ${shop.is_active ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{shop.is_active ? "ACTIVE" : "PAUSED"}</span>} />
+        <SettingsRow icon={MessageSquare} label="Renew or upgrade" hint="Chat with us on WhatsApp" onClick={() => window.open("https://wa.me/9779769402069?text=I%20want%20to%20renew%20my%20TheLuckSpin%20subscription", "_blank")} />
+      </SettingsSection>
+
+      {/* Integrations */}
+      <SettingsSection icon={Plug} title="Integrations" subtitle="Connect external tools" accent="#db2777">
+        <SettingsRow icon={MessageSquare} label="WhatsApp messaging" hint="Send winner messages" right={<span className="text-[11px] font-bold text-emerald-600">CONNECTED</span>} />
+        <SettingsRow icon={Mail} label="Email sender" hint="Bulk customer emails" right={<span className="text-[11px] font-bold text-emerald-600">CONNECTED</span>} />
+        <InstallAppButton variant="outline" size="sm" />
+      </SettingsSection>
+
+      {/* Preferences */}
+      <SettingsSection icon={SettingsIcon} title="Preferences" subtitle="Personalize your experience" accent="#475569">
+        <SettingsRow icon={darkMode ? Moon : Sun} label="Dark mode" hint="Switch to a darker theme" right={<Toggle checked={darkMode} onChange={setDarkMode} />} />
+        <SettingsRow icon={Globe} label="Language" right={
+          <select value={language} onChange={(e) => setLanguage(e.target.value)} className="bg-[#F5F7FA] border border-[#0c2340]/10 rounded-lg px-2 py-1.5 text-sm text-[#0c2340] outline-none">
+            <option value="en">English</option>
+            <option value="ne">नेपाली</option>
+            <option value="hi">हिन्दी</option>
+          </select>
+        } />
+      </SettingsSection>
+
+      {/* Support */}
+      <SettingsSection icon={LifeBuoy} title="Support" subtitle="We're here to help" accent="#0ea5e9">
+        <SettingsRow icon={MessageSquare} label="WhatsApp support" hint="+977 9769402069" onClick={() => window.open("https://wa.me/9779769402069", "_blank")} />
+        <SettingsRow icon={Mail} label="Email support" hint="theluckspin@gmail.com" onClick={() => { window.location.href = "mailto:theluckspin@gmail.com"; }} />
+      </SettingsSection>
+
+      {/* Danger Zone */}
+      <SettingsSection icon={LogOut} title="Account Actions" accent="#b3261e">
+        <SettingsRow icon={LogOut} label="Sign out" hint="End this session" onClick={() => onSignOut()} />
+        <SettingsRow icon={Trash2} label="Delete account" hint="Permanently remove your data" onClick={requestDelete} danger />
+      </SettingsSection>
+
+      <p className="text-center text-[11px] text-[#6b7a93] pt-2 pb-1">TheLuckSpin · v1.0</p>
     </div>
   );
 }
@@ -1660,7 +1808,7 @@ function CampaignHub({
           </div>
         )}
         {section === "settings" && (
-          <SettingsTab shop={shop} onSaved={onSaved} doUpdate={doUpdate} superAdmin={superAdmin} doBootstrap={doBootstrap} />
+          <SettingsTab shop={shop} onSaved={onSaved} doUpdate={doUpdate} superAdmin={superAdmin} doBootstrap={doBootstrap} onSignOut={async () => { await supabase.auth.signOut(); window.location.href = "/auth"; }} />
         )}
       </div>
     );
