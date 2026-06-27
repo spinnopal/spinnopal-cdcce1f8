@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { DEFAULT_LOGO, type Prize } from "@/lib/spin-store";
 import { startSpinTicks, playWin, playLose } from "@/lib/sounds";
 
@@ -10,9 +10,32 @@ interface Props {
   onLogoLongPress?: () => void;
   centerLogo?: string;
   centerLabel?: string;
+  /** Optional accent hex (e.g. "#1f3460"). Used as the "dark slice" color and rim. */
+  accent?: string;
 }
 
-export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLongPress, centerLogo, centerLabel }: Props) {
+// Lighten a hex color toward white by `amount` (0..1).
+function lighten(hex: string, amount: number): string {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex.replace("#", ""));
+  if (!m) return hex;
+  const r = parseInt(m[1], 16), g = parseInt(m[2], 16), b = parseInt(m[3], 16);
+  const mix = (c: number) => Math.round(c + (255 - c) * amount);
+  const toHex = (n: number) => n.toString(16).padStart(2, "0");
+  return `#${toHex(mix(r))}${toHex(mix(g))}${toHex(mix(b))}`;
+}
+
+// Darken a hex color toward black by `amount` (0..1).
+function darken(hex: string, amount: number): string {
+  const m = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex.replace("#", ""));
+  if (!m) return hex;
+  const r = parseInt(m[1], 16), g = parseInt(m[2], 16), b = parseInt(m[3], 16);
+  const mix = (c: number) => Math.round(c * (1 - amount));
+  const toHex = (n: number) => n.toString(16).padStart(2, "0");
+  return `#${toHex(mix(r))}${toHex(mix(g))}${toHex(mix(b))}`;
+}
+
+export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLongPress, centerLogo, centerLabel, accent }: Props) {
+
   const SEG = prizes.length > 0 ? 360 / prizes.length : 360;
   const SEG_SAFE = SEG === 0 ? 360 : SEG;
   const [rotation, setRotation] = useState(0);
