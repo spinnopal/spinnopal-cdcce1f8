@@ -1,5 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 
