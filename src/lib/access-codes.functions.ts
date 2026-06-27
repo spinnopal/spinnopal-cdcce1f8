@@ -51,13 +51,13 @@ export const validateAccessCode = createServerFn({ method: "POST" })
     const normalized = data.code.toUpperCase();
     const { data: row, error } = await supabaseAdmin
       .from("access_codes")
-      .select("code, is_used")
+      .select("code, is_used, spun_at")
       .eq("shop_id", shopId)
       .eq("code", normalized)
       .maybeSingle();
     if (error) throw new Error("Server error");
     if (!row) return { ok: false as const, reason: "invalid" as const };
-    if (row.is_used) return { ok: false as const, reason: "used" as const };
+    if (row.is_used) return { ok: false as const, reason: "used" as const, spun_at: row.spun_at ?? null };
     return { ok: true as const, code: row.code };
   });
 
