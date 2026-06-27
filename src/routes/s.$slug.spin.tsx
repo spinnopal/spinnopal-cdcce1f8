@@ -1,15 +1,18 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { SpinWheel } from "@/components/SpinWheel";
 import type { Prize } from "@/lib/spin-store";
 import { usePrizesBySlug } from "@/lib/prizes-hook";
 import { spinAndRecord } from "@/lib/access-codes.functions";
+import { listPublicCampaigns } from "@/lib/campaigns.functions";
 import { playClick } from "@/lib/sounds";
 
 const search = z.object({
   code: z.string().min(1).max(64),
+  c: z.string().min(1).max(40).optional(),
   name: z.string().min(1).max(40).optional(),
   contact: z.string().min(1).max(30).optional(),
   email: z.string().min(1).max(255).optional(),
@@ -23,9 +26,25 @@ export const Route = createFileRoute("/s/$slug/spin")({
 
 function SpinPage() {
   const { slug } = Route.useParams();
-  const { code, name, contact, email } = Route.useSearch();
+  const { code, c: campaignSlug, name, contact, email } = Route.useSearch();
   const navigate = useNavigate();
-  const { prizes, isLoading } = usePrizesBySlug(slug);
+  const { prizes, isLoading } = usePrizesBySlug(slug, campaignSlug);
+  const fetchCampaigns = useServerFn(listPublicCampaigns);
+  const campaignsQ = useQuery({
+    queryKey: ["public-campaigns", slug],
+    queryFn: async () => (await fetchCampaigns({ data: { slug } })).campaigns,
+  });
+  const [accent, setAccent] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    const list = campaignsQ.data ?? [];
+    const match = campaignSlug
+      ? list.find((c) => c.slug === campaignSlug)
+      : list.find((c) => c.is_default) ?? list[0];
+    const theme = match?.theme as { accent?: string } | null | undefined;
+    if (theme?.accent) setAccent(theme.accent);
+  }, [campaignsQ.data, campaignSlug]);
+
   const spin = useServerFn(spinAndRecord);
   const [spinning, setSpinning] = useState(false);
   const [target, setTarget] = useState<number | null>(null);
@@ -38,7 +57,7 @@ function SpinPage() {
     setError("");
     setSpinning(true);
     try {
-      const res = await spin({ data: { slug, code, name: name?.trim() || undefined, contact: contact?.trim() || undefined, email: email?.trim() || undefined } });
+      const res = await spin({ data: { slug, code, ...(campaignSlug ? { campaignSlug } : {}), name: name?.trim() || undefined, contact: contact?.trim() || undefined, email: email?.trim() || undefined } });
       if (!res.ok) {
         setSpinning(false);
         setError("This code is invalid or has already been used.");
@@ -61,6 +80,7 @@ function SpinPage() {
         search: {
           code,
           pid: prize.id,
+          ...(campaignSlug ? { c: campaignSlug } : {}),
           ...(contact ? { contact } : {}),
           ...(name ? { name } : {}),
         },
@@ -72,7 +92,7 @@ function SpinPage() {
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-6">
       <div className="w-full flex items-center justify-between mb-2">
-        <button onClick={() => { playClick(); navigate({ to: "/s/$slug", params: { slug } }); }} className="text-sm text-muted-foreground">← Back</button>
+        <button onClick={() => { playClick(); navigate({ to: "/s/$slug", params: { slug }, search: campaignSlug ? { c: campaignSlug } : {} }); }} className="text-sm text-muted-foreground">← Back</button>
         <p className="text-xs uppercase tracking-widest text-gold">Lucky Spin</p>
         <span className="w-10" />
       </div>
@@ -86,7 +106,7 @@ function SpinPage() {
         {isLoading || prizes.length === 0 ? (
           <div className="aspect-square flex items-center justify-center text-muted-foreground">Loading wheel…</div>
         ) : (
-          <SpinWheel prizes={prizes} spinning={spinning} targetIndex={target} onComplete={handleComplete} />
+          <SpinWheel prizes={prizes} spinning={spinning} targetIndex={target} onComplete={handleComplete} accent={accent} />
         )}
       </div>
 

@@ -3,14 +3,15 @@ import { useServerFn } from "@tanstack/react-start";
 import { listPrizesBySlug } from "@/lib/prizes.functions";
 import { rowToPrize, type Prize, type PrizeRow } from "@/lib/spin-store";
 
-export const prizesQueryKey = (slug: string) => ["prizes", slug] as const;
+export const prizesQueryKey = (slug: string, campaignSlug?: string) =>
+  ["prizes", slug, campaignSlug ?? "_default"] as const;
 
-export function usePrizesBySlug(slug: string) {
+export function usePrizesBySlug(slug: string, campaignSlug?: string) {
   const fetchPrizes = useServerFn(listPrizesBySlug);
   const query = useQuery({
-    queryKey: prizesQueryKey(slug),
+    queryKey: prizesQueryKey(slug, campaignSlug),
     queryFn: async () => {
-      const res = await fetchPrizes({ data: { slug } });
+      const res = await fetchPrizes({ data: { slug, ...(campaignSlug ? { campaignSlug } : {}) } });
       return (res.prizes as PrizeRow[]).map(rowToPrize);
     },
     refetchInterval: 4000,
@@ -25,6 +26,6 @@ export function useInvalidatePrizes(slug?: string) {
   const qc = useQueryClient();
   return () =>
     slug
-      ? qc.invalidateQueries({ queryKey: prizesQueryKey(slug) })
+      ? qc.invalidateQueries({ queryKey: ["prizes", slug] })
       : qc.invalidateQueries({ queryKey: ["prizes"] });
 }

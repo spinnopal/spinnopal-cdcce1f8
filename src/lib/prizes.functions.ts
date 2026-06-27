@@ -48,21 +48,35 @@ async function publicShopIdForSlug(slug: string): Promise<string | null> {
   return shop.id;
 }
 
-// PUBLIC: list prizes by slug (used by customer spin page)
+// PUBLIC: list prizes by slug (+ optional campaign slug). When no campaign slug
+// is given, returns the default campaign's prizes; falls back to all shop prizes
+// when no campaigns are configured (legacy data).
 export const listPrizesBySlug = createServerFn({ method: "GET" })
-  .inputValidator(z.object({ slug: slugSchema }).parse)
+  .inputValidator(z.object({ slug: slugSchema, campaignSlug: slugSchema.optional() }).parse)
   .handler(async ({ data }) => {
     const shopId = await publicShopIdForSlug(data.slug);
     if (!shopId) return { prizes: [] };
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
-    const { data: prizes, error } = await supabaseAdmin
+
+    // Resolve campaign
+    const { data: campaign } = data.campaignSlug
+      ? await supabaseAdmin.from("campaigns").select("id, is_active")
+          .eq("shop_id", shopId).eq("slug", data.campaignSlug).maybeSingle()
+      : await supabaseAdmin.from("campaigns").select("id, is_active")
+          .eq("shop_id", shopId).eq("is_default", true).maybeSingle();
+    if (data.campaignSlug && (!campaign || !campaign.is_active)) return { prizes: [] };
+
+    let q = supabaseAdmin
       .from("prizes")
       .select("id, name, short, image_url, is_win, probability, sort_order")
       .eq("shop_id", shopId)
       .order("sort_order", { ascending: true });
+    if (campaign?.id) q = q.eq("campaign_id", campaign.id);
+    const { data: prizes, error } = await q;
     if (error) throw new Error(error.message);
     return { prizes: prizes ?? [] };
   });
+
 
 // AUTH: list prizes for a shop I own
 export const listMyPrizes = createServerFn({ method: "GET" })
