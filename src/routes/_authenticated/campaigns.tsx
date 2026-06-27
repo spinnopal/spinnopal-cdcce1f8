@@ -4,7 +4,7 @@ import { useServerFn } from "@tanstack/react-start";
 import { ChevronLeft, Plus, Trash2, Copy as CopyIcon, ExternalLink, Save } from "lucide-react";
 import { QRCodeSVG } from "qrcode.react";
 import { toast } from "sonner";
-import { getMyShop } from "@/lib/shops.functions";
+import { listMyShops } from "@/lib/shops.functions";
 import {
   listMyCampaigns,
   createCampaign,
@@ -33,7 +33,7 @@ function slugify(s: string) {
 }
 
 function CampaignsPage() {
-  const fetchShop = useServerFn(getMyShop);
+  const fetchShop = useServerFn(listMyShops);
   const fetchList = useServerFn(listMyCampaigns);
   const doCreate = useServerFn(createCampaign);
   const doUpdate = useServerFn(updateCampaign);
