@@ -191,14 +191,15 @@ function WheelVisual() {
                     x={s.tx}
                     y={s.ty}
                     fill={s.isDark ? "#ff6b1a" : "#1f3460"}
-                    fontSize="22"
-                    fontWeight="900"
+                    fontSize="15"
+                    fontWeight="800"
                     textAnchor="middle"
                     dominantBaseline="middle"
                     transform={`rotate(${s.rotate} ${s.tx} ${s.ty})`}
                     style={{ fontFamily: "var(--font-display)" }}
                   >
-                    {s.label}
+                    {shortLabel(prizes[i] ?? "")}
+
                   </text>
                 </g>
               ))}
