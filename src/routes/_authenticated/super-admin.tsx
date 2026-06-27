@@ -689,7 +689,7 @@ function PlansManager({ onMsg }: { onMsg: (m: string) => void }) {
   );
 }
 
-function Field({ label, hint, full, children }: { label: string; hint?: string; full?: boolean; children: React.ReactNode }) {
+function Field({ label, hint, full, children }: { label: string; hint?: string; full?: boolean; children: ReactNode }) {
   return (
     <div className={full ? "col-span-2" : ""}>
       <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">{label}</label>
