@@ -116,9 +116,8 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
               className="w-full h-full"
               style={{
                 transform: `rotate(${rotation}deg)`,
-                transition: spinning
-                  ? "transform 5.2s cubic-bezier(0.16, 1, 0.3, 1)"
-                  : "none",
+                transition: spinning ? transitionStyle : "none",
+                willChange: "transform",
               }}
             >
               <defs>
