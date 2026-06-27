@@ -30,6 +30,31 @@ async function shopIdForSlug(slug: string): Promise<string | null> {
   return shop.id;
 }
 
+// Resolve the campaign_id to use for a request.
+// - If campaignSlug provided, look it up under the shop (must be active).
+// - Else return the default campaign for the shop.
+async function resolveCampaignId(shopId: string, campaignSlug?: string | null): Promise<string | null> {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  if (campaignSlug) {
+    const { data } = await supabaseAdmin
+      .from("campaigns")
+      .select("id, is_active")
+      .eq("shop_id", shopId)
+      .eq("slug", campaignSlug)
+      .maybeSingle();
+    if (!data || !data.is_active) return null;
+    return data.id;
+  }
+  const { data } = await supabaseAdmin
+    .from("campaigns")
+    .select("id")
+    .eq("shop_id", shopId)
+    .eq("is_default", true)
+    .maybeSingle();
+  return data?.id ?? null;
+}
+
+
 async function assertOwner(ctx: { supabase: any; userId: string }, shopId: string) {
   const { data, error } = await ctx.supabase
     .from("shops")
