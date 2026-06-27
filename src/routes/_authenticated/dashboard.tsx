@@ -1,6 +1,14 @@
 import { createFileRoute, useNavigate, Link } from "@tanstack/react-router";
 import { type ReactNode, useCallback, useEffect, useMemo, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
+import {
+  LayoutDashboard, Megaphone, Users, BarChart3, Settings as SettingsIcon,
+  Pencil, Gift, QrCode, UserSquare2, LogOut, ExternalLink, Shield, MessageSquare,
+  TrendingUp, Trophy, Activity, Sparkles,
+} from "lucide-react";
+import {
+  ResponsiveContainer, BarChart, Bar, XAxis, Tooltip as RTooltip, CartesianGrid,
+} from "recharts";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { supabase } from "@/integrations/supabase/client";
 import { listMyShops, updateMyShop, createShop, bootstrapSuperAdmin, getMySubscription } from "@/lib/shops.functions";
@@ -55,6 +63,10 @@ type CodeRow = {
   created_at: string;
 };
 
+type TabKey =
+  | "overview" | "campaign" | "customers" | "analytics" | "settings"
+  | "codes" | "qr" | "messages";
+
 const slugRe = /^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/;
 const autoSlug = (s: string) =>
   s.toLowerCase().trim().replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 40);
@@ -66,6 +78,13 @@ function TabMount({ active, children }: { active: boolean; children: ReactNode }
   return <div style={{ display: active ? undefined : "none" }}>{children}</div>;
 }
 
+function greeting() {
+  const h = new Date().getHours();
+  if (h < 12) return "Good morning";
+  if (h < 18) return "Good afternoon";
+  return "Good evening";
+}
+
 function Dashboard() {
   const navigate = useNavigate();
   const fetchMyShops = useServerFn(listMyShops);
@@ -75,8 +94,9 @@ function Dashboard() {
 
   const [shop, setShop] = useState<Shop | null>(null);
   const [superAdmin, setSuperAdmin] = useState(false);
+  const [ownerName, setOwnerName] = useState<string>("");
   const [loading, setLoading] = useState(true);
-  const [tab, setTab] = useState<"prizes" | "codes" | "qr" | "records" | "messages" | "stats" | "settings">("settings");
+  const [tab, setTab] = useState<TabKey>("overview");
 
   const loadShop = useCallback(async () => {
     setLoading(true);
@@ -85,15 +105,21 @@ function Dashboard() {
       setSuperAdmin(res.superAdmin);
       const list = res.shops as Shop[];
       setShop(list[0] ?? null);
-      if (list[0] && tab === "settings" && !shop) setTab("prizes");
     } finally {
       setLoading(false);
     }
-  }, [fetchMyShops]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [fetchMyShops]);
+
+  useEffect(() => { loadShop(); }, [loadShop]);
 
   useEffect(() => {
-    loadShop();
-  }, [loadShop]);
+    supabase.auth.getUser().then(({ data }) => {
+      const u = data.user;
+      const meta = (u?.user_metadata ?? {}) as Record<string, unknown>;
+      const name = (meta.full_name as string) || (meta.name as string) || u?.email?.split("@")[0] || "";
+      setOwnerName(name);
+    });
+  }, []);
 
   const signOut = async () => {
     await supabase.auth.signOut();
@@ -108,55 +134,310 @@ function Dashboard() {
     return <CreateShopForm onCreated={loadShop} onSignOut={signOut} doCreate={doCreateShop} />;
   }
 
+  const navItems: { key: TabKey; label: string; icon: typeof LayoutDashboard }[] = [
+    { key: "overview", label: "Dashboard", icon: LayoutDashboard },
+    { key: "campaign", label: "Campaign", icon: Megaphone },
+    { key: "customers", label: "Customers", icon: Users },
+    { key: "analytics", label: "Analytics", icon: BarChart3 },
+    { key: "settings", label: "Settings", icon: SettingsIcon },
+  ];
+
   return (
-    <div className="min-h-screen px-4 py-5 max-w-5xl mx-auto">
-      <header className="flex items-center justify-between mb-4 gap-2 flex-wrap">
-        <div className="flex items-center gap-3">
-          <img src={shop.logo_url || DEFAULT_LOGO} alt="" className="w-10 h-10 rounded-full object-cover border border-[#0c2340]/10" />
-          <div>
-            <p className="text-xs uppercase tracking-widest text-gold">Dashboard</p>
-            <p className="font-bold leading-tight">{shop.name}</p>
+    <div className="min-h-screen bg-white pb-28">
+      <div className="px-4 sm:px-6 pt-5 max-w-5xl mx-auto">
+        {/* Top: greeting + actions */}
+        <header className="grid grid-cols-[minmax(0,1fr)_auto] items-start gap-3 mb-4">
+          <div className="min-w-0">
+            <p className="text-sm text-[#4a5b78]">
+              {greeting()}{ownerName ? `, ${ownerName}` : ""} <span aria-hidden>👋</span>
+            </p>
+            <h1 className="truncate text-xl sm:text-2xl font-black text-[#0c2340] mt-0.5">{shop.name}</h1>
+            <div className="mt-1.5 flex items-center gap-2 flex-wrap">
+              <span className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-bold uppercase tracking-wide ${shop.is_active ? "bg-emerald-50 text-emerald-700 border border-emerald-200" : "bg-amber-50 text-amber-700 border border-amber-200"}`}>
+                <span className={`w-1.5 h-1.5 rounded-full ${shop.is_active ? "bg-emerald-500 animate-pulse" : "bg-amber-500"}`} />
+                {shop.is_active ? "Campaign Active" : "Paused"}
+              </span>
+            </div>
           </div>
+          <div className="flex flex-col items-end gap-1.5">
+            <img src={shop.logo_url || DEFAULT_LOGO} alt="" className="w-11 h-11 rounded-2xl object-cover border border-[#0c2340]/10 shadow-sm" />
+            <div className="hidden sm:flex gap-1.5">
+              {superAdmin && (
+                <Link to="/super-admin" className="p-2 rounded-xl bg-[#F5F7FA] hover:bg-[#ECEFF5] text-[#0c2340]" title="Super admin">
+                  <Shield className="w-4 h-4" />
+                </Link>
+              )}
+              <button onClick={signOut} className="p-2 rounded-xl bg-[#F5F7FA] hover:bg-[#ECEFF5] text-[#0c2340]" title="Sign out">
+                <LogOut className="w-4 h-4" />
+              </button>
+            </div>
+          </div>
+        </header>
+
+        <SubscriptionBanner />
+
+        <TabMount active={tab === "overview"}>
+          <OverviewTab shop={shop} onNavigate={setTab} />
+        </TabMount>
+        <TabMount active={tab === "campaign"}><PrizesTab shop={shop} /></TabMount>
+        <TabMount active={tab === "customers"}><RecordsTab shop={shop} /></TabMount>
+        <TabMount active={tab === "analytics"}><StatsTab shop={shop} /></TabMount>
+        <TabMount active={tab === "settings"}>
+          <div className="space-y-4">
+            <SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} />
+            <div className="glass rounded-2xl p-4 flex flex-wrap gap-2">
+              <InstallAppButton variant="outline" size="sm" />
+              <Link to="/s/$slug" params={{ slug: shop.slug }} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#F5F7FA] text-[#0c2340] text-sm hover:bg-[#ECEFF5]">
+                <ExternalLink className="w-4 h-4" /> View public page
+              </Link>
+              {superAdmin && (
+                <Link to="/super-admin" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#F5F7FA] text-[#0c2340] text-sm hover:bg-[#ECEFF5]">
+                  <Shield className="w-4 h-4" /> Super admin
+                </Link>
+              )}
+              <button onClick={signOut} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#F5F7FA] text-[#0c2340] text-sm hover:bg-[#ECEFF5]">
+                <LogOut className="w-4 h-4" /> Sign out
+              </button>
+            </div>
+          </div>
+        </TabMount>
+
+        {/* Secondary tabs (reached via quick actions) */}
+        <TabMount active={tab === "codes"}>
+          <SecondaryHeader title="Access Codes" onBack={() => setTab("overview")} />
+          <CodesTab shop={shop} />
+        </TabMount>
+        <TabMount active={tab === "qr"}>
+          <SecondaryHeader title="QR Codes" onBack={() => setTab("overview")} />
+          <QrTab shop={shop} />
+        </TabMount>
+        <TabMount active={tab === "messages"}>
+          <SecondaryHeader title="Messages" onBack={() => setTab("overview")} />
+          <MessagingTab shop={shop} />
+        </TabMount>
+      </div>
+
+      {/* Bottom nav */}
+      <nav className="fixed bottom-0 inset-x-0 z-40 border-t border-[#0c2340]/10 bg-white/95 backdrop-blur supports-[backdrop-filter]:bg-white/80 pb-[env(safe-area-inset-bottom)]">
+        <div className="max-w-5xl mx-auto grid grid-cols-5">
+          {navItems.map(({ key, label, icon: Icon }) => {
+            const active = tab === key || (key === "overview" && (tab === "codes" || tab === "qr" || tab === "messages"));
+            return (
+              <button
+                key={key}
+                onClick={() => setTab(key)}
+                className={`flex flex-col items-center justify-center gap-0.5 py-2.5 text-[10px] font-semibold transition-colors ${active ? "text-[#FF6B00]" : "text-[#4a5b78] hover:text-[#0c2340]"}`}
+              >
+                <Icon className={`w-5 h-5 ${active ? "stroke-[2.4]" : ""}`} />
+                <span>{label}</span>
+                {active && <span className="absolute bottom-0 w-8 h-0.5 rounded-full bg-[#FF6B00] mt-0.5" />}
+              </button>
+            );
+          })}
         </div>
-        <div className="flex gap-2 items-center text-xs flex-wrap">
-          <InstallAppButton variant="outline" size="sm" />
-          <Link to="/s/$slug" params={{ slug: shop.slug }} className="px-3 py-2 rounded-lg border border-white/15 hover:border-primary">
-            View public page
-          </Link>
-          {superAdmin && (
-            <Link to="/super-admin" className="px-3 py-2 rounded-lg bg-white/5">
-              Super admin
-            </Link>
-          )}
-          <button onClick={signOut} className="px-3 py-2 rounded-lg bg-white/5">Sign out</button>
-        </div>
-
-      </header>
-
-      <SubscriptionBanner />
-
-
-
-
-      <nav className="flex gap-1 mb-4 overflow-x-auto">
-        {(["prizes", "codes", "qr", "records", "messages", "stats", "settings"] as const).map((t) => (
-          <button
-            key={t}
-            onClick={() => setTab(t)}
-            className={`px-3 py-2 rounded-lg text-sm capitalize ${tab === t ? "bg-primary text-white font-bold" : "bg-white/5"}`}
-          >
-            {t === "qr" ? "QR Codes" : t}
-          </button>
-        ))}
       </nav>
+    </div>
+  );
+}
 
-      <TabMount active={tab === "settings"}><SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} /></TabMount>
-      <TabMount active={tab === "prizes"}><PrizesTab shop={shop} /></TabMount>
-      <TabMount active={tab === "codes"}><CodesTab shop={shop} /></TabMount>
-      <TabMount active={tab === "qr"}><QrTab shop={shop} /></TabMount>
-      <TabMount active={tab === "records"}><RecordsTab shop={shop} /></TabMount>
-      <TabMount active={tab === "messages"}><MessagingTab shop={shop} /></TabMount>
-      <TabMount active={tab === "stats"}><StatsTab shop={shop} /></TabMount>
+function SecondaryHeader({ title, onBack }: { title: string; onBack: () => void }) {
+  return (
+    <div className="flex items-center gap-2 mb-3">
+      <button onClick={onBack} className="text-sm px-2.5 py-1.5 rounded-lg bg-[#F5F7FA] text-[#0c2340] hover:bg-[#ECEFF5]">← Back</button>
+      <h2 className="text-lg font-black text-[#0c2340]">{title}</h2>
+    </div>
+  );
+}
+
+// ---------- OVERVIEW ----------
+function OverviewTab({ shop, onNavigate }: { shop: Shop; onNavigate: (t: TabKey) => void }) {
+  const fetchRecords = useServerFn(listSpinRecords);
+  const fetchCodes = useServerFn(listAccessCodes);
+  const [rows, setRows] = useState<RecordRow[]>([]);
+  const [codes, setCodes] = useState<CodeRow[]>([]);
+
+  useEffect(() => {
+    fetchRecords({ data: { shopId: shop.id } }).then((r) => setRows((r.rows as RecordRow[]) ?? []));
+    fetchCodes({ data: { shopId: shop.id } }).then((r) => setCodes((r.rows as CodeRow[]) ?? []));
+  }, [fetchRecords, fetchCodes, shop.id]);
+
+  const stats = useMemo(() => {
+    const todayStart = new Date(); todayStart.setHours(0, 0, 0, 0);
+    const today = rows.filter((r) => r.spun_at && new Date(r.spun_at).getTime() >= todayStart.getTime()).length;
+    const winners = rows.filter((r) => r.prize_won && !/try\s*again/i.test(r.prize_won)).length;
+    const totalCodes = codes.length;
+    const conversion = totalCodes > 0 ? Math.round((rows.length / totalCodes) * 100) : 0;
+    const dist: Record<string, number> = {};
+    for (const r of rows) {
+      const k = r.prize_won || "Unknown";
+      if (/try\s*again/i.test(k)) continue;
+      dist[k] = (dist[k] || 0) + 1;
+    }
+    const top = Object.entries(dist).sort((a, b) => b[1] - a[1])[0];
+    // weekly buckets
+    const days: { day: string; spins: number }[] = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(); d.setHours(0, 0, 0, 0); d.setDate(d.getDate() - i);
+      const next = new Date(d); next.setDate(d.getDate() + 1);
+      const count = rows.filter((r) => {
+        if (!r.spun_at) return false;
+        const t = new Date(r.spun_at).getTime();
+        return t >= d.getTime() && t < next.getTime();
+      }).length;
+      days.push({ day: d.toLocaleDateString(undefined, { weekday: "short" }), spins: count });
+    }
+    return { today, total: rows.length, winners, conversion, top, days };
+  }, [rows, codes]);
+
+  const recent = rows.slice(0, 6);
+
+  const statCards = [
+    { label: "Today's Spins", value: stats.today, icon: Activity, accent: "bg-orange-50 text-[#FF6B00]" },
+    { label: "Total Spins", value: stats.total, icon: TrendingUp, accent: "bg-blue-50 text-blue-600" },
+    { label: "Winners", value: stats.winners, icon: Trophy, accent: "bg-emerald-50 text-emerald-600" },
+    { label: "Conversion", value: `${stats.conversion}%`, icon: Sparkles, accent: "bg-violet-50 text-violet-600" },
+  ];
+
+  const actions = [
+    { label: "Edit Campaign", icon: Pencil, onClick: () => onNavigate("campaign") },
+    { label: "Manage Prizes", icon: Gift, onClick: () => onNavigate("campaign") },
+    { label: "Generate QR", icon: QrCode, onClick: () => onNavigate("qr") },
+    { label: "View Customers", icon: UserSquare2, onClick: () => onNavigate("customers") },
+  ];
+
+  return (
+    <div className="space-y-5 animate-fade-in">
+      {/* Stats 2x2 */}
+      <section className="grid grid-cols-2 gap-3">
+        {statCards.map(({ label, value, icon: Icon, accent }) => (
+          <div key={label} className="rounded-[20px] bg-white border border-[#0c2340]/8 shadow-[0_4px_20px_-8px_rgba(12,35,64,0.12)] p-4">
+            <div className={`w-9 h-9 rounded-xl grid place-items-center ${accent}`}>
+              <Icon className="w-4.5 h-4.5" strokeWidth={2.2} />
+            </div>
+            <p className="text-[11px] uppercase tracking-wide text-[#4a5b78] mt-3 font-semibold">{label}</p>
+            <p className="text-2xl font-black text-[#0c2340] mt-0.5">{value}</p>
+          </div>
+        ))}
+      </section>
+
+      {/* Quick Actions */}
+      <section>
+        <h3 className="text-sm font-bold text-[#0c2340] mb-2.5 px-1">Quick Actions</h3>
+        <div className="grid grid-cols-2 gap-3">
+          {actions.map(({ label, icon: Icon, onClick }) => (
+            <button
+              key={label}
+              onClick={onClick}
+              className="group rounded-[20px] bg-white border border-[#0c2340]/8 shadow-[0_4px_20px_-8px_rgba(12,35,64,0.12)] p-4 text-left hover:border-[#FF6B00]/40 hover:shadow-[0_8px_24px_-8px_rgba(255,107,0,0.25)] transition-all"
+            >
+              <div className="w-10 h-10 rounded-xl grid place-items-center bg-orange-50 text-[#FF6B00] group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
+                <Icon className="w-5 h-5" strokeWidth={2.2} />
+              </div>
+              <p className="text-sm font-bold text-[#0c2340] mt-3">{label}</p>
+            </button>
+          ))}
+        </div>
+      </section>
+
+      {/* Weekly chart */}
+      <section className="rounded-[20px] bg-white border border-[#0c2340]/8 shadow-[0_4px_20px_-8px_rgba(12,35,64,0.12)] p-4">
+        <div className="flex items-center justify-between mb-3">
+          <h3 className="text-sm font-bold text-[#0c2340]">Weekly Spins</h3>
+          <span className="text-[11px] text-[#4a5b78]">Last 7 days</span>
+        </div>
+        <div className="h-44">
+          <ResponsiveContainer width="100%" height="100%">
+            <BarChart data={stats.days} margin={{ top: 6, right: 6, bottom: 0, left: -20 }}>
+              <CartesianGrid strokeDasharray="3 3" stroke="#0c234012" vertical={false} />
+              <XAxis dataKey="day" stroke="#4a5b78" fontSize={11} tickLine={false} axisLine={false} />
+              <RTooltip
+                cursor={{ fill: "#FF6B0010" }}
+                contentStyle={{ borderRadius: 12, border: "1px solid #0c234020", fontSize: 12 }}
+              />
+              <Bar dataKey="spins" fill="#FF6B00" radius={[8, 8, 0, 0]} maxBarSize={36} />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </section>
+
+      {/* Top prize */}
+      <section className="rounded-[20px] p-5 bg-gradient-to-br from-[#FF6B00] to-[#ff8a3d] text-white shadow-[0_10px_30px_-12px_rgba(255,107,0,0.55)]">
+        <div className="flex items-center gap-3">
+          <div className="w-12 h-12 rounded-2xl bg-white/20 grid place-items-center">
+            <Trophy className="w-6 h-6" />
+          </div>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] uppercase tracking-wide font-bold opacity-80">Top Prize</p>
+            <p className="text-lg font-black truncate">{stats.top ? stats.top[0] : "No wins yet"}</p>
+          </div>
+          {stats.top && (
+            <div className="text-right">
+              <p className="text-2xl font-black leading-none">{stats.top[1]}</p>
+              <p className="text-[10px] uppercase tracking-wide opacity-80">awarded</p>
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* Recent activity */}
+      <section className="rounded-[20px] bg-white border border-[#0c2340]/8 shadow-[0_4px_20px_-8px_rgba(12,35,64,0.12)] p-4">
+        <div className="flex items-center justify-between mb-2">
+          <h3 className="text-sm font-bold text-[#0c2340]">Recent Activity</h3>
+          <button onClick={() => onNavigate("customers")} className="text-xs font-semibold text-[#FF6B00] hover:underline">View all</button>
+        </div>
+        {recent.length === 0 ? (
+          <p className="text-sm text-[#4a5b78] py-6 text-center">No spins yet. Generate QR codes to get started.</p>
+        ) : (
+          <ul className="divide-y divide-[#0c2340]/8">
+            {recent.map((r) => {
+              const isWin = r.prize_won && !/try\s*again/i.test(r.prize_won);
+              return (
+                <li key={r.code} className="py-2.5 flex items-center gap-3">
+                  <div className={`w-9 h-9 rounded-xl grid place-items-center text-xs font-black ${isWin ? "bg-emerald-50 text-emerald-700" : "bg-[#F5F7FA] text-[#4a5b78]"}`}>
+                    {(r.customer_name || "?").slice(0, 1).toUpperCase()}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-sm font-semibold text-[#0c2340] truncate">{r.customer_name || "Anonymous"}</p>
+                    <p className="text-xs text-[#4a5b78] truncate">{r.prize_won || "—"}</p>
+                  </div>
+                  <span className="text-[11px] text-[#4a5b78] whitespace-nowrap">
+                    {r.spun_at ? new Date(r.spun_at).toLocaleDateString(undefined, { month: "short", day: "numeric" }) : ""}
+                  </span>
+                </li>
+              );
+            })}
+          </ul>
+        )}
+      </section>
+
+      {/* Messages shortcut */}
+      <button
+        onClick={() => onNavigate("messages")}
+        className="w-full rounded-[20px] bg-white border border-[#0c2340]/8 shadow-[0_4px_20px_-8px_rgba(12,35,64,0.12)] p-4 flex items-center gap-3 text-left hover:border-[#FF6B00]/40 transition-colors"
+      >
+        <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#FF6B00] grid place-items-center">
+          <MessageSquare className="w-5 h-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-[#0c2340]">Send Messages</p>
+          <p className="text-xs text-[#4a5b78]">WhatsApp & email broadcasts to winners</p>
+        </div>
+        <span className="text-[#FF6B00] text-lg">→</span>
+      </button>
+
+      <button
+        onClick={() => onNavigate("codes")}
+        className="w-full rounded-[20px] bg-white border border-[#0c2340]/8 shadow-[0_4px_20px_-8px_rgba(12,35,64,0.12)] p-4 flex items-center gap-3 text-left hover:border-[#FF6B00]/40 transition-colors"
+      >
+        <div className="w-10 h-10 rounded-xl bg-orange-50 text-[#FF6B00] grid place-items-center">
+          <Sparkles className="w-5 h-5" />
+        </div>
+        <div className="min-w-0 flex-1">
+          <p className="text-sm font-bold text-[#0c2340]">Access Codes</p>
+          <p className="text-xs text-[#4a5b78]">Generate and manage spin codes</p>
+        </div>
+        <span className="text-[#FF6B00] text-lg">→</span>
+      </button>
     </div>
   );
 }
