@@ -224,6 +224,60 @@ export type Database = {
         }
         Relationships: []
       }
+      subscription_plans: {
+        Row: {
+          code: string
+          contact_url: string | null
+          created_at: string
+          cta_label: string | null
+          currency: string
+          features: Json
+          id: string
+          is_active: boolean
+          is_highlighted: boolean
+          name: string
+          period: string
+          price_amount: number
+          sort_order: number
+          tagline: string | null
+          updated_at: string
+        }
+        Insert: {
+          code: string
+          contact_url?: string | null
+          created_at?: string
+          cta_label?: string | null
+          currency?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_highlighted?: boolean
+          name: string
+          period?: string
+          price_amount?: number
+          sort_order?: number
+          tagline?: string | null
+          updated_at?: string
+        }
+        Update: {
+          code?: string
+          contact_url?: string | null
+          created_at?: string
+          cta_label?: string | null
+          currency?: string
+          features?: Json
+          id?: string
+          is_active?: boolean
+          is_highlighted?: boolean
+          name?: string
+          period?: string
+          price_amount?: number
+          sort_order?: number
+          tagline?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
       user_roles: {
         Row: {
           created_at: string

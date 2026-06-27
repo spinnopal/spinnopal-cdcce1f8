@@ -699,6 +699,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignO
       {/* Subscription & Billing */}
       <SettingsSection icon={CreditCard} title="Subscription & Billing" subtitle="Plan, renewal and invoices" accent="#16a34a">
         <SettingsRow icon={Sparkles} label="Current plan" hint={shop.is_active ? "Active" : "Inactive"} right={<span className={`text-[11px] font-bold px-2 py-1 rounded-full ${shop.is_active ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{shop.is_active ? "ACTIVE" : "PAUSED"}</span>} />
+        <SettingsRow icon={CreditCard} label="Billing & plans" hint="View plans, renewal & invoices" onClick={() => { window.location.href = "/billing"; }} />
         <SettingsRow icon={MessageSquare} label="Renew or upgrade" hint="Chat with us on WhatsApp" onClick={() => window.open("https://wa.me/9779769402069?text=I%20want%20to%20renew%20my%20TheLuckSpin%20subscription", "_blank")} />
       </SettingsSection>
 
