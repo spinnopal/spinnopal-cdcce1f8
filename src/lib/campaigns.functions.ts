@@ -124,7 +124,7 @@ export const updateCampaign = createServerFn({ method: "POST" })
     const patch: {
       name?: string;
       slug?: string;
-      theme?: Record<string, unknown>;
+      theme?: any;
       is_active?: boolean;
     } = {};
     if (data.name !== undefined) patch.name = data.name;
