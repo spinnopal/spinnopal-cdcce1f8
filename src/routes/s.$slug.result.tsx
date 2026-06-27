@@ -177,8 +177,8 @@ function ResultPage() {
         ctx.clip();
         ctx.drawImage(img, cx - size / 2, cy - size / 2, size, size);
         ctx.restore();
-        // gold ring around logo
-        ctx.strokeStyle = "#FFC45A";
+        // navy ring around logo
+        ctx.strokeStyle = "#1f3460";
         ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.arc(cx, cy, size / 2 + 4, 0, Math.PI * 2);
