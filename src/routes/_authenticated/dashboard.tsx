@@ -4,11 +4,14 @@ import { useServerFn } from "@tanstack/react-start";
 import {
   LayoutDashboard, Megaphone, Users, BarChart3, Settings as SettingsIcon,
   Pencil, Gift, QrCode, UserSquare2, LogOut, ExternalLink, Shield, MessageSquare,
-  TrendingUp, Trophy, Activity, Sparkles,
+  TrendingUp, Trophy, Activity, Sparkles, ChevronRight, ChevronLeft,
+  CircleDot, Calendar, Ticket, Hash, PlayCircle, Power,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, Tooltip as RTooltip, CartesianGrid,
 } from "recharts";
+import { SpinWheel } from "@/components/SpinWheel";
+import { rowToPrize } from "@/lib/spin-store";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { supabase } from "@/integrations/supabase/client";
 import { listMyShops, updateMyShop, createShop, bootstrapSuperAdmin, getMySubscription } from "@/lib/shops.functions";
