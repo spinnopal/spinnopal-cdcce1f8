@@ -313,8 +313,11 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
 
 
 function Landing() {
+  const [reducedMotion, setReducedMotion] = useReducedMotion();
+
   return (
-    <div className="min-h-screen w-full bg-white text-[#0c2340]">
+    <div className={`min-h-screen w-full bg-white text-[#0c2340] ${reducedMotion ? "motion-reduce-safe" : ""}`}>
+
       {/* Nav */}
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-5 md:px-8 py-5">
         <Link to="/" className="flex items-center gap-2.5">
