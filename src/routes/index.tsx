@@ -36,46 +36,115 @@ function BrandMark({ size = 36 }: { size?: number }) {
 }
 
 function WheelVisual() {
-  // Decorative SVG wheel — navy + orange segments
   const segs = 8;
   const colors = ["#0c2340", "#ff6b1a"];
+  const [rotation, setRotation] = useState(0);
+  const [spinning, setSpinning] = useState(false);
+  const wheelRef = useRef<SVGSVGElement>(null);
+
+  const handleSpin = () => {
+    if (spinning) return;
+    setSpinning(true);
+    const turns = 6 + Math.random() * 4;
+    const next = rotation + turns * 360 + Math.random() * 360;
+    setRotation(next);
+    window.setTimeout(() => setSpinning(false), 4200);
+  };
+
   return (
     <div className="relative w-full max-w-[460px] aspect-square mx-auto">
       <div
         aria-hidden
         className="absolute inset-6 rounded-full animate-pulse-gold"
-        style={{ background: "radial-gradient(circle, rgba(255,107,26,0.35), transparent 65%)" }}
+        style={{ background: "radial-gradient(circle, rgba(255,107,26,0.45), transparent 65%)" }}
       />
-      <div className="absolute inset-0 rounded-full bg-white shadow-[0_30px_80px_-20px_rgba(12,35,64,0.35)] ring-[10px] ring-[#0c2340]">
-        <svg viewBox="0 0 200 200" className="w-full h-full animate-slow-spin">
-          {Array.from({ length: segs }).map((_, i) => {
-            const a1 = ((i * 360) / segs - 90) * (Math.PI / 180);
-            const a2 = (((i + 1) * 360) / segs - 90) * (Math.PI / 180);
-            const x1 = 100 + 100 * Math.cos(a1);
-            const y1 = 100 + 100 * Math.sin(a1);
-            const x2 = 100 + 100 * Math.cos(a2);
-            const y2 = 100 + 100 * Math.sin(a2);
+      {/* outer ring with glowing dots */}
+      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#0c2340] via-[#1a3a66] to-[#0c2340] shadow-[0_30px_80px_-20px_rgba(12,35,64,0.5)] p-[10px]">
+        <div className="relative w-full h-full rounded-full bg-white overflow-hidden ring-4 ring-[#ff6b1a]/30">
+          <svg
+            ref={wheelRef}
+            viewBox="0 0 200 200"
+            className="w-full h-full"
+            style={{
+              transform: `rotate(${rotation}deg)`,
+              transition: spinning
+                ? "transform 4.2s cubic-bezier(0.17, 0.67, 0.21, 1)"
+                : "transform 0.4s ease-out",
+            }}
+          >
+            {Array.from({ length: segs }).map((_, i) => {
+              const a1 = ((i * 360) / segs - 90) * (Math.PI / 180);
+              const a2 = (((i + 1) * 360) / segs - 90) * (Math.PI / 180);
+              const x1 = 100 + 100 * Math.cos(a1);
+              const y1 = 100 + 100 * Math.sin(a1);
+              const x2 = 100 + 100 * Math.cos(a2);
+              const y2 = 100 + 100 * Math.sin(a2);
+              const midA = ((i + 0.5) * 360) / segs - 90;
+              const tx = 100 + 62 * Math.cos((midA * Math.PI) / 180);
+              const ty = 100 + 62 * Math.sin((midA * Math.PI) / 180);
+              return (
+                <g key={i}>
+                  <path
+                    d={`M100 100 L${x1} ${y1} A100 100 0 0 1 ${x2} ${y2} Z`}
+                    fill={colors[i % 2]}
+                    stroke="#ffffff"
+                    strokeWidth="1.5"
+                  />
+                  <text
+                    x={tx}
+                    y={ty}
+                    transform={`rotate(${midA + 90} ${tx} ${ty})`}
+                    fill={i % 2 === 0 ? "#ff6b1a" : "#ffffff"}
+                    fontSize="11"
+                    fontWeight="800"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {i % 2 === 0 ? "WIN" : "🎁"}
+                  </text>
+                </g>
+              );
+            })}
+          </svg>
+          {/* decorative dots around rim */}
+          {Array.from({ length: 16 }).map((_, i) => {
+            const a = (i * 360) / 16;
             return (
-              <path
+              <span
                 key={i}
-                d={`M100 100 L${x1} ${y1} A100 100 0 0 1 ${x2} ${y2} Z`}
-                fill={colors[i % 2]}
-                stroke="#ffffff"
-                strokeWidth="1.5"
+                className="absolute w-2 h-2 rounded-full bg-[#ff6b1a] shadow-[0_0_8px_rgba(255,107,26,0.8)]"
+                style={{
+                  top: "50%",
+                  left: "50%",
+                  transform: `rotate(${a}deg) translateY(calc(-50% - 47%)) translateX(-50%)`,
+                  animation: `pulse-gold 2s ease-in-out ${i * 0.1}s infinite`,
+                }}
               />
             );
           })}
-        </svg>
+        </div>
       </div>
       {/* pointer */}
-      <div className="absolute -top-2 left-1/2 -translate-x-1/2 z-10 w-0 h-0 border-l-[12px] border-r-[12px] border-t-[20px] border-l-transparent border-r-transparent border-t-[#ff6b1a] drop-shadow" />
-      {/* center hub */}
-      <div className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-24 h-24 rounded-full bg-white border-[6px] border-[#0c2340] shadow-xl flex items-center justify-center">
-        <span className="font-display font-bold text-[#ff6b1a] tracking-[0.2em] text-sm">SPIN</span>
-      </div>
+      <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10 w-0 h-0 border-l-[14px] border-r-[14px] border-t-[24px] border-l-transparent border-r-transparent border-t-[#ff6b1a] drop-shadow-lg" />
+      {/* center hub - clickable spin button */}
+      <button
+        type="button"
+        onClick={handleSpin}
+        disabled={spinning}
+        aria-label="Spin the wheel"
+        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full bg-white border-[6px] border-[#0c2340] shadow-[0_10px_30px_-5px_rgba(12,35,64,0.5)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform disabled:cursor-not-allowed cursor-pointer z-20 group"
+      >
+        <span
+          className={`font-display font-bold text-[#ff6b1a] tracking-[0.25em] text-base group-hover:text-[#e85a0c] ${spinning ? "animate-pulse" : ""}`}
+        >
+          {spinning ? "..." : "SPIN"}
+        </span>
+      </button>
     </div>
   );
 }
+
 
 function Landing() {
   return (
