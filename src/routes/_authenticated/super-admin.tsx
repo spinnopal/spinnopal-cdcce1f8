@@ -474,3 +474,227 @@ function SubscriptionSection({
   );
 }
 
+
+// ============= Subscription Plans Manager =============
+
+type AdminPlan = {
+  id: string;
+  code: string;
+  name: string;
+  tagline: string | null;
+  price_amount: number;
+  currency: string;
+  period: string;
+  features: string[];
+  is_highlighted: boolean;
+  is_active: boolean;
+  sort_order: number;
+  cta_label: string | null;
+  contact_url: string | null;
+};
+
+function emptyPlan(): AdminPlan {
+  return {
+    id: "",
+    code: "",
+    name: "",
+    tagline: "",
+    price_amount: 0,
+    currency: "NPR",
+    period: "month",
+    features: [],
+    is_highlighted: false,
+    is_active: true,
+    sort_order: 0,
+    cta_label: "",
+    contact_url: "",
+  };
+}
+
+function PlansManager({ onMsg }: { onMsg: (m: string) => void }) {
+  const fetchPlans = useServerFn(listAllPlansAdmin);
+  const doUpsert = useServerFn(upsertPlan);
+  const doDelete = useServerFn(deletePlan);
+  const [plans, setPlans] = useState<AdminPlan[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [editing, setEditing] = useState<AdminPlan | null>(null);
+  const [saving, setSaving] = useState(false);
+  const [open, setOpen] = useState(false);
+
+  const load = useCallback(async () => {
+    setLoading(true);
+    try {
+      const r = await fetchPlans();
+      setPlans(r.plans as AdminPlan[]);
+    } catch (e) {
+      onMsg(e instanceof Error ? e.message : "Failed to load plans");
+    } finally { setLoading(false); }
+  }, [fetchPlans, onMsg]);
+  useEffect(() => { load(); }, [load]);
+
+  const save = async () => {
+    if (!editing) return;
+    setSaving(true);
+    try {
+      const payload = {
+        ...(editing.id ? { id: editing.id } : {}),
+        code: editing.code.trim(),
+        name: editing.name.trim(),
+        tagline: editing.tagline?.trim() || null,
+        price_amount: Number(editing.price_amount) || 0,
+        currency: editing.currency.trim() || "NPR",
+        period: editing.period.trim() || "month",
+        features: (editing.features || []).map((f) => f.trim()).filter(Boolean),
+        is_highlighted: !!editing.is_highlighted,
+        is_active: !!editing.is_active,
+        sort_order: Number(editing.sort_order) || 0,
+        cta_label: editing.cta_label?.trim() || null,
+        contact_url: editing.contact_url?.trim() || null,
+      };
+      await doUpsert({ data: payload });
+      onMsg("Plan saved.");
+      setEditing(null);
+      load();
+    } catch (e) {
+      onMsg(e instanceof Error ? e.message : "Save failed");
+    } finally { setSaving(false); }
+  };
+
+  const remove = async (p: AdminPlan) => {
+    if (!confirm(`Delete plan "${p.name}"?`)) return;
+    try {
+      await doDelete({ data: { id: p.id } });
+      onMsg("Plan deleted.");
+      load();
+    } catch (e) { onMsg(e instanceof Error ? e.message : "Delete failed"); }
+  };
+
+  return (
+    <section className="mb-4 rounded-2xl bg-white shadow-sm">
+      <header className="px-4 py-3 border-b border-black/5 flex items-center justify-between gap-2">
+        <button onClick={() => setOpen(!open)} className="text-left min-w-0">
+          <p className="font-bold text-[#0c2340]">Subscription plans</p>
+          <p className="text-xs text-slate-500">{plans.length} plan(s) · shown to shop owners on /billing</p>
+        </button>
+        <div className="flex gap-2">
+          <button onClick={() => setOpen(true)} className="text-xs px-2 py-1 rounded bg-white/5 hidden sm:inline">Toggle</button>
+          <button
+            onClick={() => { setEditing(emptyPlan()); setOpen(true); }}
+            className="text-xs px-2.5 py-1.5 rounded-lg bg-[#FF6B00] text-white font-bold"
+          >+ Add plan</button>
+        </div>
+      </header>
+
+      {open && (
+        <div className="p-4">
+          {loading ? (
+            <p className="text-xs text-slate-500">Loading…</p>
+          ) : plans.length === 0 ? (
+            <p className="text-xs text-slate-500">No plans yet.</p>
+          ) : (
+            <div className="grid sm:grid-cols-3 gap-3">
+              {plans.map((p) => (
+                <div key={p.id} className={`rounded-xl border p-3 ${p.is_highlighted ? "border-[#FF6B00]/40 bg-[#FF6B00]/5" : "border-black/10 bg-[#F5F7FA]"}`}>
+                  <div className="flex justify-between items-start gap-2">
+                    <div className="min-w-0">
+                      <p className="font-bold text-[#0c2340] truncate">{p.name}</p>
+                      <p className="text-[10px] uppercase tracking-wider text-slate-500">{p.code}</p>
+                    </div>
+                    <span className={`text-[10px] px-1.5 py-0.5 rounded ${p.is_active ? "bg-emerald-100 text-emerald-700" : "bg-slate-200 text-slate-600"}`}>{p.is_active ? "active" : "hidden"}</span>
+                  </div>
+                  <p className="mt-1 text-lg font-black text-[#0c2340]">
+                    {p.price_amount === 0 ? "Free" : `${p.currency} ${p.price_amount.toLocaleString()}`}
+                    {p.price_amount > 0 && <span className="text-xs text-slate-500 font-medium"> / {p.period}</span>}
+                  </p>
+                  {p.tagline && <p className="text-xs text-slate-600 mt-1 line-clamp-2">{p.tagline}</p>}
+                  <p className="text-[11px] text-slate-500 mt-1">{p.features.length} feature(s) · order {p.sort_order}</p>
+                  <div className="flex gap-1 mt-2">
+                    <button onClick={() => { setEditing(p); }} className="text-xs px-2 py-1 rounded bg-[#0c2340] text-white font-bold">Edit</button>
+                    <button onClick={() => remove(p)} className="text-xs px-2 py-1 rounded bg-red-100 text-red-700">Delete</button>
+                  </div>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {editing && (
+        <div className="fixed inset-0 z-50 bg-black/70 grid place-items-center p-3" onClick={() => !saving && setEditing(null)}>
+          <div className="bg-white text-[#0c2340] rounded-2xl w-full max-w-lg max-h-[90vh] overflow-auto p-5" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-between items-center mb-3">
+              <h3 className="font-bold text-lg">{editing.id ? "Edit plan" : "New plan"}</h3>
+              <button onClick={() => setEditing(null)} className="text-sm px-2 py-1 rounded bg-[#F5F7FA]">Close</button>
+            </div>
+            <div className="grid grid-cols-2 gap-3 text-sm">
+              <Field label="Code" hint="e.g. pro">
+                <input value={editing.code} onChange={(e) => setEditing({ ...editing, code: e.target.value })} className="planinput" />
+              </Field>
+              <Field label="Name">
+                <input value={editing.name} onChange={(e) => setEditing({ ...editing, name: e.target.value })} className="planinput" />
+              </Field>
+              <Field label="Price" hint="0 = Free">
+                <input type="number" min={0} value={editing.price_amount} onChange={(e) => setEditing({ ...editing, price_amount: Number(e.target.value) })} className="planinput" />
+              </Field>
+              <Field label="Currency">
+                <input value={editing.currency} onChange={(e) => setEditing({ ...editing, currency: e.target.value })} className="planinput" />
+              </Field>
+              <Field label="Period">
+                <select value={editing.period} onChange={(e) => setEditing({ ...editing, period: e.target.value })} className="planinput">
+                  <option value="month">month</option>
+                  <option value="year">year</option>
+                  <option value="lifetime">lifetime</option>
+                </select>
+              </Field>
+              <Field label="Sort order">
+                <input type="number" value={editing.sort_order} onChange={(e) => setEditing({ ...editing, sort_order: Number(e.target.value) })} className="planinput" />
+              </Field>
+              <Field label="Tagline" full>
+                <input value={editing.tagline ?? ""} onChange={(e) => setEditing({ ...editing, tagline: e.target.value })} className="planinput" />
+              </Field>
+              <Field label="CTA label" hint="e.g. Upgrade, Contact us">
+                <input value={editing.cta_label ?? ""} onChange={(e) => setEditing({ ...editing, cta_label: e.target.value })} className="planinput" />
+              </Field>
+              <Field label="Contact URL" hint="Optional — overrides WhatsApp">
+                <input value={editing.contact_url ?? ""} onChange={(e) => setEditing({ ...editing, contact_url: e.target.value })} className="planinput" />
+              </Field>
+              <Field label="Features" hint="One per line" full>
+                <textarea
+                  rows={5}
+                  value={(editing.features ?? []).join("\n")}
+                  onChange={(e) => setEditing({ ...editing, features: e.target.value.split("\n") })}
+                  className="planinput resize-none"
+                />
+              </Field>
+              <label className="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked={editing.is_highlighted} onChange={(e) => setEditing({ ...editing, is_highlighted: e.target.checked })} />
+                Mark as most popular
+              </label>
+              <label className="flex items-center gap-2 text-xs">
+                <input type="checkbox" checked={editing.is_active} onChange={(e) => setEditing({ ...editing, is_active: e.target.checked })} />
+                Active (visible to owners)
+              </label>
+            </div>
+            <div className="mt-5 flex justify-end gap-2">
+              <button onClick={() => setEditing(null)} className="px-3 py-2 rounded-lg bg-[#F5F7FA] text-sm font-semibold">Cancel</button>
+              <button disabled={saving} onClick={save} className="px-4 py-2 rounded-lg bg-[#FF6B00] text-white text-sm font-bold disabled:opacity-50">
+                {saving ? "Saving…" : "Save plan"}
+              </button>
+            </div>
+            <style>{`.planinput{width:100%;padding:8px 10px;border:1px solid rgba(12,35,64,0.15);border-radius:8px;background:#F5F7FA;color:#0c2340;outline:none;font-size:13px}`}</style>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
+
+function Field({ label, hint, full, children }: { label: string; hint?: string; full?: boolean; children: React.ReactNode }) {
+  return (
+    <div className={full ? "col-span-2" : ""}>
+      <label className="block text-[11px] font-bold uppercase tracking-wider text-slate-500 mb-1">{label}</label>
+      {children}
+      {hint && <p className="text-[10px] text-slate-400 mt-0.5">{hint}</p>}
+    </div>
+  );
+}
