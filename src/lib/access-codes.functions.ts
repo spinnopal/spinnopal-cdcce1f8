@@ -126,12 +126,42 @@ export const spinAndRecord = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data }) => {
+export const spinAndRecord = createServerFn({ method: "POST" })
+  .inputValidator(
+    z.object({
+      slug: slugSchema,
+      code: codeChars,
+      campaignSlug: slugSchema.optional(),
+      name: z.string().trim().min(1).max(60).optional(),
+      contact: z.union([z.string().trim().min(5).max(30).regex(/^[+\d][\d\s\-()]{4,29}$/), z.literal("")]).optional(),
+      email: z.union([z.string().trim().toLowerCase().email().max(255), z.literal("")]).optional(),
+    }).parse,
+  )
+  .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const shopId = await shopIdForSlug(data.slug);
     if (!shopId) return { ok: false as const, reason: "shop" as const };
     const normalized = data.code.toUpperCase();
 
-    // 1) Atomically consume the access code (only if currently unused).
+    // 0) Find the code first so we can read its campaign_id.
+    let lookup = supabaseAdmin
+      .from("access_codes")
+      .select("code, campaign_id, is_used")
+      .eq("shop_id", shopId)
+      .eq("code", normalized);
+    if (data.campaignSlug) {
+      const cid = await resolveCampaignId(shopId, data.campaignSlug);
+      if (!cid) return { ok: false as const, reason: "invalid" as const };
+      lookup = lookup.eq("campaign_id", cid);
+    }
+    const { data: codeRow, error: lookupErr } = await lookup.maybeSingle();
+    if (lookupErr) throw new Error("Server error");
+    if (!codeRow) return { ok: false as const, reason: "invalid" as const };
+    if (codeRow.is_used) return { ok: false as const, reason: "invalid" as const };
+
+    const campaignId: string | null = (codeRow as { campaign_id: string | null }).campaign_id ?? await resolveCampaignId(shopId);
+
+    // 1) Atomically consume.
     const { data: consumed, error: consumeErr } = await supabaseAdmin
       .from("access_codes")
       .update({ is_used: true, spun_at: new Date().toISOString() })
@@ -143,12 +173,14 @@ export const spinAndRecord = createServerFn({ method: "POST" })
     if (consumeErr) throw new Error("Server error");
     if (!consumed) return { ok: false as const, reason: "invalid" as const };
 
-    // 2) Server-side weighted random pick from this shop's prizes.
-    const { data: prizes, error: prizesErr } = await supabaseAdmin
+    // 2) Pick from this campaign's prize pool.
+    let prizeQ = supabaseAdmin
       .from("prizes")
-      .select("id, name, short, image_url, is_win, probability, sort_order")
+      .select("id, name, short, image_url, is_win, probability, sort_order, campaign_id")
       .eq("shop_id", shopId)
       .order("sort_order", { ascending: true });
+    if (campaignId) prizeQ = prizeQ.eq("campaign_id", campaignId);
+    const { data: prizes, error: prizesErr } = await prizeQ;
     if (prizesErr) throw new Error("Server error");
     const items = prizes ?? [];
     if (items.length === 0) throw new Error("No prizes configured");
@@ -164,7 +196,7 @@ export const spinAndRecord = createServerFn({ method: "POST" })
       if (r <= 0) { winner = p; break; }
     }
 
-    // 3) Record the server-picked prize. Client never supplies the prize name.
+    // 3) Record the server-picked prize.
     const { error: recordErr } = await supabaseAdmin
       .from("access_codes")
       .update({
@@ -179,6 +211,7 @@ export const spinAndRecord = createServerFn({ method: "POST" })
 
     return { ok: true as const, prize: winner };
   });
+
 
 // ---------- AUTH (shop owner) ----------
 
