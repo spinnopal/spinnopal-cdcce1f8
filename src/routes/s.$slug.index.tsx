@@ -196,6 +196,20 @@ function ShopEntry() {
           spellCheck={false}
           className="mt-2 w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 text-base tracking-widest text-center font-mono text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
         />
+        {codeStatus.state === "checking" && (
+          <p className="mt-2 text-xs text-center text-muted-foreground">Checking code…</p>
+        )}
+        {codeStatus.state === "valid" && (
+          <p className="mt-2 text-xs text-center text-emerald-600 font-semibold">✓ Code is valid — ready to spin</p>
+        )}
+        {codeStatus.state === "invalid" && (
+          <p className="mt-2 text-xs text-center text-destructive font-semibold">✗ This code is not recognized</p>
+        )}
+        {codeStatus.state === "used" && (
+          <p className="mt-2 text-xs text-center text-destructive font-semibold">
+            ✗ This code was already used{codeStatus.date ? ` on ${new Date(codeStatus.date).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : ""}
+          </p>
+        )}
         {error && <p className="text-destructive text-sm mt-2 text-center">{error}</p>}
 
         <button
