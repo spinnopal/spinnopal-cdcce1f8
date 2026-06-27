@@ -35,112 +35,192 @@ function BrandMark({ size = 36 }: { size?: number }) {
   );
 }
 
+const DEMO_PRIZES = [
+  "Rs.2000 Cash",
+  "Bass Earphones",
+  "Try Again",
+  "Ultima Watch",
+  "Rs.1000 Cash",
+  "Kick AirBuds",
+  "Rs.100 Cash",
+  "Cooler Wind Fan",
+];
+
 function WheelVisual() {
-  const segs = 8;
-  const colors = ["#0c2340", "#ff6b1a"];
+  const SEG_COUNT = DEMO_PRIZES.length;
+  const SEG = 360 / SEG_COUNT;
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
-  const wheelRef = useRef<SVGSVGElement>(null);
+  const [wonPrize, setWonPrize] = useState<string | null>(null);
+  const rotationRef = useRef(0);
+  const timerRef = useRef<number | null>(null);
+
+  useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
 
   const handleSpin = () => {
     if (spinning) return;
+    setWonPrize(null);
     setSpinning(true);
-    const turns = 6 + Math.random() * 4;
-    const next = rotation + turns * 360 + Math.random() * 360;
+    const targetIndex = Math.floor(Math.random() * SEG_COUNT);
+    const center = targetIndex * SEG;
+    const base = ((360 - center) % 360 + 360) % 360;
+    const current = rotationRef.current;
+    const currentMod = ((current % 360) + 360) % 360;
+    const delta = ((base - currentMod) + 360) % 360;
+    const next = current + 6 * 360 + delta;
+    rotationRef.current = next;
     setRotation(next);
-    window.setTimeout(() => setSpinning(false), 4200);
+    timerRef.current = window.setTimeout(() => {
+      setSpinning(false);
+      setWonPrize(DEMO_PRIZES[targetIndex]);
+    }, 5200);
   };
+
+  const size = 360;
+  const r = size / 2;
+  const cx = r, cy = r;
+  const textR = r * 0.7;
 
   return (
     <div className="relative w-full max-w-[460px] aspect-square mx-auto">
       <div
         aria-hidden
         className="absolute inset-6 rounded-full animate-pulse-gold"
-        style={{ background: "radial-gradient(circle, rgba(255,107,26,0.45), transparent 65%)" }}
+        style={{ background: "radial-gradient(circle, rgba(255,107,26,0.35), transparent 65%)" }}
       />
-      {/* outer ring with glowing dots */}
-      <div className="absolute inset-0 rounded-full bg-gradient-to-br from-[#0c2340] via-[#1a3a66] to-[#0c2340] shadow-[0_30px_80px_-20px_rgba(12,35,64,0.5)] p-[10px]">
-        <div className="relative w-full h-full rounded-full bg-white overflow-hidden ring-4 ring-[#ff6b1a]/30">
-          <svg
-            ref={wheelRef}
-            viewBox="0 0 200 200"
-            className="w-full h-full"
-            style={{
-              transform: `rotate(${rotation}deg)`,
-              transition: spinning
-                ? "transform 4.2s cubic-bezier(0.17, 0.67, 0.21, 1)"
-                : "transform 0.4s ease-out",
-            }}
+      <div
+        className="absolute inset-0 rounded-full p-[3%]"
+        style={{ background: "linear-gradient(135deg,#1f3460,#3b5a8c)", boxShadow: "0 30px 80px -20px rgba(12,35,64,0.5)" }}
+      >
+        <div className="w-full h-full rounded-full bg-[#f5f7fb] p-[2%]">
+          <div
+            className="w-full h-full rounded-full relative overflow-hidden"
+            style={{ background: "radial-gradient(circle, #e6edf7 0%, #c8d6ea 70%)" }}
           >
-            {Array.from({ length: segs }).map((_, i) => {
-              const a1 = ((i * 360) / segs - 90) * (Math.PI / 180);
-              const a2 = (((i + 1) * 360) / segs - 90) * (Math.PI / 180);
-              const x1 = 100 + 100 * Math.cos(a1);
-              const y1 = 100 + 100 * Math.sin(a1);
-              const x2 = 100 + 100 * Math.cos(a2);
-              const y2 = 100 + 100 * Math.sin(a2);
-              const midA = ((i + 0.5) * 360) / segs - 90;
-              const tx = 100 + 62 * Math.cos((midA * Math.PI) / 180);
-              const ty = 100 + 62 * Math.sin((midA * Math.PI) / 180);
-              return (
-                <g key={i}>
-                  <path
-                    d={`M100 100 L${x1} ${y1} A100 100 0 0 1 ${x2} ${y2} Z`}
-                    fill={colors[i % 2]}
-                    stroke="#ffffff"
-                    strokeWidth="1.5"
-                  />
-                  <text
-                    x={tx}
-                    y={ty}
-                    transform={`rotate(${midA + 90} ${tx} ${ty})`}
-                    fill={i % 2 === 0 ? "#ff6b1a" : "#ffffff"}
-                    fontSize="11"
-                    fontWeight="800"
-                    textAnchor="middle"
-                    dominantBaseline="middle"
-                    style={{ fontFamily: "var(--font-display)" }}
-                  >
-                    {i % 2 === 0 ? "WIN" : "🎁"}
-                  </text>
-                </g>
-              );
-            })}
-          </svg>
-          {/* decorative dots around rim */}
-          {Array.from({ length: 16 }).map((_, i) => {
-            const a = (i * 360) / 16;
-            return (
-              <span
-                key={i}
-                className="absolute w-2 h-2 rounded-full bg-[#ff6b1a] shadow-[0_0_8px_rgba(255,107,26,0.8)]"
-                style={{
-                  top: "50%",
-                  left: "50%",
-                  transform: `rotate(${a}deg) translateY(calc(-50% - 47%)) translateX(-50%)`,
-                  animation: `pulse-gold 2s ease-in-out ${i * 0.1}s infinite`,
-                }}
-              />
-            );
-          })}
+            <svg
+              viewBox={`0 0 ${size} ${size}`}
+              className="w-full h-full"
+              style={{
+                transform: `rotate(${rotation}deg)`,
+                transition: spinning ? "transform 5.2s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
+                willChange: "transform",
+                backfaceVisibility: "hidden",
+              }}
+            >
+              {Array.from({ length: SEG_COUNT }).map((_, i) => {
+                const centerAngle = i * SEG;
+                const a1 = (centerAngle - SEG / 2 - 90) * Math.PI / 180;
+                const a2 = (centerAngle + SEG / 2 - 90) * Math.PI / 180;
+                const x1 = cx + r * Math.cos(a1);
+                const y1 = cy + r * Math.sin(a1);
+                const x2 = cx + r * Math.cos(a2);
+                const y2 = cy + r * Math.sin(a2);
+                const isDark = i % 2 === 0;
+                const fill = isDark ? "#1f3460" : "#b8cce0";
+                const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
+                const tx = cx + textR * Math.cos((centerAngle - 90) * Math.PI / 180);
+                const ty = cy + textR * Math.sin((centerAngle - 90) * Math.PI / 180);
+                return (
+                  <g key={i}>
+                    <path d={path} fill={fill} stroke="#f5f7fb" strokeWidth="2" />
+                    <text
+                      x={tx}
+                      y={ty}
+                      fill={isDark ? "#ff6b1a" : "#1f3460"}
+                      fontSize="22"
+                      fontWeight="900"
+                      textAnchor="middle"
+                      dominantBaseline="middle"
+                      transform={`rotate(${centerAngle + 90} ${tx} ${ty})`}
+                      style={{ fontFamily: "var(--font-display)" }}
+                    >
+                      {isDark ? "WIN" : "🎁"}
+                    </text>
+                  </g>
+                );
+              })}
+              <circle cx={cx} cy={cy} r={r * 0.22} fill="#f5f7fb" stroke="#1f3460" strokeWidth="2" />
+            </svg>
+
+            <button
+              type="button"
+              onClick={handleSpin}
+              disabled={spinning}
+              aria-label="Spin the wheel"
+              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] rounded-full bg-white border-2 border-[#1f3460] shadow-[0_10px_30px_-5px_rgba(12,35,64,0.5)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform disabled:cursor-not-allowed cursor-pointer z-20"
+            >
+              <span className={`font-display font-bold text-[#ff6b1a] tracking-[0.2em] text-sm ${spinning ? "animate-pulse" : ""}`}>
+                {spinning ? "..." : "SPIN"}
+              </span>
+            </button>
+          </div>
         </div>
       </div>
+
       {/* pointer */}
-      <div className="absolute -top-1 left-1/2 -translate-x-1/2 z-10 w-0 h-0 border-l-[14px] border-r-[14px] border-t-[24px] border-l-transparent border-r-transparent border-t-[#ff6b1a] drop-shadow-lg" />
-      {/* center hub - clickable spin button */}
-      <button
-        type="button"
-        onClick={handleSpin}
-        disabled={spinning}
-        aria-label="Spin the wheel"
-        className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-28 h-28 rounded-full bg-white border-[6px] border-[#0c2340] shadow-[0_10px_30px_-5px_rgba(12,35,64,0.5)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform disabled:cursor-not-allowed cursor-pointer z-20 group"
-      >
-        <span
-          className={`font-display font-bold text-[#ff6b1a] tracking-[0.25em] text-base group-hover:text-[#e85a0c] ${spinning ? "animate-pulse" : ""}`}
+      <div className="absolute left-1/2 -top-2 -translate-x-1/2 z-10 drop-shadow-[0_4px_10px_rgba(31,52,96,0.5)]">
+        <svg width="44" height="56" viewBox="0 0 44 56">
+          <defs>
+            <linearGradient id="gp-landing" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#ff8c4a" />
+              <stop offset="60%" stopColor="#ff6b1a" />
+              <stop offset="100%" stopColor="#c64a08" />
+            </linearGradient>
+          </defs>
+          <path d="M22 54 L4 12 Q22 0 40 12 Z" fill="url(#gp-landing)" stroke="#c64a08" strokeWidth="1.5" />
+          <circle cx="22" cy="14" r="4" fill="#fff" />
+        </svg>
+      </div>
+
+      {/* Premium prize popup */}
+      {wonPrize && (
+        <div
+          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0c2340]/70 backdrop-blur-sm animate-fade-in"
+          onClick={() => setWonPrize(null)}
         >
-          {spinning ? "..." : "SPIN"}
-        </span>
-      </button>
+          <div
+            className="relative w-full max-w-sm rounded-3xl bg-white shadow-[0_30px_80px_-10px_rgba(12,35,64,0.6)] overflow-hidden animate-scale-in"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <div className="bg-gradient-to-br from-[#0c2340] via-[#1a3a66] to-[#0c2340] px-6 pt-8 pb-14 text-center relative overflow-hidden">
+              <div className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 50% 0%, rgba(255,107,26,0.6), transparent 60%)" }} />
+              <div className="relative">
+                <span className="inline-block text-[11px] font-bold uppercase tracking-[0.3em] text-[#ff6b1a]">
+                  {wonPrize === "Try Again" ? "So close!" : "Congratulations"}
+                </span>
+                <div className="mt-3 text-5xl">{wonPrize === "Try Again" ? "🎯" : "🎉"}</div>
+              </div>
+            </div>
+            <div className="px-6 pt-6 pb-7 text-center -mt-8">
+              <div className="mx-auto inline-block px-5 py-2 rounded-full bg-white border border-[#0c2340]/10 shadow-md text-xs font-bold uppercase tracking-widest text-[#0c2340]">
+                {wonPrize === "Try Again" ? "Result" : "You won"}
+              </div>
+              <h3 className="font-display mt-4 text-3xl font-bold text-[#0c2340] leading-tight">
+                {wonPrize}
+              </h3>
+              <p className="mt-2 text-sm text-[#4a5b78]">
+                {wonPrize === "Try Again"
+                  ? "Better luck next spin — give it another go!"
+                  : "This is a demo spin. Create your shop to run real campaigns."}
+              </p>
+              <div className="mt-6 flex flex-col gap-2.5">
+                <button
+                  onClick={() => { setWonPrize(null); setTimeout(handleSpin, 150); }}
+                  className="w-full py-3.5 rounded-full bg-[#ff6b1a] text-white font-bold text-sm tracking-wide hover:bg-[#e85a0c] transition-all shadow-[0_10px_30px_-10px_rgba(255,107,26,0.7)] hover:scale-[1.02]"
+                >
+                  Spin Again
+                </button>
+                <button
+                  onClick={() => setWonPrize(null)}
+                  className="w-full py-2.5 rounded-full text-[#0c2340]/60 font-semibold text-xs hover:text-[#0c2340] transition-colors"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
