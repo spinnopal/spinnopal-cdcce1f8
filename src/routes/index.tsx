@@ -168,11 +168,13 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
 
   return (
     <div className="relative w-full max-w-[460px] aspect-square mx-auto">
-      <div
-        aria-hidden
-        className="absolute inset-6 rounded-full animate-pulse-gold pointer-events-none"
-        style={{ background: "radial-gradient(circle, rgba(255,107,26,0.35), transparent 65%)" }}
-      />
+      {!reducedMotion && (
+        <div
+          aria-hidden
+          className="absolute inset-6 rounded-full animate-pulse-gold pointer-events-none"
+          style={{ background: "radial-gradient(circle, rgba(255,107,26,0.35), transparent 65%)" }}
+        />
+      )}
       <div
         className="absolute inset-0 rounded-full p-[3%]"
         style={{ background: "linear-gradient(135deg,#1f3460,#3b5a8c)", boxShadow: "0 30px 80px -20px rgba(12,35,64,0.5)" }}
@@ -187,8 +189,8 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
               className="w-full h-full"
               style={{
                 transform: `translateZ(0) rotate(${rotation}deg)`,
-                transition: spinning ? "transform 5.2s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
-                willChange: "transform",
+                transition: spinning ? `transform ${SPIN_DURATION}ms ${SPIN_EASING}` : "none",
+                willChange: reducedMotion ? "auto" : "transform",
                 backfaceVisibility: "hidden",
                 transformOrigin: "50% 50%",
               }}
@@ -221,9 +223,13 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
               onClick={handleSpin}
               disabled={spinning}
               aria-label="Spin the wheel"
-              className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] rounded-full bg-white border-2 border-[#1f3460] shadow-[0_10px_30px_-5px_rgba(12,35,64,0.5)] flex items-center justify-center hover:scale-105 active:scale-95 transition-transform disabled:cursor-not-allowed cursor-pointer z-20"
+              className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] rounded-full bg-white border-2 border-[#1f3460] shadow-[0_10px_30px_-5px_rgba(12,35,64,0.5)] flex items-center justify-center disabled:cursor-not-allowed cursor-pointer z-20 ${
+                reducedMotion ? "" : "hover:scale-105 active:scale-95 transition-transform"
+              }`}
             >
-              <span className={`font-display font-bold text-[#ff6b1a] tracking-[0.2em] text-sm ${spinning ? "animate-pulse" : ""}`}>
+              <span className={`font-display font-bold text-[#ff6b1a] tracking-[0.2em] text-sm ${
+                reducedMotion ? "" : "animate-pulse"
+              }`}>
                 {spinning ? "..." : "SPIN"}
               </span>
             </button>
@@ -250,11 +256,15 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
       {/* Premium prize popup */}
       {wonPrize && (
         <div
-          className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0c2340]/70 backdrop-blur-sm animate-fade-in"
+          className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0c2340]/70 backdrop-blur-sm ${
+            reducedMotion ? "" : "animate-fade-in"
+          }`}
           onClick={() => setWonPrize(null)}
         >
           <div
-            className="relative w-full max-w-sm rounded-3xl bg-white shadow-[0_30px_80px_-10px_rgba(12,35,64,0.6)] overflow-hidden animate-scale-in"
+            className={`relative w-full max-w-sm rounded-3xl bg-white shadow-[0_30px_80px_-10px_rgba(12,35,64,0.6)] overflow-hidden ${
+              reducedMotion ? "" : "animate-scale-in"
+            }`}
             onClick={(e) => e.stopPropagation()}
           >
             <div className="bg-gradient-to-br from-[#0c2340] via-[#1a3a66] to-[#0c2340] px-6 pt-8 pb-14 text-center relative overflow-hidden">
@@ -280,7 +290,7 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
               </p>
               <div className="mt-6 flex flex-col gap-2.5">
                 <button
-                  onClick={() => { setWonPrize(null); setTimeout(handleSpin, 150); }}
+                  onClick={() => { setWonPrize(null); setTimeout(handleSpin, reducedMotion ? 0 : 150); }}
                   className="w-full py-3.5 rounded-full bg-[#ff6b1a] text-white font-bold text-sm tracking-wide hover:bg-[#e85a0c] transition-all shadow-[0_10px_30px_-10px_rgba(255,107,26,0.7)] hover:scale-[1.02]"
                 >
                   Spin Again
@@ -299,6 +309,7 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
     </div>
   );
 }
+
 
 
 function Landing() {
