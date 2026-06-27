@@ -9,7 +9,8 @@ import {
   Search, Download, Trash2, X, Phone, Mail, Award, CheckCircle2, XCircle, ArrowUpDown, Loader2,
 } from "lucide-react";
 import {
-  ResponsiveContainer, BarChart, Bar, XAxis, Tooltip as RTooltip, CartesianGrid,
+  ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, CartesianGrid,
+  PieChart, Pie, Cell,
 } from "recharts";
 import { SpinWheel } from "@/components/SpinWheel";
 import { rowToPrize } from "@/lib/spin-store";
