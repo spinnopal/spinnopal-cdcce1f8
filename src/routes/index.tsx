@@ -5,15 +5,12 @@ import { DEFAULT_LOGO } from "@/lib/spin-store";
 import { playClick, playWin, playLose, startSpinTicks } from "@/lib/sounds";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
 
-
 function vibrate(pattern: number | number[]) {
   try {
     if (typeof navigator !== "undefined" && "vibrate" in navigator) {
       navigator.vibrate(pattern);
     }
-  } catch {
-    // ignore
-  }
+  } catch {}
 }
 
 function shuffle<T>(arr: T[]): T[] {
@@ -25,33 +22,39 @@ function shuffle<T>(arr: T[]): T[] {
   return a;
 }
 
-
-
-
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "The Luck Spin — Premium prize campaigns for boutique shops" },
+      { title: "The Luck Spin — Premium spin-to-win campaigns for modern shops" },
       {
         name: "description",
         content:
-          "The Luck Spin — Spin · Win · Enjoy. Brand your spin page, generate access codes, and watch every win in your dashboard.",
+          "Run elegant spin-to-win campaigns. Brand your wheel, share a QR, and watch every win in a beautiful dashboard.",
       },
       { property: "og:title", content: "The Luck Spin — Spin · Win · Enjoy" },
       {
         property: "og:description",
         content:
-          "Brand your spin page, generate access codes, and run campaigns customers remember.",
+          "Premium spin-to-win SaaS for boutique shops. Brand, share, and track campaigns customers remember.",
       },
     ],
   }),
   component: Landing,
 });
 
+// Brand palette
+const C = {
+  bg: "#F7FBFD",
+  light: "#D6E6EF",
+  primary: "#7FA6B8",
+  primaryDark: "#5e8a9e",
+  dark: "#2A3E4B",
+};
+
 function BrandMark({ size = 36 }: { size?: number }) {
   return (
     <div
-      className="rounded-full bg-white overflow-hidden flex items-center justify-center ring-1 ring-[rgba(12,35,64,0.12)] shadow-sm"
+      className="rounded-2xl bg-white overflow-hidden flex items-center justify-center ring-1 ring-[#2A3E4B]/10 shadow-sm"
       style={{ width: size, height: size }}
     >
       <img src={DEFAULT_LOGO} alt="The Luck Spin" className="w-full h-full object-contain" />
@@ -67,7 +70,7 @@ const DEMO_PRIZES = [
   "Rs.1000 Cash",
   "Kick AirBuds",
   "Rs.100 Cash",
-  "Cooler Wind Fan",
+  "Cooler Fan",
 ];
 
 function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
@@ -91,7 +94,6 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
   const cx = r, cy = r;
   const textR = r * 0.7;
 
-  // Precompute segment geometry once — avoids recompute on every render
   const segments = useMemo(() => {
     return Array.from({ length: SEG_COUNT }).map((_, i) => {
       const centerAngle = i * SEG;
@@ -125,13 +127,11 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
 
   const handleSpin = () => {
     if (spinning) return;
-    // Reshuffle visible prize names on each spin
     const reshuffled = shuffle(DEMO_PRIZES);
     setPrizes(reshuffled);
     setWonPrize(null);
     setSpinning(true);
 
-    // Haptic + sound at spin start (disabled when reduced motion is on)
     if (!reducedMotion) {
       playClick();
       vibrate(25);
@@ -152,7 +152,6 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
       setSpinning(false);
       const prize = reshuffled[targetIndex];
       setWonPrize(prize);
-      // Haptic + sound at popup reveal (disabled when reduced motion is on)
       if (!reducedMotion) {
         if (prize === "Try Again") {
           playLose();
@@ -165,24 +164,26 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
     }, SPIN_DURATION);
   };
 
-
   return (
     <div className="relative w-full max-w-[460px] aspect-square mx-auto">
       {!reducedMotion && (
         <div
           aria-hidden
-          className="absolute inset-6 rounded-full animate-pulse-gold pointer-events-none"
-          style={{ background: "radial-gradient(circle, rgba(255,107,26,0.35), transparent 65%)" }}
+          className="absolute -inset-8 rounded-full pointer-events-none opacity-60"
+          style={{ background: `radial-gradient(circle, ${C.primary}55, transparent 65%)`, filter: "blur(20px)" }}
         />
       )}
       <div
         className="absolute inset-0 rounded-full p-[3%]"
-        style={{ background: "linear-gradient(135deg,#1f3460,#3b5a8c)", boxShadow: "0 30px 80px -20px rgba(12,35,64,0.5)" }}
+        style={{
+          background: `linear-gradient(135deg, ${C.dark}, ${C.primary})`,
+          boxShadow: `0 40px 100px -25px ${C.dark}66, 0 0 0 1px ${C.dark}10`,
+        }}
       >
-        <div className="w-full h-full rounded-full bg-[#f5f7fb] p-[2%]">
+        <div className="w-full h-full rounded-full bg-white p-[2%]">
           <div
             className="w-full h-full rounded-full relative overflow-hidden"
-            style={{ background: "radial-gradient(circle, #e6edf7 0%, #c8d6ea 70%)" }}
+            style={{ background: `radial-gradient(circle, ${C.bg} 0%, ${C.light} 100%)` }}
           >
             <svg
               viewBox={`0 0 ${size} ${size}`}
@@ -198,11 +199,16 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
             >
               {segments.map((s, i) => (
                 <g key={i}>
-                  <path d={s.path} fill={s.isDark ? "#1f3460" : "#b8cce0"} stroke="#f5f7fb" strokeWidth="2" />
+                  <path
+                    d={s.path}
+                    fill={s.isDark ? C.dark : C.light}
+                    stroke="#ffffff"
+                    strokeWidth="2"
+                  />
                   <text
                     x={s.tx}
                     y={s.ty}
-                    fill={s.isDark ? "#ff6b1a" : "#1f3460"}
+                    fill={s.isDark ? "#ffffff" : C.dark}
                     fontSize="15"
                     fontWeight="800"
                     textAnchor="middle"
@@ -211,11 +217,10 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
                     style={{ fontFamily: "var(--font-display)" }}
                   >
                     {shortLabel(prizes[i] ?? "")}
-
                   </text>
                 </g>
               ))}
-              <circle cx={cx} cy={cy} r={r * 0.22} fill="#f5f7fb" stroke="#1f3460" strokeWidth="2" />
+              <circle cx={cx} cy={cy} r={r * 0.22} fill="#ffffff" stroke={C.dark} strokeWidth="2" />
             </svg>
 
             <button
@@ -223,13 +228,18 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
               onClick={handleSpin}
               disabled={spinning}
               aria-label="Spin the wheel"
-              className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] rounded-full bg-white border-2 border-[#1f3460] shadow-[0_10px_30px_-5px_rgba(12,35,64,0.5)] flex items-center justify-center disabled:cursor-not-allowed cursor-pointer z-20 ${
+              className={`absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] rounded-full bg-white flex items-center justify-center disabled:cursor-not-allowed cursor-pointer z-20 ${
                 reducedMotion ? "" : "hover:scale-105 active:scale-95 transition-transform"
               }`}
+              style={{
+                border: `2px solid ${C.dark}`,
+                boxShadow: `0 10px 30px -5px ${C.dark}80`,
+              }}
             >
-              <span className={`font-display font-bold text-[#ff6b1a] tracking-[0.2em] text-sm ${
-                reducedMotion ? "" : "animate-pulse"
-              }`}>
+              <span
+                className="font-display font-bold tracking-[0.2em] text-sm"
+                style={{ color: C.dark }}
+              >
                 {spinning ? "..." : "SPIN"}
               </span>
             </button>
@@ -237,53 +247,59 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
         </div>
       </div>
 
-
-      {/* pointer */}
-      <div className="absolute left-1/2 -top-2 -translate-x-1/2 z-10 drop-shadow-[0_4px_10px_rgba(31,52,96,0.5)]">
+      <div className="absolute left-1/2 -top-2 -translate-x-1/2 z-10 drop-shadow-[0_4px_10px_rgba(42,62,75,0.4)]">
         <svg width="44" height="56" viewBox="0 0 44 56">
           <defs>
             <linearGradient id="gp-landing" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stopColor="#ff8c4a" />
-              <stop offset="60%" stopColor="#ff6b1a" />
-              <stop offset="100%" stopColor="#c64a08" />
+              <stop offset="0%" stopColor={C.primary} />
+              <stop offset="100%" stopColor={C.dark} />
             </linearGradient>
           </defs>
-          <path d="M22 54 L4 12 Q22 0 40 12 Z" fill="url(#gp-landing)" stroke="#c64a08" strokeWidth="1.5" />
+          <path d="M22 54 L4 12 Q22 0 40 12 Z" fill="url(#gp-landing)" stroke={C.dark} strokeWidth="1.5" />
           <circle cx="22" cy="14" r="4" fill="#fff" />
         </svg>
       </div>
 
-      {/* Premium prize popup */}
       {wonPrize && (
         <div
-          className={`fixed inset-0 z-50 flex items-center justify-center p-4 bg-[#0c2340]/70 backdrop-blur-sm ${
+          className={`fixed inset-0 z-50 flex items-center justify-center p-4 backdrop-blur-md ${
             reducedMotion ? "" : "animate-fade-in"
           }`}
+          style={{ background: `${C.dark}b3` }}
           onClick={() => setWonPrize(null)}
         >
           <div
-            className={`relative w-full max-w-sm rounded-3xl bg-white shadow-[0_30px_80px_-10px_rgba(12,35,64,0.6)] overflow-hidden ${
+            className={`relative w-full max-w-sm rounded-3xl bg-white shadow-[0_40px_100px_-10px_rgba(42,62,75,0.6)] overflow-hidden ${
               reducedMotion ? "" : "animate-scale-in"
             }`}
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="bg-gradient-to-br from-[#0c2340] via-[#1a3a66] to-[#0c2340] px-6 pt-8 pb-14 text-center relative overflow-hidden">
-              <div className="absolute inset-0 opacity-30" style={{ background: "radial-gradient(circle at 50% 0%, rgba(255,107,26,0.6), transparent 60%)" }} />
+            <div
+              className="px-6 pt-8 pb-14 text-center relative overflow-hidden"
+              style={{ background: `linear-gradient(135deg, ${C.dark}, ${C.primary})` }}
+            >
+              <div
+                className="absolute inset-0 opacity-40"
+                style={{ background: `radial-gradient(circle at 50% 0%, ${C.light}, transparent 60%)` }}
+              />
               <div className="relative">
-                <span className="inline-block text-[11px] font-bold uppercase tracking-[0.3em] text-[#ff6b1a]">
+                <span className="inline-block text-[11px] font-bold uppercase tracking-[0.3em] text-white/90">
                   {wonPrize === "Try Again" ? "So close!" : "Congratulations"}
                 </span>
                 <div className="mt-3 text-5xl">{wonPrize === "Try Again" ? "🎯" : "🎉"}</div>
               </div>
             </div>
             <div className="px-6 pt-6 pb-7 text-center -mt-8">
-              <div className="mx-auto inline-block px-5 py-2 rounded-full bg-white border border-[#0c2340]/10 shadow-md text-xs font-bold uppercase tracking-widest text-[#0c2340]">
+              <div
+                className="mx-auto inline-block px-5 py-2 rounded-full bg-white border shadow-md text-xs font-bold uppercase tracking-widest"
+                style={{ borderColor: `${C.dark}1a`, color: C.dark }}
+              >
                 {wonPrize === "Try Again" ? "Result" : "You won"}
               </div>
-              <h3 className="font-display mt-4 text-3xl font-bold text-[#0c2340] leading-tight">
+              <h3 className="font-display mt-4 text-3xl font-bold leading-tight" style={{ color: C.dark }}>
                 {wonPrize}
               </h3>
-              <p className="mt-2 text-sm text-[#4a5b78]">
+              <p className="mt-2 text-sm" style={{ color: `${C.dark}99` }}>
                 {wonPrize === "Try Again"
                   ? "Better luck next spin — give it another go!"
                   : "This is a demo spin. Create your shop to run real campaigns."}
@@ -291,13 +307,18 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
               <div className="mt-6 flex flex-col gap-2.5">
                 <button
                   onClick={() => { setWonPrize(null); setTimeout(handleSpin, reducedMotion ? 0 : 150); }}
-                  className="w-full py-3.5 rounded-full bg-[#ff6b1a] text-white font-bold text-sm tracking-wide hover:bg-[#e85a0c] transition-all shadow-[0_10px_30px_-10px_rgba(255,107,26,0.7)] hover:scale-[1.02]"
+                  className="w-full py-3.5 rounded-full text-white font-bold text-sm tracking-wide transition-all hover:scale-[1.02]"
+                  style={{
+                    background: `linear-gradient(135deg, ${C.dark}, ${C.primary})`,
+                    boxShadow: `0 10px 30px -10px ${C.dark}b3`,
+                  }}
                 >
                   Spin Again
                 </button>
                 <button
                   onClick={() => setWonPrize(null)}
-                  className="w-full py-2.5 rounded-full text-[#0c2340]/60 font-semibold text-xs hover:text-[#0c2340] transition-colors"
+                  className="w-full py-2.5 rounded-full font-semibold text-xs transition-colors"
+                  style={{ color: `${C.dark}99` }}
                 >
                   Close
                 </button>
@@ -310,210 +331,849 @@ function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
   );
 }
 
+function Navbar() {
+  const [scrolled, setScrolled] = useState(false);
+  const [open, setOpen] = useState(false);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 8);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
 
-
-function Landing() {
-  const [reducedMotion, setReducedMotion] = useReducedMotion();
+  const links = [
+    { href: "#features", label: "Features" },
+    { href: "#pricing", label: "Pricing" },
+    { href: "#faq", label: "FAQ" },
+    { href: "#contact", label: "Contact" },
+  ];
 
   return (
-    <div className="min-h-screen w-full bg-white text-[#0c2340]">
-
-      {/* Nav */}
-      <nav className="max-w-7xl mx-auto flex items-center justify-between px-5 md:px-8 py-5">
+    <nav
+      className={`sticky top-0 z-40 transition-all duration-300 ${
+        scrolled
+          ? "bg-white/80 backdrop-blur-xl border-b border-[#2A3E4B]/10 shadow-[0_4px_24px_-12px_rgba(42,62,75,0.15)]"
+          : "bg-transparent"
+      }`}
+    >
+      <div className="max-w-7xl mx-auto flex items-center justify-between px-5 md:px-8 py-3.5">
         <Link to="/" className="flex items-center gap-2.5">
-          <BrandMark size={36} />
-          <span className="font-display font-bold tracking-tight text-lg text-[#0c2340]">
+          <BrandMark size={38} />
+          <span className="font-display font-bold tracking-tight text-lg" style={{ color: C.dark }}>
             theluckspin
           </span>
         </Link>
-        <div className="hidden md:flex items-center gap-6">
+
+        <div className="hidden lg:flex items-center gap-1">
+          {links.map((l) => (
+            <a
+              key={l.href}
+              href={l.href}
+              className="px-4 py-2 rounded-full text-sm font-medium transition-colors hover:bg-[#D6E6EF]/50"
+              style={{ color: `${C.dark}cc` }}
+            >
+              {l.label}
+            </a>
+          ))}
+        </div>
+
+        <div className="hidden lg:flex items-center gap-2">
           <Link
             to="/auth"
-            className="text-[#0c2340]/70 hover:text-[#ff6b1a] text-sm font-semibold transition-colors"
+            className="px-4 py-2 rounded-full text-sm font-semibold transition-colors hover:bg-[#D6E6EF]/50"
+            style={{ color: C.dark }}
           >
             Sign in
           </Link>
-          <InstallAppButton
-            variant="ghost"
-            size="sm"
-            className="!text-[#0c2340]/70 hover:!text-[#ff6b1a] text-sm font-semibold"
-          />
           <Link
             to="/auth"
-            className="px-5 py-2.5 bg-[#ff6b1a] text-white rounded-full text-sm font-bold hover:bg-[#e85a0c] transition-all shadow-[0_8px_24px_-8px_rgba(255,107,26,0.6)]"
+            className="px-5 py-2.5 rounded-full text-sm font-bold text-white transition-all hover:scale-[1.03]"
+            style={{
+              background: `linear-gradient(135deg, ${C.dark}, ${C.primary})`,
+              boxShadow: `0 8px 20px -8px ${C.dark}99`,
+            }}
           >
-            Create your shop
+            Start Free
           </Link>
         </div>
-        <Link
-          to="/auth"
-          className="md:hidden px-4 py-2 bg-[#ff6b1a] text-white rounded-full text-xs font-bold"
+
+        <button
+          aria-label="Open menu"
+          onClick={() => setOpen((v) => !v)}
+          className="lg:hidden w-10 h-10 rounded-full flex items-center justify-center"
+          style={{ color: C.dark, background: scrolled ? "transparent" : `${C.light}80` }}
         >
-          Sign in
-        </Link>
-      </nav>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round">
+            {open ? (
+              <><path d="M18 6L6 18" /><path d="M6 6l12 12" /></>
+            ) : (
+              <><path d="M4 7h16" /><path d="M4 12h16" /><path d="M4 17h16" /></>
+            )}
+          </svg>
+        </button>
+      </div>
 
-      {/* Hero split-screen */}
-      <section className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center px-5 md:px-8 pt-6 pb-16 lg:py-20">
-        {/* Left copy */}
-        <div className={reducedMotion ? "" : "animate-float-up"}>
-          <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#fff1e8] text-[#ff6b1a] text-[11px] font-bold uppercase tracking-[0.18em]">
-            <span className="w-1.5 h-1.5 rounded-full bg-[#ff6b1a]" />
-            Growth &amp; retention SaaS
-          </span>
-          <h1 className="font-display mt-5 text-4xl md:text-5xl lg:text-6xl font-bold leading-[1.05] tracking-tight">
-            Run a{" "}
-            <span className="relative inline-block">
-              <span className="text-[#ff6b1a]">Lucky Spin</span>
-              <span className="absolute left-0 right-0 -bottom-1 h-2 bg-[#ff6b1a]/20 -z-0" />
-            </span>{" "}
-            campaign for your shop.
-          </h1>
-          <p className="mt-5 text-base md:text-lg text-[#4a5b78] max-w-lg leading-relaxed">
-            Brand your spin page, generate access codes, and turn every visit into a memorable
-            moment. Built for boutique shops that care how they're seen.
-          </p>
-
-          <div className="mt-8 flex flex-wrap items-center gap-3">
-            <Link
-              to="/auth"
-              className="px-7 py-3.5 bg-[#0c2340] text-white rounded-full font-bold text-sm hover:bg-[#1a3a66] transition-all shadow-[0_10px_30px_-10px_rgba(12,35,64,0.5)] hover:scale-[1.02]"
-            >
-              Get started — it's free
-            </Link>
-            <InstallAppButton
-              variant="outline"
-              size="lg"
-              className="!rounded-full !border-[#0c2340]/20 !text-[#0c2340] !font-semibold !text-sm !px-6 hover:!bg-[#f4f6fa]"
-            />
-          </div>
-
-          <div className="mt-10 flex flex-wrap gap-x-8 gap-y-4">
-            {[
-              { k: "10k+", v: "Spins delivered" },
-              { k: "98%", v: "Customer delight" },
-              { k: "<1min", v: "Setup time" },
-            ].map((s) => (
-              <div key={s.v}>
-                <div className="font-display text-2xl font-bold text-[#0c2340]">{s.k}</div>
-                <div className="text-xs uppercase tracking-wider text-[#4a5b78] mt-1">{s.v}</div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Right visual */}
-        <div className="relative">
-          <div className="absolute -inset-6 bg-gradient-to-br from-[#fff1e8] via-white to-[#eef3fb] rounded-[2rem] -z-10" />
-          <WheelVisual reducedMotion={reducedMotion} />
-          <button
-            type="button"
-            onClick={() => setReducedMotion(!reducedMotion)}
-            className="mx-auto mt-5 flex items-center justify-center gap-2 px-4 py-2 rounded-full border border-[#0c2340]/10 bg-white/80 text-xs font-semibold text-[#4a5b78] hover:text-[#0c2340] hover:border-[#0c2340]/20 transition-colors"
-            aria-pressed={reducedMotion}
-            aria-label={reducedMotion ? "Enable full wheel motion and sound" : "Reduce wheel motion and sound"}
-          >
-            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden>
-              {reducedMotion ? (
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
-              ) : (
-                <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z" />
-              )}
-            </svg>
-            <span>{reducedMotion ? "Motion reduced" : "Reduce motion"}</span>
-          </button>
-          <p className="text-center mt-2 text-[11px] text-[#4a5b78]/70">
-            {reducedMotion
-              ? "Short spins, no haptics, no sound."
-              : "Honours your device’s reduced-motion preference."}
-          </p>
-        </div>
-
-      </section>
-
-      {/* Steps strip */}
-      <section className="bg-[#0c2340] text-white py-16">
-        <div className="max-w-7xl mx-auto px-5 md:px-8">
-          <div className="flex items-end justify-between mb-10 flex-wrap gap-4">
-            <h2 className="font-display text-3xl md:text-4xl font-bold max-w-md leading-tight">
-              Launch in three simple steps.
-            </h2>
-            <Link
-              to="/auth"
-              className="text-[#ff6b1a] text-sm font-bold hover:underline underline-offset-4"
-            >
-              Start your shop →
-            </Link>
-          </div>
-          <div className="grid md:grid-cols-3 gap-5">
-            {[
-              {
-                n: "01",
-                t: "Set up",
-                d: "Upload your logo, name your shop, and claim your branded URL in under a minute.",
-              },
-              {
-                n: "02",
-                t: "Configure",
-                d: "Add prizes with photos, tune win odds, and generate access codes to hand out.",
-              },
-              {
-                n: "03",
-                t: "Launch",
-                d: "Share one link. Customers spin, you see every winner in your dashboard.",
-              },
-            ].map((s) => (
-              <div
-                key={s.n}
-                className="group bg-white/5 border border-white/10 rounded-2xl p-7 hover:bg-[#ff6b1a] hover:border-[#ff6b1a] transition-all duration-300"
+      {open && (
+        <div className="lg:hidden border-t border-[#2A3E4B]/10 bg-white/95 backdrop-blur-xl">
+          <div className="px-5 py-4 flex flex-col gap-1">
+            {links.map((l) => (
+              <a
+                key={l.href}
+                href={l.href}
+                onClick={() => setOpen(false)}
+                className="px-4 py-3 rounded-xl text-sm font-medium"
+                style={{ color: C.dark }}
               >
-                <div className="flex items-center justify-between mb-5">
-                  <span className="font-display text-3xl font-bold text-[#ff6b1a] group-hover:text-white transition-colors">
-                    {s.n}
-                  </span>
-                  <span className="w-10 h-10 rounded-full border border-white/20 group-hover:border-white flex items-center justify-center text-white/60 group-hover:text-white transition-colors">
-                    →
+                {l.label}
+              </a>
+            ))}
+            <div className="h-px my-2 bg-[#2A3E4B]/10" />
+            <Link
+              to="/auth"
+              onClick={() => setOpen(false)}
+              className="px-4 py-3 rounded-xl text-sm font-semibold"
+              style={{ color: C.dark }}
+            >
+              Sign in
+            </Link>
+            <Link
+              to="/auth"
+              onClick={() => setOpen(false)}
+              className="px-4 py-3 rounded-xl text-sm font-bold text-white text-center mt-1"
+              style={{ background: `linear-gradient(135deg, ${C.dark}, ${C.primary})` }}
+            >
+              Start Free
+            </Link>
+          </div>
+        </div>
+      )}
+    </nav>
+  );
+}
+
+function Section({
+  id,
+  className = "",
+  children,
+}: {
+  id?: string;
+  className?: string;
+  children: React.ReactNode;
+}) {
+  return (
+    <section id={id} className={`max-w-7xl mx-auto px-5 md:px-8 ${className}`}>
+      {children}
+    </section>
+  );
+}
+
+function FeatureIcon({ d }: { d: string }) {
+  return (
+    <div
+      className="w-12 h-12 rounded-2xl flex items-center justify-center mb-5"
+      style={{ background: `${C.light}`, color: C.dark }}
+    >
+      <svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+        <path d={d} />
+      </svg>
+    </div>
+  );
+}
+
+function Faq({ q, a, open, onClick }: { q: string; a: string; open: boolean; onClick: () => void }) {
+  return (
+    <div
+      className="rounded-2xl bg-white border transition-all"
+      style={{ borderColor: open ? `${C.primary}66` : `${C.dark}14` }}
+    >
+      <button
+        onClick={onClick}
+        className="w-full text-left px-5 md:px-6 py-5 flex items-center justify-between gap-4"
+      >
+        <span className="font-semibold text-base md:text-lg" style={{ color: C.dark }}>
+          {q}
+        </span>
+        <span
+          className="shrink-0 w-8 h-8 rounded-full flex items-center justify-center transition-transform"
+          style={{
+            background: open ? C.dark : C.light,
+            color: open ? "#fff" : C.dark,
+            transform: open ? "rotate(45deg)" : "rotate(0)",
+          }}
+        >
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round">
+            <path d="M12 5v14M5 12h14" />
+          </svg>
+        </span>
+      </button>
+      <div
+        className="overflow-hidden transition-all duration-300"
+        style={{ maxHeight: open ? 400 : 0 }}
+      >
+        <p className="px-5 md:px-6 pb-5 text-sm md:text-base leading-relaxed" style={{ color: `${C.dark}b3` }}>
+          {a}
+        </p>
+      </div>
+    </div>
+  );
+}
+
+function Landing() {
+  const [reducedMotion, setReducedMotion] = useReducedMotion();
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  const features = [
+    { d: "M12 2v4M12 18v4M4.93 4.93l2.83 2.83M16.24 16.24l2.83 2.83M2 12h4M18 12h4M4.93 19.07l2.83-2.83M16.24 7.76l2.83-2.83", t: "Spin Wheel", desc: "Beautifully smooth, fully branded wheels customers love to spin." },
+    { d: "M20 12V22H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a2.5 2.5 0 010-5C11 2 12 7 12 7zM12 7h4.5a2.5 2.5 0 000-5C13 2 12 7 12 7z", t: "Smart Rewards", desc: "Tune win probabilities per prize and cap inventory in real time." },
+    { d: "M3 3h7v7H3zM14 3h7v7h-7zM3 14h7v7H3zM14 14h2M16 14v3M14 17h3M19 17v4M16 21h5", t: "Instant QR Code", desc: "One-tap QR for posters, receipts, and storefronts — no app install." },
+    { d: "M3 3v18h18M7 16l4-4 4 4 5-5", t: "Live Analytics", desc: "Track spins, wins, conversion, and ROI from a single dashboard." },
+    { d: "M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5", t: "Your Branding", desc: "Custom logo, colors, and slug — your shop, your identity." },
+    { d: "M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z", t: "Bank-grade Security", desc: "Row-level isolation, signed access codes, and audited backups." },
+  ];
+
+  const steps = [
+    { t: "Create campaign", d: "Name your shop and pick a slug." },
+    { t: "Add rewards", d: "Upload prize images and set odds." },
+    { t: "Share QR", d: "Print or display — anywhere customers walk." },
+    { t: "Customers spin", d: "A delightful, branded moment." },
+    { t: "Track results", d: "Real-time analytics and winners log." },
+  ];
+
+  const testimonials = [
+    { n: "Anisha Rai", r: "Boutique Owner", q: "Foot traffic jumped 38% the week we launched. Customers love it." },
+    { n: "Bikash Shrestha", r: "Cafe Manager", q: "Setup took five minutes. The dashboard is genuinely beautiful." },
+    { n: "Priya Karki", r: "Salon Founder", q: "Our regulars come back just to spin again. Best retention tool we've used." },
+  ];
+
+  const plans = [
+    {
+      name: "Starter",
+      price: "Free",
+      period: "forever",
+      desc: "Launch your first campaign in minutes.",
+      features: ["1 active campaign", "Up to 100 spins / mo", "Branded wheel & QR", "Basic analytics"],
+      cta: "Start Free",
+      highlight: false,
+    },
+    {
+      name: "Growth",
+      price: "Rs.999",
+      period: "/ month",
+      desc: "For shops scaling daily campaigns.",
+      features: ["Unlimited campaigns", "10,000 spins / mo", "Custom branding", "Advanced analytics", "Priority support"],
+      cta: "Start Growth",
+      highlight: true,
+    },
+    {
+      name: "Business",
+      price: "Custom",
+      period: "tailored",
+      desc: "Multi-location & enterprise needs.",
+      features: ["Unlimited everything", "Multi-shop accounts", "Dedicated success manager", "Custom integrations"],
+      cta: "Contact Sales",
+      highlight: false,
+    },
+  ];
+
+  const faqs = [
+    { q: "How quickly can I launch a campaign?", a: "Under 2 minutes — create an account, name your shop, upload prizes, and share the QR code. No app install required for your customers." },
+    { q: "Do my customers need an app?", a: "No. They scan your QR code with any phone camera and spin in the browser. The page is a fast, installable PWA if they want to save it." },
+    { q: "Can I control prize odds?", a: "Yes — set weighted probabilities per prize and adjust them anytime. The atomic spin engine guarantees fair, tamper-proof outcomes." },
+    { q: "What about my brand?", a: "Upload your logo and pick your slug. The spin page, QR, and result screens all reflect your brand identity end-to-end." },
+    { q: "Is my customer data safe?", a: "Yes. Every shop runs in an isolated row-level secure environment, with signed access codes and encrypted storage." },
+    { q: "Can I cancel anytime?", a: "Absolutely. Plans are month-to-month, no contracts. Your data stays exportable as CSV at all times." },
+  ];
+
+  return (
+    <div className="min-h-screen w-full" style={{ background: C.bg, color: C.dark }}>
+      <Navbar />
+
+      {/* HERO */}
+      <Section className="pt-10 lg:pt-16 pb-20 lg:pb-28">
+        <div className="grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className={reducedMotion ? "" : "animate-fade-in"}>
+            <span
+              className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-[11px] font-bold uppercase tracking-[0.18em]"
+              style={{ background: C.light, color: C.dark }}
+            >
+              <span className="w-1.5 h-1.5 rounded-full" style={{ background: C.dark }} />
+              New · Premium spin SaaS
+            </span>
+            <h1
+              className="font-display mt-6 text-4xl md:text-5xl lg:text-[64px] font-bold leading-[1.04] tracking-tight"
+              style={{ color: C.dark }}
+            >
+              Turn every visit into a{" "}
+              <span
+                className="bg-clip-text text-transparent"
+                style={{ backgroundImage: `linear-gradient(135deg, ${C.dark}, ${C.primary})` }}
+              >
+                memorable spin.
+              </span>
+            </h1>
+            <p
+              className="mt-5 text-base md:text-lg max-w-lg leading-relaxed"
+              style={{ color: `${C.dark}b3` }}
+            >
+              theluckspin is the elegant, modern way to run spin-to-win campaigns. Brand your wheel,
+              share a QR, and track every winner from one beautiful dashboard.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center gap-3">
+              <Link
+                to="/auth"
+                className="px-7 py-3.5 rounded-full font-bold text-sm text-white transition-all hover:scale-[1.03]"
+                style={{
+                  background: `linear-gradient(135deg, ${C.dark}, ${C.primary})`,
+                  boxShadow: `0 14px 36px -12px ${C.dark}99`,
+                }}
+              >
+                Start Free
+              </Link>
+              <a
+                href="#wheel-demo"
+                className="px-7 py-3.5 rounded-full font-bold text-sm transition-all inline-flex items-center gap-2 bg-white border hover:bg-[#D6E6EF]/40"
+                style={{ color: C.dark, borderColor: `${C.dark}1f` }}
+              >
+                <span
+                  className="w-6 h-6 rounded-full flex items-center justify-center"
+                  style={{ background: C.dark, color: "#fff" }}
+                >
+                  <svg width="10" height="10" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z" /></svg>
+                </span>
+                Watch Demo
+              </a>
+            </div>
+
+            <div className="mt-10 flex flex-wrap gap-x-8 gap-y-4">
+              {[
+                { k: "10k+", v: "Spins delivered" },
+                { k: "98%", v: "Customer delight" },
+                { k: "<1m", v: "Setup time" },
+              ].map((s) => (
+                <div key={s.v}>
+                  <div className="font-display text-2xl font-bold" style={{ color: C.dark }}>{s.k}</div>
+                  <div className="text-[11px] uppercase tracking-wider mt-1" style={{ color: `${C.dark}99` }}>{s.v}</div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="relative">
+            <div
+              className="absolute -inset-8 rounded-[2.5rem] -z-10"
+              style={{ background: `linear-gradient(135deg, ${C.light}80, ${C.bg})` }}
+            />
+            <WheelVisual reducedMotion={reducedMotion} />
+            <button
+              type="button"
+              onClick={() => setReducedMotion(!reducedMotion)}
+              className="mx-auto mt-6 flex items-center justify-center gap-2 px-4 py-2 rounded-full bg-white border text-xs font-semibold transition-colors"
+              style={{ borderColor: `${C.dark}1f`, color: `${C.dark}99` }}
+              aria-pressed={reducedMotion}
+            >
+              <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden>
+                {reducedMotion ? (
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-2 15l-5-5 1.41-1.41L10 14.17l7.59-7.59L19 8l-9 9z" />
+                ) : (
+                  <path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm5 11H7v-2h10v2z" />
+                )}
+              </svg>
+              <span>{reducedMotion ? "Motion reduced" : "Reduce motion"}</span>
+            </button>
+          </div>
+        </div>
+      </Section>
+
+      {/* TRUSTED BY */}
+      <Section className="pb-16">
+        <p className="text-center text-xs uppercase tracking-[0.25em] font-bold mb-6" style={{ color: `${C.dark}80` }}>
+          Trusted by modern businesses
+        </p>
+        <div className="flex flex-wrap items-center justify-center gap-x-10 gap-y-5 opacity-80">
+          {["MAS ZONE", "Glow Studio", "Kathmandu Cafe", "Aura Salon", "Velvet Boutique", "North Co."].map((n) => (
+            <span
+              key={n}
+              className="font-display text-base md:text-lg font-bold tracking-tight"
+              style={{ color: `${C.dark}99` }}
+            >
+              {n}
+            </span>
+          ))}
+        </div>
+      </Section>
+
+      {/* FEATURES */}
+      <Section id="features" className="py-20 lg:py-28">
+        <div className="max-w-2xl mx-auto text-center mb-14">
+          <span
+            className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full"
+            style={{ background: C.light, color: C.dark }}
+          >
+            Features
+          </span>
+          <h2 className="font-display mt-5 text-3xl md:text-5xl font-bold leading-tight" style={{ color: C.dark }}>
+            Everything you need to delight customers.
+          </h2>
+          <p className="mt-4 text-base md:text-lg" style={{ color: `${C.dark}b3` }}>
+            Polished tools for boutique shops that care about every detail.
+          </p>
+        </div>
+
+        <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {features.map((f) => (
+            <div
+              key={f.t}
+              className="group p-7 rounded-3xl bg-white border transition-all duration-300 hover:-translate-y-1"
+              style={{
+                borderColor: `${C.dark}14`,
+                boxShadow: `0 1px 0 ${C.dark}08`,
+              }}
+            >
+              <FeatureIcon d={f.d} />
+              <h3 className="font-display font-bold text-lg mb-2" style={{ color: C.dark }}>{f.t}</h3>
+              <p className="text-sm leading-relaxed" style={{ color: `${C.dark}b3` }}>{f.desc}</p>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* WHEEL DEMO */}
+      <Section id="wheel-demo" className="py-20 lg:py-28">
+        <div
+          className="rounded-[2rem] p-8 md:p-14 grid lg:grid-cols-[1fr_minmax(0,440px)] gap-10 lg:gap-14 items-center"
+          style={{ background: `linear-gradient(135deg, ${C.light}, ${C.bg})` }}
+        >
+          <div>
+            <span
+              className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full bg-white"
+              style={{ color: C.dark }}
+            >
+              Try it now
+            </span>
+            <h2 className="font-display mt-5 text-3xl md:text-4xl font-bold leading-tight" style={{ color: C.dark }}>
+              Spin a live demo wheel.
+            </h2>
+            <p className="mt-4 text-base md:text-lg max-w-md" style={{ color: `${C.dark}cc` }}>
+              Tap SPIN to feel the smooth deceleration, premium haptics, and prize reveal modal your
+              customers will experience.
+            </p>
+            <div className="mt-6 flex flex-wrap gap-3">
+              <Link
+                to="/auth"
+                className="px-6 py-3 rounded-full font-bold text-sm text-white"
+                style={{ background: C.dark }}
+              >
+                Build your own
+              </Link>
+              <InstallAppButton
+                variant="outline"
+                size="lg"
+                className="!rounded-full !text-sm !font-semibold !px-6"
+              />
+            </div>
+          </div>
+          <div>
+            <WheelVisual reducedMotion={reducedMotion} />
+          </div>
+        </div>
+      </Section>
+
+      {/* HOW IT WORKS */}
+      <Section className="py-20 lg:py-28">
+        <div className="max-w-2xl mx-auto text-center mb-14">
+          <span
+            className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full"
+            style={{ background: C.light, color: C.dark }}
+          >
+            How it works
+          </span>
+          <h2 className="font-display mt-5 text-3xl md:text-5xl font-bold leading-tight" style={{ color: C.dark }}>
+            From idea to first spin in minutes.
+          </h2>
+        </div>
+
+        <ol className="relative grid md:grid-cols-5 gap-6">
+          <div className="hidden md:block absolute top-6 left-[10%] right-[10%] h-px" style={{ background: `${C.primary}66` }} />
+          {steps.map((s, i) => (
+            <li key={s.t} className="relative">
+              <div
+                className="w-12 h-12 rounded-full flex items-center justify-center font-display font-bold text-white relative z-10 mx-auto md:mx-0"
+                style={{
+                  background: `linear-gradient(135deg, ${C.dark}, ${C.primary})`,
+                  boxShadow: `0 8px 20px -8px ${C.dark}80`,
+                }}
+              >
+                {i + 1}
+              </div>
+              <h3 className="font-display font-bold mt-4 text-center md:text-left" style={{ color: C.dark }}>
+                {s.t}
+              </h3>
+              <p className="mt-2 text-sm text-center md:text-left" style={{ color: `${C.dark}99` }}>
+                {s.d}
+              </p>
+            </li>
+          ))}
+        </ol>
+      </Section>
+
+      {/* DASHBOARD PREVIEW */}
+      <Section className="py-20 lg:py-28">
+        <div className="max-w-2xl mx-auto text-center mb-14">
+          <span
+            className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full"
+            style={{ background: C.light, color: C.dark }}
+          >
+            Dashboard
+          </span>
+          <h2 className="font-display mt-5 text-3xl md:text-5xl font-bold leading-tight" style={{ color: C.dark }}>
+            Beautiful data, at a glance.
+          </h2>
+        </div>
+
+        <div
+          className="relative rounded-[2rem] p-3 md:p-4 border"
+          style={{
+            background: `linear-gradient(135deg, ${C.light}80, ${C.bg})`,
+            borderColor: `${C.dark}14`,
+            boxShadow: `0 40px 80px -30px ${C.dark}40`,
+          }}
+        >
+          <div className="rounded-[1.5rem] bg-white overflow-hidden" style={{ boxShadow: `0 1px 0 ${C.dark}10` }}>
+            {/* Window chrome */}
+            <div className="flex items-center gap-2 px-4 py-3 border-b" style={{ borderColor: `${C.dark}0f` }}>
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ff5f57" }} />
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#febc2e" }} />
+              <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#28c840" }} />
+              <span className="ml-3 text-xs font-semibold" style={{ color: `${C.dark}80` }}>theluckspin / dashboard</span>
+            </div>
+            <div className="p-5 md:p-8">
+              <div className="grid sm:grid-cols-3 gap-4 mb-6">
+                {[
+                  { l: "Spins today", v: "1,284", d: "+18.2%" },
+                  { l: "Total winners", v: "342", d: "+9.4%" },
+                  { l: "Conversion", v: "26.6%", d: "+3.1%" },
+                ].map((m) => (
+                  <div
+                    key={m.l}
+                    className="rounded-2xl p-5 border"
+                    style={{ background: C.bg, borderColor: `${C.dark}10` }}
+                  >
+                    <div className="text-[11px] uppercase tracking-wider font-bold" style={{ color: `${C.dark}80` }}>{m.l}</div>
+                    <div className="font-display text-2xl font-bold mt-2" style={{ color: C.dark }}>{m.v}</div>
+                    <div className="text-xs font-semibold mt-1" style={{ color: C.primaryDark }}>{m.d}</div>
+                  </div>
+                ))}
+              </div>
+
+              {/* Bars */}
+              <div className="rounded-2xl p-5 border" style={{ borderColor: `${C.dark}10` }}>
+                <div className="flex items-end justify-between mb-4">
+                  <div>
+                    <div className="font-display font-bold" style={{ color: C.dark }}>Spins this week</div>
+                    <div className="text-xs" style={{ color: `${C.dark}80` }}>Mon — Sun</div>
+                  </div>
+                  <span className="text-xs px-2.5 py-1 rounded-full font-semibold" style={{ background: C.light, color: C.dark }}>
+                    +24% vs last week
                   </span>
                 </div>
-                <h3 className="font-display text-xl font-bold mb-2">{s.t}</h3>
-                <p className="text-white/60 text-sm leading-relaxed group-hover:text-white/90 transition-colors">
-                  {s.d}
-                </p>
+                <div className="flex items-end gap-2 h-32">
+                  {[40, 65, 50, 80, 70, 95, 88].map((h, i) => (
+                    <div
+                      key={i}
+                      className="flex-1 rounded-t-lg transition-all"
+                      style={{
+                        height: `${h}%`,
+                        background: `linear-gradient(180deg, ${C.primary}, ${C.dark})`,
+                      }}
+                    />
+                  ))}
+                </div>
               </div>
+            </div>
+          </div>
+        </div>
+      </Section>
+
+      {/* TESTIMONIALS */}
+      <Section className="py-20 lg:py-28">
+        <div className="max-w-2xl mx-auto text-center mb-14">
+          <span
+            className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full"
+            style={{ background: C.light, color: C.dark }}
+          >
+            Loved by owners
+          </span>
+          <h2 className="font-display mt-5 text-3xl md:text-5xl font-bold leading-tight" style={{ color: C.dark }}>
+            Shop owners are raving.
+          </h2>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-5">
+          {testimonials.map((t) => (
+            <div
+              key={t.n}
+              className="p-7 rounded-3xl bg-white border"
+              style={{ borderColor: `${C.dark}14` }}
+            >
+              <div className="flex gap-0.5 mb-4" style={{ color: C.primary }}>
+                {[0, 1, 2, 3, 4].map((i) => (
+                  <svg key={i} width="16" height="16" viewBox="0 0 24 24" fill="currentColor">
+                    <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
+                  </svg>
+                ))}
+              </div>
+              <p className="text-base leading-relaxed mb-5" style={{ color: C.dark }}>
+                "{t.q}"
+              </p>
+              <div className="flex items-center gap-3">
+                <div
+                  className="w-10 h-10 rounded-full flex items-center justify-center font-display font-bold text-white"
+                  style={{ background: `linear-gradient(135deg, ${C.dark}, ${C.primary})` }}
+                >
+                  {t.n[0]}
+                </div>
+                <div>
+                  <div className="font-semibold text-sm" style={{ color: C.dark }}>{t.n}</div>
+                  <div className="text-xs" style={{ color: `${C.dark}99` }}>{t.r}</div>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* PRICING */}
+      <Section id="pricing" className="py-20 lg:py-28">
+        <div className="max-w-2xl mx-auto text-center mb-14">
+          <span
+            className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full"
+            style={{ background: C.light, color: C.dark }}
+          >
+            Pricing
+          </span>
+          <h2 className="font-display mt-5 text-3xl md:text-5xl font-bold leading-tight" style={{ color: C.dark }}>
+            Simple, transparent pricing.
+          </h2>
+          <p className="mt-4 text-base md:text-lg" style={{ color: `${C.dark}b3` }}>
+            Start free. Upgrade when you're ready.
+          </p>
+        </div>
+
+        <div className="grid md:grid-cols-3 gap-5">
+          {plans.map((p) => (
+            <div
+              key={p.name}
+              className={`p-7 md:p-8 rounded-3xl border relative transition-all ${
+                p.highlight ? "lg:-translate-y-2" : ""
+              }`}
+              style={
+                p.highlight
+                  ? {
+                      background: `linear-gradient(135deg, ${C.dark}, ${C.primary})`,
+                      borderColor: "transparent",
+                      color: "#fff",
+                      boxShadow: `0 30px 60px -20px ${C.dark}99`,
+                    }
+                  : { background: "#fff", borderColor: `${C.dark}14` }
+              }
+            >
+              {p.highlight && (
+                <span
+                  className="absolute -top-3 left-1/2 -translate-x-1/2 px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest"
+                  style={{ background: "#fff", color: C.dark }}
+                >
+                  Most popular
+                </span>
+              )}
+              <div className="font-display font-bold text-lg" style={{ color: p.highlight ? "#fff" : C.dark }}>
+                {p.name}
+              </div>
+              <div className="mt-4 flex items-baseline gap-2">
+                <span className="font-display text-4xl font-bold" style={{ color: p.highlight ? "#fff" : C.dark }}>
+                  {p.price}
+                </span>
+                <span className="text-sm" style={{ color: p.highlight ? "#ffffffcc" : `${C.dark}99` }}>{p.period}</span>
+              </div>
+              <p className="mt-3 text-sm" style={{ color: p.highlight ? "#ffffffcc" : `${C.dark}b3` }}>{p.desc}</p>
+
+              <ul className="mt-6 space-y-3">
+                {p.features.map((f) => (
+                  <li key={f} className="flex items-start gap-2.5 text-sm" style={{ color: p.highlight ? "#fff" : C.dark }}>
+                    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="shrink-0 mt-0.5">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <span>{f}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <Link
+                to="/auth"
+                className="mt-8 block text-center py-3.5 rounded-full font-bold text-sm transition-all hover:scale-[1.02]"
+                style={
+                  p.highlight
+                    ? { background: "#fff", color: C.dark }
+                    : { background: C.dark, color: "#fff" }
+                }
+              >
+                {p.cta}
+              </Link>
+            </div>
+          ))}
+        </div>
+      </Section>
+
+      {/* FAQ */}
+      <Section id="faq" className="py-20 lg:py-28">
+        <div className="grid lg:grid-cols-[1fr_2fr] gap-10 lg:gap-16">
+          <div>
+            <span
+              className="inline-block text-[11px] font-bold uppercase tracking-[0.25em] px-3 py-1 rounded-full"
+              style={{ background: C.light, color: C.dark }}
+            >
+              FAQ
+            </span>
+            <h2 className="font-display mt-5 text-3xl md:text-4xl font-bold leading-tight" style={{ color: C.dark }}>
+              Questions, answered.
+            </h2>
+            <p className="mt-4" style={{ color: `${C.dark}b3` }}>
+              Can't find what you're looking for?{" "}
+              <a href="#contact" className="font-semibold underline underline-offset-4" style={{ color: C.dark }}>
+                Talk to us
+              </a>
+              .
+            </p>
+          </div>
+          <div className="flex flex-col gap-3">
+            {faqs.map((f, i) => (
+              <Faq
+                key={f.q}
+                q={f.q}
+                a={f.a}
+                open={openFaq === i}
+                onClick={() => setOpenFaq(openFaq === i ? null : i)}
+              />
             ))}
           </div>
         </div>
-      </section>
+      </Section>
 
-      {/* Footer trust */}
-      <footer className="max-w-7xl mx-auto px-5 md:px-8 py-10 flex flex-wrap items-center justify-between gap-4 border-t border-[#0c2340]/10">
-        <div className="flex items-center gap-2.5">
-          <BrandMark size={28} />
-          <span className="font-display font-bold text-[#0c2340]">theluckspin</span>
+      {/* FINAL CTA */}
+      <Section className="py-20 lg:py-28">
+        <div
+          className="relative overflow-hidden rounded-[2rem] p-10 md:p-16 text-center"
+          style={{
+            background: `linear-gradient(135deg, ${C.dark}, ${C.primary})`,
+            boxShadow: `0 40px 100px -30px ${C.dark}b3`,
+          }}
+        >
+          <div
+            className="absolute inset-0 opacity-30 pointer-events-none"
+            style={{ background: `radial-gradient(circle at 30% 0%, ${C.light}, transparent 60%)` }}
+          />
+          <div className="relative">
+            <h2 className="font-display text-3xl md:text-5xl font-bold text-white leading-tight">
+              Ready to spin up something delightful?
+            </h2>
+            <p className="mt-5 text-white/85 max-w-xl mx-auto text-base md:text-lg">
+              Join shops creating moments customers come back for. Free to start, simple to scale.
+            </p>
+            <div className="mt-8 flex flex-wrap items-center justify-center gap-3">
+              <Link
+                to="/auth"
+                className="px-7 py-3.5 rounded-full font-bold text-sm transition-all hover:scale-[1.03] bg-white"
+                style={{ color: C.dark, boxShadow: `0 14px 36px -12px ${C.dark}` }}
+              >
+                Start Free
+              </Link>
+              <a
+                href="#contact"
+                className="px-7 py-3.5 rounded-full font-bold text-sm text-white border border-white/30 hover:bg-white/10 transition-colors"
+              >
+                Talk to Sales
+              </a>
+            </div>
+          </div>
         </div>
-        <div className="flex flex-wrap items-center gap-x-6 gap-y-3">
-          <a
-            href="https://wa.me/9779769402069"
-            target="_blank"
-            rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#0c2340] hover:text-[#25D366] transition-colors"
-          >
-            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden>
-              <path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zM17.472 14.382c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z"/>
-            </svg>
-            <span>9769402069</span>
-          </a>
-          <a
-            href="mailto:theluckspin@gmail.com"
-            className="inline-flex items-center gap-2 text-sm font-semibold text-[#0c2340] hover:text-[#ff6b1a] transition-colors"
-          >
-            <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden>
-              <path d="M12 12.713L.015 3h23.97L12 12.713zM12 14.713L0 5v15h24V5l-12 9.713z"/>
-            </svg>
-            <span>theluckspin@gmail.com</span>
-          </a>
-        </div>
+      </Section>
 
+      {/* FOOTER */}
+      <footer id="contact" className="border-t" style={{ borderColor: `${C.dark}14` }}>
+        <Section className="py-14">
+          <div className="grid md:grid-cols-[2fr_1fr_1fr_1.5fr] gap-10">
+            <div>
+              <div className="flex items-center gap-2.5">
+                <BrandMark size={36} />
+                <span className="font-display font-bold text-lg" style={{ color: C.dark }}>theluckspin</span>
+              </div>
+              <p className="mt-4 text-sm max-w-xs" style={{ color: `${C.dark}99` }}>
+                Premium spin-to-win SaaS for boutique shops, salons, and cafes.
+              </p>
+            </div>
+            <div>
+              <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: C.dark }}>Product</div>
+              <ul className="space-y-2.5 text-sm" style={{ color: `${C.dark}b3` }}>
+                <li><a href="#features" className="hover:underline">Features</a></li>
+                <li><a href="#pricing" className="hover:underline">Pricing</a></li>
+                <li><a href="#faq" className="hover:underline">FAQ</a></li>
+                <li><Link to="/auth" className="hover:underline">Sign in</Link></li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: C.dark }}>Company</div>
+              <ul className="space-y-2.5 text-sm" style={{ color: `${C.dark}b3` }}>
+                <li><Link to="/trust" className="hover:underline">Trust & security</Link></li>
+                <li><a href="#contact" className="hover:underline">Contact</a></li>
+              </ul>
+            </div>
+            <div>
+              <div className="text-xs font-bold uppercase tracking-widest mb-4" style={{ color: C.dark }}>Get in touch</div>
+              <div className="flex flex-col gap-3">
+                <a
+                  href="https://wa.me/9779769402069"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-flex items-center gap-2.5 text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: C.dark }}
+                >
+                  <span
+                    className="w-9 h-9 rounded-full flex items-center justify-center"
+                    style={{ background: C.light }}
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden>
+                      <path d="M.057 24l1.687-6.163a11.867 11.867 0 01-1.587-5.946C.16 5.335 5.495 0 12.05 0a11.817 11.817 0 018.413 3.488 11.824 11.824 0 013.48 8.414c-.003 6.557-5.338 11.892-11.893 11.892a11.9 11.9 0 01-5.688-1.448L.057 24zm6.597-3.807c1.676.995 3.276 1.591 5.392 1.592 5.448 0 9.886-4.434 9.889-9.885.002-5.462-4.415-9.89-9.881-9.892-5.452 0-9.887 4.434-9.889 9.884-.001 2.225.651 3.891 1.746 5.634l-.999 3.648 3.742-.981zM17.472 14.382c-.074-.124-.272-.198-.57-.347-.297-.149-1.758-.868-2.031-.967-.272-.099-.47-.149-.669.149-.198.297-.768.967-.941 1.165-.173.198-.347.223-.644.074-.297-.149-1.255-.462-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.297-.347.446-.521.151-.172.2-.296.3-.495.099-.198.05-.372-.025-.521-.075-.148-.669-1.611-.916-2.206-.242-.579-.487-.501-.669-.51l-.57-.01c-.198 0-.52.074-.792.372s-1.04 1.016-1.04 2.479 1.065 2.876 1.213 3.074c.149.198 2.095 3.2 5.076 4.487.709.306 1.263.489 1.694.626.712.226 1.36.194 1.872.118.571-.085 1.758-.719 2.006-1.413.248-.695.248-1.29.173-1.414z" />
+                    </svg>
+                  </span>
+                  9769402069
+                </a>
+                <a
+                  href="mailto:theluckspin@gmail.com"
+                  className="inline-flex items-center gap-2.5 text-sm font-semibold transition-colors hover:opacity-80"
+                  style={{ color: C.dark }}
+                >
+                  <span
+                    className="w-9 h-9 rounded-full flex items-center justify-center"
+                    style={{ background: C.light }}
+                  >
+                    <svg viewBox="0 0 24 24" className="w-4 h-4 fill-current" aria-hidden>
+                      <path d="M12 12.713L.015 3h23.97L12 12.713zM12 14.713L0 5v15h24V5l-12 9.713z" />
+                    </svg>
+                  </span>
+                  theluckspin@gmail.com
+                </a>
+              </div>
+            </div>
+          </div>
+
+          <div className="mt-12 pt-6 border-t flex flex-wrap items-center justify-between gap-3" style={{ borderColor: `${C.dark}14` }}>
+            <p className="text-xs" style={{ color: `${C.dark}80` }}>
+              © {new Date().getFullYear()} theluckspin. All rights reserved.
+            </p>
+            <p className="text-xs" style={{ color: `${C.dark}80` }}>
+              Crafted with care for modern shops.
+            </p>
+          </div>
+        </Section>
       </footer>
     </div>
   );
