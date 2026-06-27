@@ -277,11 +277,11 @@ function ResultPage() {
               <button
                 onClick={shareCard}
                 className="flex items-center justify-center gap-2 py-3 rounded-xl gradient-primary text-[#0F1115] font-bold transition-colors disabled:opacity-50"
-                aria-label="Share win card"
+                aria-label="Send prize photo on WhatsApp"
                 disabled={!cardUrl}
               >
                 <Share2 className="w-5 h-5" />
-                Share Card
+                Send Prize Photo
               </button>
               <button
                 onClick={downloadCard}
