@@ -55,12 +55,14 @@ function CampaignsPage() {
   useEffect(() => {
     (async () => {
       const r = await fetchShop();
-      if (r.shop) {
-        setShop({ id: r.shop.id, slug: r.shop.slug, name: r.shop.name });
-        await reload(r.shop.id);
+      const s = r.shops?.[0];
+      if (s) {
+        setShop({ id: s.id, slug: s.slug, name: s.name });
+        await reload(s.id);
       }
       setLoading(false);
     })();
+
   }, [fetchShop, reload]);
 
   if (loading) {
