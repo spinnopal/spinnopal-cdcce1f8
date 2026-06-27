@@ -3,6 +3,8 @@ import { useState, useRef, useEffect, useMemo } from "react";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 import { playClick, playWin, playLose, startSpinTicks } from "@/lib/sounds";
+import { useReducedMotion } from "@/hooks/use-reduced-motion";
+
 
 function vibrate(pattern: number | number[]) {
   try {
