@@ -14,7 +14,9 @@ interface Props {
 
 export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLongPress, centerLogo, centerLabel }: Props) {
   const SEG = prizes.length > 0 ? 360 / prizes.length : 360;
+  const SEG_SAFE = SEG === 0 ? 360 : SEG;
   const [rotation, setRotation] = useState(0);
+  const [transitionStyle, setTransitionStyle] = useState<string>("none");
   const rotationRef = useRef(0);
   const pressTimer = useRef<number | null>(null);
   const onCompleteRef = useRef(onComplete);
@@ -32,25 +34,47 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
       const current = rotationRef.current;
       const currentMod = ((current % 360) + 360) % 360;
       const delta = ((base - currentMod) + 360) % 360;
-      const next = current + turns * 360 + delta;
-      rotationRef.current = next;
-      setRotation(next);
+      const finalRotation = current + turns * 360 + delta;
+      // NEAR-MISS: overshoot the target by ~85% of one slice over a long fast spin,
+      // then gently creep back to the actual target. Creates the "almost won, then lands" effect.
+      const overshoot = finalRotation + SEG_SAFE * 0.85;
+
+      // Phase 1: fast spin past the prize
+      setTransitionStyle("transform 4s cubic-bezier(0.18, 0.9, 0.32, 1)");
+      // double rAF to ensure the browser registers the starting transform before transitioning
+      requestAnimationFrame(() => {
+        requestAnimationFrame(() => {
+          setRotation(overshoot);
+        });
+      });
+
       ticksCancelRef.current = startSpinTicks(5200);
-      const t = window.setTimeout(() => {
+
+      // Phase 2: creep back to the actual target slice
+      const tCreep = window.setTimeout(() => {
+        setTransitionStyle("transform 1.2s cubic-bezier(0.34, 1.56, 0.64, 1)");
+        setRotation(finalRotation);
+        rotationRef.current = finalRotation;
+      }, 4050);
+
+      // Resolve prize once full animation completes
+      const tDone = window.setTimeout(() => {
         const prize = prizes[targetIndex];
         if (prize) {
           if (prize.isWin) playWin(); else playLose();
           onCompleteRef.current(prize);
         }
-      }, 5200);
+      }, 5300);
+
       return () => {
-        clearTimeout(t);
+        clearTimeout(tDone);
+        clearTimeout(tCreep);
         ticksCancelRef.current?.();
         ticksCancelRef.current = null;
       };
     }
     if (!spinning) startedRef.current = false;
-  }, [spinning, targetIndex, prizes, SEG]);
+  }, [spinning, targetIndex, prizes, SEG, SEG_SAFE]);
 
   const startPress = () => {
     if (!onLogoLongPress) return;
@@ -92,9 +116,8 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
               className="w-full h-full"
               style={{
                 transform: `rotate(${rotation}deg)`,
-                transition: spinning
-                  ? "transform 5.2s cubic-bezier(0.16, 1, 0.3, 1)"
-                  : "none",
+                transition: spinning ? transitionStyle : "none",
+                willChange: "transform",
               }}
             >
               <defs>

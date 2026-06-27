@@ -55,9 +55,19 @@ function SpinPage() {
   const handleComplete = (prize: Prize) => {
     setDone(true);
     setTimeout(() => {
-      navigate({ to: "/s/$slug/result", params: { slug }, search: { code, pid: prize.id } });
+      navigate({
+        to: "/s/$slug/result",
+        params: { slug },
+        search: {
+          code,
+          pid: prize.id,
+          ...(contact ? { contact } : {}),
+          ...(name ? { name } : {}),
+        },
+      });
     }, 600);
   };
+
 
   return (
     <div className="min-h-screen flex flex-col items-center px-4 py-6">

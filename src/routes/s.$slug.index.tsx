@@ -54,10 +54,38 @@ function ShopEntry() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [codeStatus, setCodeStatus] = useState<
+    | { state: "idle" }
+    | { state: "checking" }
+    | { state: "valid" }
+    | { state: "invalid" }
+    | { state: "used"; date: string | null }
+  >({ state: "idle" });
 
   useEffect(() => {
     if (prefillCode) setCode(prefillCode.toUpperCase());
   }, [prefillCode]);
+
+  // Live debounced code validation
+  useEffect(() => {
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed || !/^[A-Z0-9-]+$/.test(trimmed) || trimmed.length < 4) {
+      setCodeStatus({ state: "idle" });
+      return;
+    }
+    setCodeStatus({ state: "checking" });
+    const handle = setTimeout(async () => {
+      try {
+        const res = await validate({ data: { slug, code: trimmed } });
+        if (res.ok) setCodeStatus({ state: "valid" });
+        else if (res.reason === "used") setCodeStatus({ state: "used", date: res.spun_at ?? null });
+        else setCodeStatus({ state: "invalid" });
+      } catch {
+        setCodeStatus({ state: "idle" });
+      }
+    }, 450);
+    return () => clearTimeout(handle);
+  }, [code, slug, validate]);
 
   if (shopQuery.isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
@@ -168,6 +196,20 @@ function ShopEntry() {
           spellCheck={false}
           className="mt-2 w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 text-base tracking-widest text-center font-mono text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
         />
+        {codeStatus.state === "checking" && (
+          <p className="mt-2 text-xs text-center text-muted-foreground">Checking code…</p>
+        )}
+        {codeStatus.state === "valid" && (
+          <p className="mt-2 text-xs text-center text-emerald-600 font-semibold">✓ Code is valid — ready to spin</p>
+        )}
+        {codeStatus.state === "invalid" && (
+          <p className="mt-2 text-xs text-center text-destructive font-semibold">✗ This code is not recognized</p>
+        )}
+        {codeStatus.state === "used" && (
+          <p className="mt-2 text-xs text-center text-destructive font-semibold">
+            ✗ This code was already used{codeStatus.date ? ` on ${new Date(codeStatus.date).toLocaleDateString(undefined, { day: "numeric", month: "short", year: "numeric" })}` : ""}
+          </p>
+        )}
         {error && <p className="text-destructive text-sm mt-2 text-center">{error}</p>}
 
         <button
