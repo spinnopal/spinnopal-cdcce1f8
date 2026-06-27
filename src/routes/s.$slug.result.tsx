@@ -96,15 +96,15 @@ function ResultPage() {
     const ctx = canvas.getContext("2d");
     if (!ctx) return;
 
-    // Background gradient
+    // Light background gradient (cream → soft blue)
     const bg = ctx.createLinearGradient(0, 0, 0, H);
-    bg.addColorStop(0, "#0c2340");
-    bg.addColorStop(1, "#142d52");
+    bg.addColorStop(0, "#FBF7EE");
+    bg.addColorStop(1, "#EAF1FB");
     ctx.fillStyle = bg;
     ctx.fillRect(0, 0, W, H);
 
-    // Decorative gold ring
-    ctx.strokeStyle = "rgba(255, 196, 90, 0.85)";
+    // Decorative navy ring
+    ctx.strokeStyle = "rgba(31, 52, 96, 0.85)";
     ctx.lineWidth = 6;
     ctx.beginPath();
     ctx.roundRect(40, 40, W - 80, H - 80, 36);
@@ -112,48 +112,48 @@ function ResultPage() {
 
     const drawTextBlock = () => {
       // Shop name
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "#1f3460";
       ctx.textAlign = "center";
       ctx.font = "bold 64px system-ui, -apple-system, sans-serif";
       const shopNameText = String(shop.name).toUpperCase();
       ctx.fillText(shopNameText, W / 2, 380, W - 160);
 
       // "YOU WON" label
-      ctx.fillStyle = "rgba(255,255,255,0.65)";
+      ctx.fillStyle = "rgba(31, 52, 96, 0.65)";
       ctx.font = "600 36px system-ui, -apple-system, sans-serif";
       ctx.fillText("CONGRATULATIONS — YOU WON", W / 2, 470);
 
-      // Prize name (gold, big)
-      ctx.fillStyle = "#FFC45A";
+      // Prize name (navy, big)
+      ctx.fillStyle = "#C9892B";
       ctx.font = "900 100px system-ui, -apple-system, sans-serif";
       ctx.fillText(String(p.name), W / 2, 620, W - 160);
 
       // Winner name
       if (name) {
-        ctx.fillStyle = "#ffffff";
+        ctx.fillStyle = "#1f3460";
         ctx.font = "600 42px system-ui, -apple-system, sans-serif";
         ctx.fillText(`Winner: ${name}`, W / 2, 720);
       }
 
       // Code box
-      ctx.fillStyle = "rgba(255,255,255,0.08)";
+      ctx.fillStyle = "rgba(31, 52, 96, 0.06)";
       const codeBoxY = 1080;
       ctx.beginPath();
       ctx.roundRect(180, codeBoxY, W - 360, 140, 20);
       ctx.fill();
-      ctx.strokeStyle = "rgba(255, 196, 90, 0.6)";
+      ctx.strokeStyle = "rgba(31, 52, 96, 0.4)";
       ctx.lineWidth = 2;
       ctx.stroke();
 
-      ctx.fillStyle = "rgba(255,255,255,0.6)";
+      ctx.fillStyle = "rgba(31, 52, 96, 0.6)";
       ctx.font = "500 28px system-ui, -apple-system, sans-serif";
       ctx.fillText("CLAIM CODE", W / 2, codeBoxY + 50);
-      ctx.fillStyle = "#ffffff";
+      ctx.fillStyle = "#1f3460";
       ctx.font = "bold 58px ui-monospace, SFMono-Regular, Menlo, monospace";
       ctx.fillText(String(code), W / 2, codeBoxY + 110);
 
       // Footer
-      ctx.fillStyle = "rgba(255,255,255,0.5)";
+      ctx.fillStyle = "rgba(31, 52, 96, 0.55)";
       ctx.font = "500 28px system-ui, -apple-system, sans-serif";
       ctx.fillText("Visit the shop to claim your prize", W / 2, H - 90);
 
@@ -177,8 +177,8 @@ function ResultPage() {
         ctx.clip();
         ctx.drawImage(img, cx - size / 2, cy - size / 2, size, size);
         ctx.restore();
-        // gold ring around logo
-        ctx.strokeStyle = "#FFC45A";
+        // navy ring around logo
+        ctx.strokeStyle = "#1f3460";
         ctx.lineWidth = 4;
         ctx.beginPath();
         ctx.arc(cx, cy, size / 2 + 4, 0, Math.PI * 2);
