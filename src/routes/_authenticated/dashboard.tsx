@@ -1808,7 +1808,7 @@ function CampaignHub({
           </div>
         )}
         {section === "settings" && (
-          <SettingsTab shop={shop} onSaved={onSaved} doUpdate={doUpdate} superAdmin={superAdmin} doBootstrap={doBootstrap} />
+          <SettingsTab shop={shop} onSaved={onSaved} doUpdate={doUpdate} superAdmin={superAdmin} doBootstrap={doBootstrap} onSignOut={async () => { await supabase.auth.signOut(); window.location.href = "/auth"; }} />
         )}
       </div>
     );
