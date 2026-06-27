@@ -54,10 +54,38 @@ function ShopEntry() {
   const [email, setEmail] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [codeStatus, setCodeStatus] = useState<
+    | { state: "idle" }
+    | { state: "checking" }
+    | { state: "valid" }
+    | { state: "invalid" }
+    | { state: "used"; date: string | null }
+  >({ state: "idle" });
 
   useEffect(() => {
     if (prefillCode) setCode(prefillCode.toUpperCase());
   }, [prefillCode]);
+
+  // Live debounced code validation
+  useEffect(() => {
+    const trimmed = code.trim().toUpperCase();
+    if (!trimmed || !/^[A-Z0-9-]+$/.test(trimmed) || trimmed.length < 4) {
+      setCodeStatus({ state: "idle" });
+      return;
+    }
+    setCodeStatus({ state: "checking" });
+    const handle = setTimeout(async () => {
+      try {
+        const res = await validate({ data: { slug, code: trimmed } });
+        if (res.ok) setCodeStatus({ state: "valid" });
+        else if (res.reason === "used") setCodeStatus({ state: "used", date: res.spun_at ?? null });
+        else setCodeStatus({ state: "invalid" });
+      } catch {
+        setCodeStatus({ state: "idle" });
+      }
+    }, 450);
+    return () => clearTimeout(handle);
+  }, [code, slug, validate]);
 
   if (shopQuery.isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
