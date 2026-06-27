@@ -663,22 +663,8 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignO
             </div>
           </div>
         )}
-        {superAdmin ? (
+        {superAdmin && (
           <SettingsRow icon={Shield} label="Super admin panel" hint="Manage platform & subscriptions" onClick={() => { window.location.href = "/super-admin"; }} />
-        ) : (
-          <>
-            <SettingsRow icon={Shield} label="Platform admin" hint="Unlock super-admin (owners only)" onClick={() => setShowAdminUnlock((v) => !v)} />
-            {showAdminUnlock && (
-              <div className="space-y-2 pl-1">
-                <input type="password" value={bootstrapPw} onChange={(e) => setBootstrapPw(e.target.value)} placeholder="Admin password" className={inputCls} />
-                <div className="flex gap-2">
-                  <button onClick={tryBootstrap} className="flex-1 bg-[#0c2340] text-white font-semibold py-2 rounded-lg text-sm">Unlock</button>
-                  <button onClick={() => setShowAdminUnlock(false)} className="px-3 py-2 rounded-lg bg-[#F5F7FA] text-sm">Cancel</button>
-                </div>
-                {bootstrapMsg && <p className="text-xs text-[#0c2340]">{bootstrapMsg}</p>}
-              </div>
-            )}
-          </>
         )}
       </SettingsSection>
 
@@ -944,27 +930,40 @@ function initials(name: string | null, fallback: string) {
 
 async function exportRowsAsCsv(rows: RecordRow[], slug: string) {
   if (rows.length === 0) return alert("No records to export.");
-  const data = [["Name", "Contact", "Email", "Code", "Prize", "Date", "Time"]];
-  for (const r of rows) {
+  const headers = ["#", "Name", "Contact", "Email", "Code", "Prize", "Date", "Time"];
+  const body: string[][] = [];
+  rows.forEach((r, i) => {
     const d = r.spun_at ? new Date(r.spun_at) : null;
-    data.push([
-      (r.customer_name || "").replace(/"/g, '""'),
-      (r.customer_contact || "").replace(/"/g, '""'),
-      (r.customer_email || "").replace(/"/g, '""'),
-      r.code,
-      (r.prize_won || "").replace(/"/g, '""'),
+    body.push([
+      String(i + 1),
+      r.customer_name || "",
+      r.customer_contact || "",
+      r.customer_email || "",
+      r.code || "",
+      r.prize_won || "",
       d ? d.toLocaleDateString() : "",
       d ? d.toLocaleTimeString() : "",
     ]);
-  }
-  const csv = "\ufeff" + data.map((r) => r.map((c) => `"${c}"`).join(",")).join("\n");
-  const filename = `${slug}-customers-${new Date().toISOString().slice(0, 10)}.csv`;
-  const blob = new Blob([csv], { type: "text/csv;charset=utf-8;" });
+  });
+
+  // Build an Excel-friendly HTML table. Saved as .xls so Excel, Numbers,
+  // Google Sheets and most mobile viewers render it as a real spreadsheet
+  // with proper rows and columns — much cleaner than raw CSV text.
+  const esc = (s: string) =>
+    s.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+  const thStyle = "background:#0c2340;color:#fff;font-weight:600;padding:8px 12px;border:1px solid #cbd5e1;text-align:left;font-family:Arial,sans-serif;font-size:12px;";
+  const tdStyle = "padding:6px 12px;border:1px solid #e2e8f0;font-family:Arial,sans-serif;font-size:12px;color:#0c2340;";
+  const html = `<html xmlns:o="urn:schemas-microsoft-com:office:office" xmlns:x="urn:schemas-microsoft-com:office:excel" xmlns="http://www.w3.org/TR/REC-html40"><head><meta charset="utf-8"/><!--[if gte mso 9]><xml><x:ExcelWorkbook><x:ExcelWorksheets><x:ExcelWorksheet><x:Name>Customers</x:Name><x:WorksheetOptions><x:DisplayGridlines/></x:WorksheetOptions></x:ExcelWorksheet></x:ExcelWorksheets></x:ExcelWorkbook></xml><![endif]--></head><body><table style="border-collapse:collapse;"><thead><tr>${headers.map((h) => `<th style="${thStyle}">${esc(h)}</th>`).join("")}</tr></thead><tbody>${body.map((r) => `<tr>${r.map((c) => `<td style="${tdStyle}">${esc(c)}</td>`).join("")}</tr>`).join("")}</tbody></table></body></html>`;
+
+  const filename = `${slug}-customers-${new Date().toISOString().slice(0, 10)}.xls`;
+  const mime = "application/vnd.ms-excel";
+  const blob = new Blob(["\ufeff" + html], { type: `${mime};charset=utf-8;` });
+
   type SaveFilePicker = (opts: { suggestedName?: string; types?: { description?: string; accept: Record<string, string[]> }[] }) => Promise<{ createWritable: () => Promise<{ write: (d: Blob) => Promise<void>; close: () => Promise<void> }> }>;
   const win = window as Window & { showSaveFilePicker?: SaveFilePicker };
   if (typeof win.showSaveFilePicker === "function") {
     try {
-      const handle = await win.showSaveFilePicker({ suggestedName: filename, types: [{ description: "CSV file", accept: { "text/csv": [".csv"] } }] });
+      const handle = await win.showSaveFilePicker({ suggestedName: filename, types: [{ description: "Excel spreadsheet", accept: { [mime]: [".xls"] } }] });
       const writable = await handle.createWritable();
       await writable.write(blob); await writable.close(); return;
     } catch (e) {
@@ -972,7 +971,7 @@ async function exportRowsAsCsv(rows: RecordRow[], slug: string) {
     }
   }
   try {
-    const file = new File([blob], filename, { type: "text/csv" });
+    const file = new File([blob], filename, { type: mime });
     const nav = navigator as Navigator & { canShare?: (d: { files: File[] }) => boolean; share?: (d: { files: File[]; title?: string }) => Promise<void> };
     if (nav.canShare?.({ files: [file] }) && nav.share) { await nav.share({ files: [file], title: filename }); return; }
   } catch { /* fall through */ }

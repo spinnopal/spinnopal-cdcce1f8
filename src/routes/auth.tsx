@@ -1,5 +1,5 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { Eye, EyeOff } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
@@ -54,9 +54,20 @@ function AuthPage() {
     }
   };
 
-  // No auto-redirect on mount: it caused a race where a cached session
-  // would navigate the user to /dashboard mid-keystroke, making it feel
-  // like the inputs were frozen. Redirect only after a successful submit.
+  // Auto-redirect signed-in users on initial mount only. We capture whether
+  // the user has started interacting (typing) and skip the redirect in that
+  // case — this avoids the mid-keystroke jump that happened before, while
+  // still keeping the user signed in across PWA relaunches.
+  const interactedRef = useRef(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (cancelled || interactedRef.current) return;
+      if (data.session) navigate({ to: "/dashboard" });
+    })();
+    return () => { cancelled = true; };
+  }, [navigate]);
 
   const autoSlug = (s: string) =>
     s
@@ -126,7 +137,7 @@ function AuthPage() {
       <h1 className="text-2xl font-black tracking-wider mb-1">LUCKY SPIN</h1>
       <p className="text-xs tracking-[0.3em] text-gold uppercase mb-8">Shop Owner Portal</p>
 
-      <form onSubmit={onSubmit} className="glass rounded-2xl p-5 w-full max-w-sm space-y-3">
+      <form onSubmit={onSubmit} onInput={() => { interactedRef.current = true; }} className="glass rounded-2xl p-5 w-full max-w-sm space-y-3">
         <div className="flex gap-2 mb-1">
           <button
             type="button"
