@@ -70,7 +70,7 @@ const DEMO_PRIZES = [
   "Cooler Wind Fan",
 ];
 
-function WheelVisual() {
+function WheelVisual({ reducedMotion }: { reducedMotion: boolean }) {
   const SEG_COUNT = DEMO_PRIZES.length;
   const SEG = 360 / SEG_COUNT;
   const [rotation, setRotation] = useState(0);
@@ -119,6 +119,9 @@ function WheelVisual() {
     return name.split(" ")[0];
   };
 
+  const SPIN_DURATION = reducedMotion ? 1200 : 5200;
+  const SPIN_EASING = reducedMotion ? "ease-out" : "cubic-bezier(0.16, 1, 0.3, 1)";
+  const EXTRA_ROTATIONS = reducedMotion ? 1 : 6;
 
   const handleSpin = () => {
     if (spinning) return;
@@ -128,11 +131,13 @@ function WheelVisual() {
     setWonPrize(null);
     setSpinning(true);
 
-    // Haptic + sound at spin start
-    playClick();
-    vibrate(25);
-    if (cancelTicksRef.current) cancelTicksRef.current();
-    cancelTicksRef.current = startSpinTicks(5200);
+    // Haptic + sound at spin start (disabled when reduced motion is on)
+    if (!reducedMotion) {
+      playClick();
+      vibrate(25);
+      if (cancelTicksRef.current) cancelTicksRef.current();
+      cancelTicksRef.current = startSpinTicks(SPIN_DURATION);
+    }
 
     const targetIndex = Math.floor(Math.random() * SEG_COUNT);
     const center = targetIndex * SEG;
@@ -140,23 +145,26 @@ function WheelVisual() {
     const current = rotationRef.current;
     const currentMod = ((current % 360) + 360) % 360;
     const delta = ((base - currentMod) + 360) % 360;
-    const next = current + 6 * 360 + delta;
+    const next = current + EXTRA_ROTATIONS * 360 + delta;
     rotationRef.current = next;
     setRotation(next);
     timerRef.current = window.setTimeout(() => {
       setSpinning(false);
       const prize = reshuffled[targetIndex];
       setWonPrize(prize);
-      // Haptic + sound at popup reveal
-      if (prize === "Try Again") {
-        playLose();
-        vibrate([60, 40, 60]);
-      } else {
-        playWin();
-        vibrate([30, 50, 30, 50, 120]);
+      // Haptic + sound at popup reveal (disabled when reduced motion is on)
+      if (!reducedMotion) {
+        if (prize === "Try Again") {
+          playLose();
+          vibrate([60, 40, 60]);
+        } else {
+          playWin();
+          vibrate([30, 50, 30, 50, 120]);
+        }
       }
-    }, 5200);
+    }, SPIN_DURATION);
   };
+
 
   return (
     <div className="relative w-full max-w-[460px] aspect-square mx-auto">
