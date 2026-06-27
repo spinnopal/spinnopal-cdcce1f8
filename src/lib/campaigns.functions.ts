@@ -121,7 +121,12 @@ export const updateCampaign = createServerFn({ method: "POST" })
   )
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
-    const patch: Record<string, unknown> = {};
+    const patch: {
+      name?: string;
+      slug?: string;
+      theme?: Record<string, unknown>;
+      is_active?: boolean;
+    } = {};
     if (data.name !== undefined) patch.name = data.name;
     if (data.slug !== undefined) patch.slug = data.slug;
     if (data.theme !== undefined) patch.theme = data.theme;
@@ -133,6 +138,7 @@ export const updateCampaign = createServerFn({ method: "POST" })
       .eq("shop_id", data.shopId);
     if (error) throw new Error(error.message);
     return { ok: true };
+
   });
 
 export const deleteCampaign = createServerFn({ method: "POST" })

@@ -68,23 +68,29 @@ async function assertOwner(ctx: { supabase: any; userId: string }, shopId: strin
 // ---------- PUBLIC ----------
 
 export const validateAccessCode = createServerFn({ method: "POST" })
-  .inputValidator(z.object({ slug: slugSchema, code: codeChars }).parse)
+  .inputValidator(z.object({ slug: slugSchema, code: codeChars, campaignSlug: slugSchema.optional() }).parse)
   .handler(async ({ data }) => {
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
     const shopId = await shopIdForSlug(data.slug);
     if (!shopId) return { ok: false as const, reason: "shop" as const };
     const normalized = data.code.toUpperCase();
-    const { data: row, error } = await supabaseAdmin
+    let q = supabaseAdmin
       .from("access_codes")
-      .select("code, is_used, spun_at")
+      .select("code, is_used, spun_at, campaign_id")
       .eq("shop_id", shopId)
-      .eq("code", normalized)
-      .maybeSingle();
+      .eq("code", normalized);
+    if (data.campaignSlug) {
+      const cid = await resolveCampaignId(shopId, data.campaignSlug);
+      if (!cid) return { ok: false as const, reason: "invalid" as const };
+      q = q.eq("campaign_id", cid);
+    }
+    const { data: row, error } = await q.maybeSingle();
     if (error) throw new Error("Server error");
     if (!row) return { ok: false as const, reason: "invalid" as const };
     if (row.is_used) return { ok: false as const, reason: "used" as const, spun_at: row.spun_at ?? null };
     return { ok: true as const, code: row.code };
   });
+
 
 export const consumeAccessCode = createServerFn({ method: "POST" })
   .inputValidator(z.object({ slug: slugSchema, code: codeChars }).parse)
