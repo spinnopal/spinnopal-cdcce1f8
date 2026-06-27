@@ -116,13 +116,29 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
   const textR = r * 0.92;
   const fontSize = Math.max(8, Math.min(12, Math.round(iconRadius * 0.3)));
 
+  // Theme — derive a 3-color palette from `accent`.
+  const theme = useMemo(() => {
+    const dark = accent && /^#[0-9a-fA-F]{6}$/.test(accent) ? accent : "#1f3460";
+    return {
+      dark,
+      light: lighten(dark, 0.6),
+      rimEnd: lighten(dark, 0.25),
+      pointerTop: lighten(dark, 0.25),
+      pointerMid: dark,
+      pointerBot: darken(dark, 0.35),
+      bgInner: lighten(dark, 0.92),
+      bgOuter: lighten(dark, 0.7),
+    };
+  }, [accent]);
+
   return (
     <div className="relative w-full aspect-square">
-      <div className="absolute inset-0 rounded-full p-[3%]" style={{ background: "linear-gradient(135deg,#1f3460,#3b5a8c)", boxShadow: "0 0 40px -8px rgba(31,52,96,0.6)" }}>
+      <div className="absolute inset-0 rounded-full p-[3%]" style={{ background: `linear-gradient(135deg,${theme.dark},${theme.rimEnd})`, boxShadow: `0 0 40px -8px ${theme.dark}99` }}>
         <div className="w-full h-full rounded-full bg-[#f5f7fb] p-[2%]">
           <div className="w-full h-full rounded-full relative overflow-hidden"
-               style={{ background: "radial-gradient(circle, #e6edf7 0%, #c8d6ea 70%)" }}>
+               style={{ background: `radial-gradient(circle, ${theme.bgInner} 0%, ${theme.bgOuter} 70%)` }}>
             <svg
+
               viewBox={`0 0 ${size} ${size}`}
               className="w-full h-full"
               style={{
@@ -152,7 +168,7 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
                 const x2 = cx + r * Math.cos(a2);
                 const y2 = cy + r * Math.sin(a2);
                 const isDark = i % 2 === 0;
-                const fill = isDark ? "#1f3460" : "#b8cce0";
+                const fill = isDark ? theme.dark : theme.light;
                 const largeArc = SEG > 180 ? 1 : 0;
                 const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 ${largeArc} 1 ${x2} ${y2} Z`;
                 const ix = cx + iconR * Math.cos((centerAngle - 90) * Math.PI / 180);
@@ -162,7 +178,7 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
                 return (
                   <g key={prize.id}>
                     <path d={path} fill={fill} stroke="#f5f7fb" strokeWidth="2" />
-                    <circle cx={ix} cy={iy} r={iconRadius} fill="#f5f7fb" stroke="#1f3460" strokeWidth="2" />
+                    <circle cx={ix} cy={iy} r={iconRadius} fill="#f5f7fb" stroke={theme.dark} strokeWidth="2" />
                     <image
                       href={prize.image}
                       x={ix - iconRadius}
@@ -176,8 +192,9 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
                     <text
                       x={tx}
                       y={ty}
-                      fill={isDark ? "#FFFFFF" : "#1f3460"}
+                      fill={isDark ? "#FFFFFF" : theme.dark}
                       fontSize={fontSize}
+
                       fontWeight="800"
                       textAnchor="middle"
                       transform={`rotate(${centerAngle} ${tx} ${ty})`}
