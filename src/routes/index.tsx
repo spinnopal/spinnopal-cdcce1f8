@@ -74,15 +74,59 @@ function WheelVisual() {
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [wonPrize, setWonPrize] = useState<string | null>(null);
+  const [prizes, setPrizes] = useState<string[]>(DEMO_PRIZES);
   const rotationRef = useRef(0);
   const timerRef = useRef<number | null>(null);
+  const cancelTicksRef = useRef<(() => void) | null>(null);
 
-  useEffect(() => () => { if (timerRef.current) window.clearTimeout(timerRef.current); }, []);
+  useEffect(() => () => {
+    if (timerRef.current) window.clearTimeout(timerRef.current);
+    if (cancelTicksRef.current) cancelTicksRef.current();
+  }, []);
+
+  const size = 360;
+  const r = size / 2;
+  const cx = r, cy = r;
+  const textR = r * 0.7;
+
+  // Precompute segment geometry once — avoids recompute on every render
+  const segments = useMemo(() => {
+    return Array.from({ length: SEG_COUNT }).map((_, i) => {
+      const centerAngle = i * SEG;
+      const a1 = (centerAngle - SEG / 2 - 90) * Math.PI / 180;
+      const a2 = (centerAngle + SEG / 2 - 90) * Math.PI / 180;
+      const x1 = cx + r * Math.cos(a1);
+      const y1 = cy + r * Math.sin(a1);
+      const x2 = cx + r * Math.cos(a2);
+      const y2 = cy + r * Math.sin(a2);
+      const isDark = i % 2 === 0;
+      const tx = cx + textR * Math.cos((centerAngle - 90) * Math.PI / 180);
+      const ty = cy + textR * Math.sin((centerAngle - 90) * Math.PI / 180);
+      return {
+        path: `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`,
+        isDark,
+        tx,
+        ty,
+        rotate: centerAngle + 90,
+        label: isDark ? "WIN" : "🎁",
+      };
+    });
+  }, [SEG_COUNT, SEG, cx, cy, r, textR]);
 
   const handleSpin = () => {
     if (spinning) return;
+    // Reshuffle visible prize names on each spin
+    const reshuffled = shuffle(DEMO_PRIZES);
+    setPrizes(reshuffled);
     setWonPrize(null);
     setSpinning(true);
+
+    // Haptic + sound at spin start
+    playClick();
+    vibrate(25);
+    if (cancelTicksRef.current) cancelTicksRef.current();
+    cancelTicksRef.current = startSpinTicks(5200);
+
     const targetIndex = Math.floor(Math.random() * SEG_COUNT);
     const center = targetIndex * SEG;
     const base = ((360 - center) % 360 + 360) % 360;
@@ -94,20 +138,24 @@ function WheelVisual() {
     setRotation(next);
     timerRef.current = window.setTimeout(() => {
       setSpinning(false);
-      setWonPrize(DEMO_PRIZES[targetIndex]);
+      const prize = reshuffled[targetIndex];
+      setWonPrize(prize);
+      // Haptic + sound at popup reveal
+      if (prize === "Try Again") {
+        playLose();
+        vibrate([60, 40, 60]);
+      } else {
+        playWin();
+        vibrate([30, 50, 30, 50, 120]);
+      }
     }, 5200);
   };
-
-  const size = 360;
-  const r = size / 2;
-  const cx = r, cy = r;
-  const textR = r * 0.7;
 
   return (
     <div className="relative w-full max-w-[460px] aspect-square mx-auto">
       <div
         aria-hidden
-        className="absolute inset-6 rounded-full animate-pulse-gold"
+        className="absolute inset-6 rounded-full animate-pulse-gold pointer-events-none"
         style={{ background: "radial-gradient(circle, rgba(255,107,26,0.35), transparent 65%)" }}
       />
       <div
@@ -123,44 +171,32 @@ function WheelVisual() {
               viewBox={`0 0 ${size} ${size}`}
               className="w-full h-full"
               style={{
-                transform: `rotate(${rotation}deg)`,
+                transform: `translateZ(0) rotate(${rotation}deg)`,
                 transition: spinning ? "transform 5.2s cubic-bezier(0.16, 1, 0.3, 1)" : "none",
                 willChange: "transform",
                 backfaceVisibility: "hidden",
+                transformOrigin: "50% 50%",
               }}
+              shapeRendering="optimizeSpeed"
             >
-              {Array.from({ length: SEG_COUNT }).map((_, i) => {
-                const centerAngle = i * SEG;
-                const a1 = (centerAngle - SEG / 2 - 90) * Math.PI / 180;
-                const a2 = (centerAngle + SEG / 2 - 90) * Math.PI / 180;
-                const x1 = cx + r * Math.cos(a1);
-                const y1 = cy + r * Math.sin(a1);
-                const x2 = cx + r * Math.cos(a2);
-                const y2 = cy + r * Math.sin(a2);
-                const isDark = i % 2 === 0;
-                const fill = isDark ? "#1f3460" : "#b8cce0";
-                const path = `M ${cx} ${cy} L ${x1} ${y1} A ${r} ${r} 0 0 1 ${x2} ${y2} Z`;
-                const tx = cx + textR * Math.cos((centerAngle - 90) * Math.PI / 180);
-                const ty = cy + textR * Math.sin((centerAngle - 90) * Math.PI / 180);
-                return (
-                  <g key={i}>
-                    <path d={path} fill={fill} stroke="#f5f7fb" strokeWidth="2" />
-                    <text
-                      x={tx}
-                      y={ty}
-                      fill={isDark ? "#ff6b1a" : "#1f3460"}
-                      fontSize="22"
-                      fontWeight="900"
-                      textAnchor="middle"
-                      dominantBaseline="middle"
-                      transform={`rotate(${centerAngle + 90} ${tx} ${ty})`}
-                      style={{ fontFamily: "var(--font-display)" }}
-                    >
-                      {isDark ? "WIN" : "🎁"}
-                    </text>
-                  </g>
-                );
-              })}
+              {segments.map((s, i) => (
+                <g key={i}>
+                  <path d={s.path} fill={s.isDark ? "#1f3460" : "#b8cce0"} stroke="#f5f7fb" strokeWidth="2" />
+                  <text
+                    x={s.tx}
+                    y={s.ty}
+                    fill={s.isDark ? "#ff6b1a" : "#1f3460"}
+                    fontSize="22"
+                    fontWeight="900"
+                    textAnchor="middle"
+                    dominantBaseline="middle"
+                    transform={`rotate(${s.rotate} ${s.tx} ${s.ty})`}
+                    style={{ fontFamily: "var(--font-display)" }}
+                  >
+                    {s.label}
+                  </text>
+                </g>
+              ))}
               <circle cx={cx} cy={cy} r={r * 0.22} fill="#f5f7fb" stroke="#1f3460" strokeWidth="2" />
             </svg>
 
@@ -178,6 +214,7 @@ function WheelVisual() {
           </div>
         </div>
       </div>
+
 
       {/* pointer */}
       <div className="absolute left-1/2 -top-2 -translate-x-1/2 z-10 drop-shadow-[0_4px_10px_rgba(31,52,96,0.5)]">
