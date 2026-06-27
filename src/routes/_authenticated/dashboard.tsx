@@ -7,6 +7,7 @@ import {
   TrendingUp, Trophy, Activity, Sparkles, ChevronRight, ChevronLeft,
   CircleDot, Calendar, Ticket, Hash, PlayCircle, Power,
   Search, Download, Trash2, X, Phone, Mail, Award, CheckCircle2, XCircle, ArrowUpDown, Loader2,
+  Building2, ShieldCheck, Bell, CreditCard, Plug, LifeBuoy, Moon, Sun, KeyRound, Globe, Upload,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, YAxis, Tooltip as RTooltip, CartesianGrid,
