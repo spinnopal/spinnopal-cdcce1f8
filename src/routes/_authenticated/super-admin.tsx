@@ -117,6 +117,8 @@ function SuperAdminPage() {
 
       {msg && <div className="mb-3 text-xs px-3 py-2 rounded bg-white/5">{msg}</div>}
 
+      <PlansManager onMsg={setMsg} />
+
       <div className="space-y-2">
         {shops.map((s) => (
           <div key={s.id} className="glass rounded-xl p-4">
