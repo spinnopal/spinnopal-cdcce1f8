@@ -113,19 +113,7 @@ export const consumeAccessCode = createServerFn({ method: "POST" })
   });
 
 // Atomic: consume the code, pick a winner server-side, and record the prize.
-// Replaces the old client-driven consume + pick + record flow that allowed
-// clients to spoof which prize was recorded.
-export const spinAndRecord = createServerFn({ method: "POST" })
-  .inputValidator(
-    z.object({
-      slug: slugSchema,
-      code: codeChars,
-      name: z.string().trim().min(1).max(60).optional(),
-      contact: z.union([z.string().trim().min(5).max(30).regex(/^[+\d][\d\s\-()]{4,29}$/), z.literal("")]).optional(),
-      email: z.union([z.string().trim().toLowerCase().email().max(255), z.literal("")]).optional(),
-    }).parse,
-  )
-  .handler(async ({ data }) => {
+
 export const spinAndRecord = createServerFn({ method: "POST" })
   .inputValidator(
     z.object({
@@ -226,13 +214,25 @@ function randomCode() {
 
 export const generateAccessCodes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ shopId: z.string().uuid(), count: z.number().int().min(1).max(500) }).parse)
+  .inputValidator(z.object({
+    shopId: z.string().uuid(),
+    count: z.number().int().min(1).max(500),
+    campaignId: z.string().uuid().optional(),
+  }).parse)
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
     const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    // Default to the shop's default campaign if not provided.
+    let campaignId = data.campaignId ?? null;
+    if (!campaignId) {
+      const { data: def } = await supabaseAdmin
+        .from("campaigns").select("id")
+        .eq("shop_id", data.shopId).eq("is_default", true).maybeSingle();
+      campaignId = def?.id ?? null;
+    }
     const codes = new Set<string>();
     while (codes.size < data.count) codes.add(randomCode());
-    const rows = Array.from(codes).map((code) => ({ code, shop_id: data.shopId }));
+    const rows = Array.from(codes).map((code) => ({ code, shop_id: data.shopId, campaign_id: campaignId }));
     const { data: inserted, error } = await supabaseAdmin
       .from("access_codes")
       .insert(rows)
@@ -240,6 +240,7 @@ export const generateAccessCodes = createServerFn({ method: "POST" })
     if (error) throw new Error(error.message);
     return { codes: (inserted ?? []).map((r: { code: string }) => r.code) };
   });
+
 
 export const listAccessCodes = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
