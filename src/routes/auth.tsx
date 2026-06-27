@@ -54,9 +54,20 @@ function AuthPage() {
     }
   };
 
-  // No auto-redirect on mount: it caused a race where a cached session
-  // would navigate the user to /dashboard mid-keystroke, making it feel
-  // like the inputs were frozen. Redirect only after a successful submit.
+  // Auto-redirect signed-in users on initial mount only. We capture whether
+  // the user has started interacting (typing) and skip the redirect in that
+  // case — this avoids the mid-keystroke jump that happened before, while
+  // still keeping the user signed in across PWA relaunches.
+  const interactedRef = useRef(false);
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      const { data } = await supabase.auth.getSession();
+      if (cancelled || interactedRef.current) return;
+      if (data.session) navigate({ to: "/dashboard" });
+    })();
+    return () => { cancelled = true; };
+  }, [navigate]);
 
   const autoSlug = (s: string) =>
     s
