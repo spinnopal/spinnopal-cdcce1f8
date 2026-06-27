@@ -316,7 +316,7 @@ function Landing() {
   const [reducedMotion, setReducedMotion] = useReducedMotion();
 
   return (
-    <div className={`min-h-screen w-full bg-white text-[#0c2340] ${reducedMotion ? "motion-reduce-safe" : ""}`}>
+    <div className="min-h-screen w-full bg-white text-[#0c2340]">
 
       {/* Nav */}
       <nav className="max-w-7xl mx-auto flex items-center justify-between px-5 md:px-8 py-5">
