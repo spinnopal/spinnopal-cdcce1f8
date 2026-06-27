@@ -663,22 +663,8 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignO
             </div>
           </div>
         )}
-        {superAdmin ? (
+        {superAdmin && (
           <SettingsRow icon={Shield} label="Super admin panel" hint="Manage platform & subscriptions" onClick={() => { window.location.href = "/super-admin"; }} />
-        ) : (
-          <>
-            <SettingsRow icon={Shield} label="Platform admin" hint="Unlock super-admin (owners only)" onClick={() => setShowAdminUnlock((v) => !v)} />
-            {showAdminUnlock && (
-              <div className="space-y-2 pl-1">
-                <input type="password" value={bootstrapPw} onChange={(e) => setBootstrapPw(e.target.value)} placeholder="Admin password" className={inputCls} />
-                <div className="flex gap-2">
-                  <button onClick={tryBootstrap} className="flex-1 bg-[#0c2340] text-white font-semibold py-2 rounded-lg text-sm">Unlock</button>
-                  <button onClick={() => setShowAdminUnlock(false)} className="px-3 py-2 rounded-lg bg-[#F5F7FA] text-sm">Cancel</button>
-                </div>
-                {bootstrapMsg && <p className="text-xs text-[#0c2340]">{bootstrapMsg}</p>}
-              </div>
-            )}
-          </>
         )}
       </SettingsSection>
 
