@@ -356,7 +356,7 @@ function Landing() {
       {/* Hero split-screen */}
       <section className="max-w-7xl mx-auto grid lg:grid-cols-2 gap-10 lg:gap-16 items-center px-5 md:px-8 pt-6 pb-16 lg:py-20">
         {/* Left copy */}
-        <div className="animate-float-up">
+        <div className={reducedMotion ? "" : "animate-float-up"}>
           <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-[#fff1e8] text-[#ff6b1a] text-[11px] font-bold uppercase tracking-[0.18em]">
             <span className="w-1.5 h-1.5 rounded-full bg-[#ff6b1a]" />
             Growth &amp; retention SaaS
