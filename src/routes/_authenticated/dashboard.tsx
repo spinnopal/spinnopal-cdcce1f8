@@ -189,23 +189,7 @@ function Dashboard() {
         <TabMount active={tab === "customers"}><RecordsTab shop={shop} /></TabMount>
         <TabMount active={tab === "analytics"}><StatsTab shop={shop} /></TabMount>
         <TabMount active={tab === "settings"}>
-          <div className="space-y-4">
-            <SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} />
-            <div className="glass rounded-2xl p-4 flex flex-wrap gap-2">
-              <InstallAppButton variant="outline" size="sm" />
-              <Link to="/s/$slug" params={{ slug: shop.slug }} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#F5F7FA] text-[#0c2340] text-sm hover:bg-[#ECEFF5]">
-                <ExternalLink className="w-4 h-4" /> View public page
-              </Link>
-              {superAdmin && (
-                <Link to="/super-admin" className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#F5F7FA] text-[#0c2340] text-sm hover:bg-[#ECEFF5]">
-                  <Shield className="w-4 h-4" /> Super admin
-                </Link>
-              )}
-              <button onClick={signOut} className="inline-flex items-center gap-1.5 px-3 py-2 rounded-lg bg-[#F5F7FA] text-[#0c2340] text-sm hover:bg-[#ECEFF5]">
-                <LogOut className="w-4 h-4" /> Sign out
-              </button>
-            </div>
-          </div>
+          <SettingsTab shop={shop} onSaved={loadShop} doUpdate={doUpdateShop} superAdmin={superAdmin} doBootstrap={doBootstrap} onSignOut={signOut} />
         </TabMount>
 
         {/* Secondary tabs (reached via quick actions) */}
