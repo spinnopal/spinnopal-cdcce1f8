@@ -6,6 +6,7 @@ import {
   Pencil, Gift, QrCode, UserSquare2, LogOut, ExternalLink, Shield, MessageSquare,
   TrendingUp, Trophy, Activity, Sparkles, ChevronRight, ChevronLeft,
   CircleDot, Calendar, Ticket, Hash, PlayCircle, Power,
+  Search, Download, Trash2, X, Phone, Mail, Award, CheckCircle2, XCircle, ArrowUpDown, Loader2,
 } from "lucide-react";
 import {
   ResponsiveContainer, BarChart, Bar, XAxis, Tooltip as RTooltip, CartesianGrid,
