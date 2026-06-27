@@ -16,6 +16,7 @@ export type Database = {
     Tables: {
       access_codes: {
         Row: {
+          campaign_id: string | null
           code: string
           created_at: string
           customer_contact: string | null
@@ -27,6 +28,7 @@ export type Database = {
           spun_at: string | null
         }
         Insert: {
+          campaign_id?: string | null
           code: string
           created_at?: string
           customer_contact?: string | null
@@ -38,6 +40,7 @@ export type Database = {
           spun_at?: string | null
         }
         Update: {
+          campaign_id?: string | null
           code?: string
           created_at?: string
           customer_contact?: string | null
@@ -49,6 +52,13 @@ export type Database = {
           spun_at?: string | null
         }
         Relationships: [
+          {
+            foreignKeyName: "access_codes_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "access_codes_shop_id_fkey"
             columns: ["shop_id"]
@@ -65,8 +75,60 @@ export type Database = {
           },
         ]
       }
+      campaigns: {
+        Row: {
+          created_at: string
+          id: string
+          is_active: boolean
+          is_default: boolean
+          name: string
+          shop_id: string
+          slug: string
+          theme: Json
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name: string
+          shop_id: string
+          slug: string
+          theme?: Json
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          is_active?: boolean
+          is_default?: boolean
+          name?: string
+          shop_id?: string
+          slug?: string
+          theme?: Json
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "campaigns_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "campaigns_shop_id_fkey"
+            columns: ["shop_id"]
+            isOneToOne: false
+            referencedRelation: "shops_public"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       prizes: {
         Row: {
+          campaign_id: string | null
           created_at: string
           id: string
           image_url: string
@@ -79,6 +141,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          campaign_id?: string | null
           created_at?: string
           id: string
           image_url: string
@@ -91,6 +154,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          campaign_id?: string | null
           created_at?: string
           id?: string
           image_url?: string
@@ -103,6 +167,13 @@ export type Database = {
           updated_at?: string
         }
         Relationships: [
+          {
+            foreignKeyName: "prizes_campaign_id_fkey"
+            columns: ["campaign_id"]
+            isOneToOne: false
+            referencedRelation: "campaigns"
+            referencedColumns: ["id"]
+          },
           {
             foreignKeyName: "prizes_shop_id_fkey"
             columns: ["shop_id"]

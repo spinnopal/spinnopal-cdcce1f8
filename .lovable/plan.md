@@ -1,55 +1,77 @@
-# Multi-tenant Spin Platform
+# Multi-Campaign + Full Wheel Theming
 
-Convert the current single-shop app into a SaaS where any shop owner can sign up, brand their own spin page, and manage their own prizes, codes, and records — fully isolated. You get a super-admin panel.
+Big architectural change. I'll ship in 4 waves so each one is testable.
 
-## What customers/owners will see
+---
 
-- `/` — Marketing landing page with "Create your shop" and "Sign in" buttons.
-- `/auth` — Email + password sign up / sign in for shop owners.
-- `/dashboard` — Shop owner control panel (replaces today's `/admin`). Tabs: **Prizes**, **Access Codes**, **Records**, **Settings** (shop name, logo, slug).
-- `/s/{shop-slug}` — Public customer page for that shop (replaces today's `/`). Shows the shop's own logo, name, and prizes; customer enters name + access code.
-- `/s/{shop-slug}/spin` and `/s/{shop-slug}/result` — Spin and result pages branded per shop.
-- `/super-admin` — Hidden page (5-second logo press on `/`, plus password) where you list all shops, view usage, suspend/enable, and delete.
+## Wave 1 — Small fixes (already done in this message)
 
-## Data model (new tables, fully isolated per shop)
+- Removed near-miss "cheat" animation; spin is now a single smooth 9-second deceleration.
+- Win-card background changed from dark navy to light cream → soft-blue gradient, navy text, navy logo ring.
+- Demo-wheel-on-landing item dropped (you already have one).
+- WhatsApp button labeling: I'll rename "Share Card" → "Send Prize Photo on WhatsApp" and keep the text-only `wa.me` button as "Send Text Receipt", so it's obvious which one carries the image. (`wa.me` cannot auto-attach images — that's a WhatsApp limitation, not a code limitation.)
 
-- `shops` — id, owner_user_id, name, slug (unique), logo_url, is_active, created_at.
-- `user_roles` — for `super_admin` role (separate table per security rules).
-- Existing `prizes` and `access_codes` get a `shop_id` column; all queries scoped by it.
-- RLS: shop owners can only read/write rows where `shop_id` belongs to a shop they own. Public customer page reads prizes via a server function scoped by slug. Super-admin bypasses via `has_role(uid, 'super_admin')`.
+---
 
-## Auth
+## Wave 2 — Multi-campaign database + public routing
 
-- Lovable Cloud email + password, plus Google sign-in (default per platform guidelines).
-- On signup, owner picks a shop name and slug; a `shops` row is created and linked.
-- `/dashboard` and `/super-admin` live under the managed `_authenticated` layout.
+**New table `campaigns`:**
 
-## Branding / customization
+| column | type | notes |
+|---|---|---|
+| id | uuid | pk |
+| shop_id | uuid | fk shops |
+| name | text | "Diwali Spin", "Weekend Bonanza" |
+| slug | text | URL slug, unique per shop |
+| is_active | bool | live or paused |
+| theme | jsonb | accent color, slice colors, pointer style, rim style, font, bg image, center logo override |
+| created_at, updated_at | timestamptz | |
 
-- Settings tab lets the owner upload a logo (stored as base64 in `shops.logo_url`, same approach as prizes today, 10 MB cap) and edit shop name + slug.
-- Customer-facing pages read these from the `shops` row by slug.
+**`prizes` and `access_codes`: add `campaign_id` column.** Existing rows migrate into a default "Main Campaign" per shop so nothing breaks.
 
-## Super-admin panel
+**Public routing:**
+- `/s/{slug}` — landing page that lists all active campaigns as cards (customer picks one).
+- `/s/{slug}/c/{campaignSlug}` — the actual spin page for that campaign.
+- Per-campaign QR codes auto-generated in the dashboard.
 
-- Lists all shops with owner email, # codes, # spins, created date.
-- Actions: suspend (sets `is_active=false`, customer page shows "unavailable"), reactivate, delete shop (cascades prizes/codes/records).
-- Protected by `has_role(uid, 'super_admin')`. You'll grant yourself the role on first login.
+**RLS:** campaigns table — owners full CRUD on their own; anon read of active campaigns only.
 
-## Migration of existing data
+---
 
-Your current Mas Mobile Zone prizes and any unused codes are migrated into a seed shop (`mas-mobile-zone` slug) owned by the first super-admin account you sign up with, so nothing is lost.
+## Wave 3 — Campaign Hub UI in the dashboard
+
+- Campaign list with "+ New Campaign" button, active/paused toggle, duplicate, delete.
+- Per-campaign editor with tabs: Prizes · Wheel Design · QR Code · Settings.
+- "Wheel Design" tab — full custom controls:
+  - Accent color picker
+  - Wheel background image upload (Lovable Assets)
+  - Per-slice color overrides (default = auto-palette from accent)
+  - Pointer style (classic, arrow, gem)
+  - Rim style (dots, glow, smooth, none)
+  - Font (3 preset choices)
+  - Center logo override (per campaign)
+- **Live interactive preview pane** — embeds the real public spin page in an iframe with `?preview=1`. Owner can click-spin; preview spins ignore access codes and never record stats.
+
+---
+
+## Wave 4 — Wheel renderer + theming engine
+
+- Refactor `SpinWheel.tsx` to read a `WheelTheme` object instead of hardcoded navy/light-blue.
+- New `auto-palette` util: given an accent hex, generate a balanced N-slice palette.
+- Wheel background image renders behind the wheel SVG (with subtle blur/dim for legibility).
+- New `BrandThemeProvider` so the spin page's CSS vars come from the active campaign's theme.
+
+---
 
 ## Technical notes
 
-- New routes: `/auth`, `/_authenticated/dashboard`, `/_authenticated/super-admin`, `/s/$slug`, `/s/$slug/spin`, `/s/$slug/result`. Old `/admin`, `/spin`, `/result`, `/` rewired or removed.
-- Server functions split into `shops.functions.ts`, scoped `prizes.functions.ts`, scoped `access-codes.functions.ts` — all use `requireSupabaseAuth` + a `shop_id` check, except public `getPublicShop(slug)` and `validateAccessCode(slug, code)` which use the publishable-key server client with narrow `TO anon` policies.
-- `ADMIN_PASSWORD` secret is no longer needed for shop owners (auth replaces it); kept only as a fallback for super-admin bootstrap if you want.
+- All schema changes go through one migration with GRANTs and RLS.
+- Existing `validateAccessCode`, `spinAndRecord`, `prizesBySlug` server fns get a `campaignSlug` parameter (backward-compatible: falls back to the shop's default campaign).
+- Storage bucket `wheel-backgrounds` (public, owner-write via RLS).
+- No breaking changes to existing shops — auto-migrated to a "Main Campaign".
 
-## Out of scope (ask later)
+---
 
-- Billing / paid plans
-- Custom domains per shop
-- Email notifications to owners
-- Per-shop sound/theme customization beyond logo
+## What I need from you
 
-Approve and I'll build it end-to-end.
+Confirm and I'll start Wave 2 immediately. If you want to cut scope (e.g. skip per-slice colors, or ship single-campaign theming first), tell me now.
