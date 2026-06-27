@@ -1,7 +1,29 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useMemo } from "react";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
+import { playClick, playWin, playLose, startSpinTicks } from "@/lib/sounds";
+
+function vibrate(pattern: number | number[]) {
+  try {
+    if (typeof navigator !== "undefined" && "vibrate" in navigator) {
+      navigator.vibrate(pattern);
+    }
+  } catch {
+    // ignore
+  }
+}
+
+function shuffle<T>(arr: T[]): T[] {
+  const a = arr.slice();
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+}
+
+
 
 
 export const Route = createFileRoute("/")({
