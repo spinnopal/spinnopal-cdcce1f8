@@ -1,15 +1,17 @@
-import { createFileRoute, useNavigate, notFound } from "@tanstack/react-router";
+import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery } from "@tanstack/react-query";
 import { z } from "zod";
 import { getPublicShop } from "@/lib/shops.functions";
 import { validateAccessCode } from "@/lib/access-codes.functions";
+import { listPublicCampaigns } from "@/lib/campaigns.functions";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 import { playClick } from "@/lib/sounds";
 
 const entrySearch = z.object({
   code: z.string().min(1).max(64).optional(),
+  c: z.string().min(1).max(40).optional(),
 });
 
 const phoneRe = /^[+\d][\d\s\-()]{4,29}$/;
@@ -38,14 +40,20 @@ export const Route = createFileRoute("/s/$slug/")({
 
 function ShopEntry() {
   const { slug } = Route.useParams();
-  const { code: prefillCode } = Route.useSearch();
+  const { code: prefillCode, c: campaignSlug } = Route.useSearch();
   const navigate = useNavigate();
   const fetchShop = useServerFn(getPublicShop);
   const validate = useServerFn(validateAccessCode);
+  const fetchCampaigns = useServerFn(listPublicCampaigns);
 
   const shopQuery = useQuery({
     queryKey: ["public-shop", slug],
     queryFn: async () => (await fetchShop({ data: { slug } })).shop,
+  });
+
+  const campaignsQ = useQuery({
+    queryKey: ["public-campaigns", slug],
+    queryFn: async () => (await fetchCampaigns({ data: { slug } })).campaigns,
   });
 
   const [code, setCode] = useState(prefillCode?.toUpperCase() ?? "");
@@ -66,7 +74,6 @@ function ShopEntry() {
     if (prefillCode) setCode(prefillCode.toUpperCase());
   }, [prefillCode]);
 
-  // Live debounced code validation
   useEffect(() => {
     const trimmed = code.trim().toUpperCase();
     if (!trimmed || !/^[A-Z0-9-]+$/.test(trimmed) || trimmed.length < 4) {
@@ -76,7 +83,7 @@ function ShopEntry() {
     setCodeStatus({ state: "checking" });
     const handle = setTimeout(async () => {
       try {
-        const res = await validate({ data: { slug, code: trimmed } });
+        const res = await validate({ data: { slug, code: trimmed, ...(campaignSlug ? { campaignSlug } : {}) } });
         if (res.ok) setCodeStatus({ state: "valid" });
         else if (res.reason === "used") setCodeStatus({ state: "used", date: res.spun_at ?? null });
         else setCodeStatus({ state: "invalid" });
@@ -85,16 +92,49 @@ function ShopEntry() {
       }
     }, 450);
     return () => clearTimeout(handle);
-  }, [code, slug, validate]);
+  }, [code, slug, campaignSlug, validate]);
 
   if (shopQuery.isLoading) {
     return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Loading…</div>;
   }
   if (!shopQuery.data) {
-    throw notFound();
+    return <div className="min-h-screen flex items-center justify-center text-muted-foreground">Shop not found or unavailable.</div>;
   }
   const shop = shopQuery.data;
   const logo = shop.logo_url || DEFAULT_LOGO;
+
+  // Campaign picker: when there are 2+ active campaigns and no `?c=` chosen yet, show a picker.
+  const campaigns = campaignsQ.data ?? [];
+  const showPicker = !campaignSlug && campaigns.length > 1;
+
+  if (showPicker) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10">
+        <img src={logo} alt={shop.name} className="w-32 h-32 rounded-full object-cover border-2 border-[var(--gold)]/70 mb-6" />
+        <h1 className="text-2xl font-black tracking-[0.18em] text-center uppercase">{shop.name}</h1>
+        <p className="mt-2 text-sm text-muted-foreground">Choose a campaign to spin</p>
+        <div className="mt-8 w-full max-w-sm grid gap-3">
+          {campaigns.map((c) => {
+            const accent = (c.theme as { accent?: string } | null)?.accent || "#1f3460";
+            return (
+              <button
+                key={c.id}
+                onClick={() => { playClick(); navigate({ to: "/s/$slug", params: { slug }, search: { c: c.slug } }); }}
+                className="flex items-center gap-3 p-4 rounded-2xl bg-white border border-[#0c2340]/10 shadow-sm hover:shadow-md transition text-left"
+              >
+                <div className="w-10 h-10 rounded-full shrink-0" style={{ background: accent }} />
+                <div className="min-w-0 flex-1">
+                  <p className="font-bold text-[#0c2340] truncate">{c.name}</p>
+                  <p className="text-xs text-[#4a5b78] truncate">/{c.slug}</p>
+                </div>
+                <span className="text-[#FF6B00] font-bold">→</span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
 
   const submit = async () => {
     playClick();
@@ -111,7 +151,7 @@ function ShopEntry() {
     setLoading(true);
     setError("");
     try {
-      const res = await validate({ data: { slug, code: trimmed } });
+      const res = await validate({ data: { slug, code: trimmed, ...(campaignSlug ? { campaignSlug } : {}) } });
       if (!res.ok) {
         setError("This code is invalid or has already been used.");
         setLoading(false);
@@ -123,6 +163,7 @@ function ShopEntry() {
         search: {
           code: res.code,
           name: trimmedName,
+          ...(campaignSlug ? { c: campaignSlug } : {}),
           ...(trimmedContact ? { contact: trimmedContact } : {}),
           ...(trimmedEmail ? { email: trimmedEmail } : {}),
         },
@@ -132,6 +173,8 @@ function ShopEntry() {
       setLoading(false);
     }
   };
+
+  const selectedCampaign = campaignSlug ? campaigns.find((c) => c.slug === campaignSlug) : campaigns.find((c) => c.is_default);
 
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10">
@@ -144,7 +187,17 @@ function ShopEntry() {
         />
       </div>
       <h1 className="text-3xl font-black tracking-[0.18em] text-center uppercase">{shop.name}</h1>
-      <p className="mt-2 text-sm tracking-[0.32em] text-gold uppercase">Lucky Spin Campaign</p>
+      <p className="mt-2 text-sm tracking-[0.32em] text-gold uppercase">
+        {selectedCampaign?.name ?? "Lucky Spin Campaign"}
+      </p>
+      {campaigns.length > 1 && (
+        <button
+          onClick={() => navigate({ to: "/s/$slug", params: { slug }, search: {} })}
+          className="mt-2 text-xs text-[#4a5b78] underline"
+        >
+          Choose different campaign
+        </button>
+      )}
 
       <div className="glass rounded-2xl p-5 mt-10 w-full max-w-sm animate-float-up">
         <label className="text-xs uppercase tracking-widest text-muted-foreground">Your Name</label>
@@ -181,8 +234,6 @@ function ShopEntry() {
           maxLength={255}
           className="mt-2 w-full bg-[#F5F7FA] border border-[#0c2340]/10 rounded-xl px-4 py-3 text-base text-[#0c2340] placeholder:text-[#0c2340]/50 outline-none focus:border-[#ff6b1a]"
         />
-
-
 
         <label className="text-xs uppercase tracking-widest text-muted-foreground mt-4 block">Access Code</label>
         <input

@@ -13,6 +13,7 @@ import { playClick } from "@/lib/sounds";
 const search = z.object({
   pid: z.string().min(1).max(64),
   code: z.string().min(1).max(64),
+  c: z.string().min(1).max(40).optional(),
   contact: z.string().min(1).max(30).optional(),
   name: z.string().min(1).max(40).optional(),
 });
@@ -33,9 +34,10 @@ function normalizePhone(input: string): string | null {
 
 function ResultPage() {
   const { slug } = Route.useParams();
-  const { pid, code, contact, name } = Route.useSearch();
+  const { pid, code, c: campaignSlug, contact, name } = Route.useSearch();
   const navigate = useNavigate();
-  const { prizes, isLoading } = usePrizesBySlug(slug);
+  const { prizes, isLoading } = usePrizesBySlug(slug, campaignSlug);
+
   const fetchShop = useServerFn(getPublicShop);
   const shopQuery = useQuery({
     queryKey: ["public-shop", slug],
