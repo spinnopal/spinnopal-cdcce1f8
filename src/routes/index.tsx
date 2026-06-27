@@ -108,10 +108,15 @@ function WheelVisual() {
         tx,
         ty,
         rotate: centerAngle + 90,
-        label: isDark ? "WIN" : "🎁",
       };
     });
   }, [SEG_COUNT, SEG, cx, cy, r, textR]);
+
+  const shortLabel = (name: string) => {
+    if (/cash/i.test(name)) return name.replace(/\s*Cash/i, "").replace("Rs.", "₨");
+    return name.split(" ")[0];
+  };
+
 
   const handleSpin = () => {
     if (spinning) return;
