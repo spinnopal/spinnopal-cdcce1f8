@@ -167,7 +167,10 @@ function Dashboard() {
           </div>
           <div className="flex flex-col items-end gap-1.5">
             <img src={shop.logo_url || DEFAULT_LOGO} alt="" className="w-11 h-11 rounded-2xl object-cover border border-[#0c2340]/10 shadow-sm" />
-            <div className="hidden sm:flex gap-1.5">
+            <div className="flex gap-1.5">
+              <Link to="/campaigns" className="p-2 rounded-xl bg-[#F5F7FA] hover:bg-[#ECEFF5] text-[#0c2340]" title="Manage campaigns">
+                <Megaphone className="w-4 h-4" />
+              </Link>
               {superAdmin && (
                 <Link to="/super-admin" className="p-2 rounded-xl bg-[#F5F7FA] hover:bg-[#ECEFF5] text-[#0c2340]" title="Super admin">
                   <Shield className="w-4 h-4" />
@@ -178,6 +181,7 @@ function Dashboard() {
               </button>
             </div>
           </div>
+
         </header>
 
         <SubscriptionBanner />
