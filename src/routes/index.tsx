@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 import { playClick, playWin, playLose, startSpinTicks } from "@/lib/sounds";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { listActivePlans } from "@/lib/plans.functions";
 
 function vibrate(pattern: number | number[]) {
   try {
@@ -545,7 +547,7 @@ function Landing() {
     { n: "Priya Karki", r: "Salon Founder", q: "Our regulars come back just to spin again. Best retention tool we've used." },
   ];
 
-  const plans = [
+  const fallbackPlans = [
     {
       name: "Starter",
       price: "Free",
@@ -574,6 +576,35 @@ function Landing() {
       highlight: false,
     },
   ];
+
+  const fetchPlans = useServerFn(listActivePlans);
+  const [livePlans, setLivePlans] = useState<typeof fallbackPlans | null>(null);
+  useEffect(() => {
+    fetchPlans()
+      .then((r) => {
+        const rows = r.plans ?? [];
+        if (!rows.length) return;
+        const fmtPrice = (amt: number, cur: string) => {
+          if (amt <= 0) return "Free";
+          const sym = cur?.toUpperCase() === "NPR" ? "Rs." : (cur || "");
+          return `${sym}${Number(amt).toLocaleString()}`;
+        };
+        setLivePlans(
+          rows.map((p) => ({
+            name: p.name,
+            price: fmtPrice(p.price_amount, p.currency),
+            period: p.price_amount > 0 ? `/ ${p.period}` : (p.period || "forever"),
+            desc: p.tagline || "",
+            features: p.features ?? [],
+            cta: p.cta_label || (p.price_amount > 0 ? `Start ${p.name}` : "Start Free"),
+            highlight: !!p.is_highlighted,
+          })),
+        );
+      })
+      .catch(() => {});
+  }, [fetchPlans]);
+  const plans = livePlans ?? fallbackPlans;
+
 
   const faqs = [
     { q: "How quickly can I launch a campaign?", a: "Under 2 minutes — create an account, name your shop, upload prizes, and share the QR code. No app install required for your customers." },

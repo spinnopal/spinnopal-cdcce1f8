@@ -32,6 +32,7 @@ import {
   deleteSpinRecord,
   resetSpinRecords,
 } from "@/lib/access-codes.functions";
+import { listMyCampaigns } from "@/lib/campaigns.functions";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 import { QRCodeSVG } from "qrcode.react";
 import { MessagingTab } from "@/components/MessagingTab";
@@ -730,7 +731,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignO
 }
 
 // ---------- PRIZES ----------
-function PrizesTab({ shop }: { shop: Shop }) {
+function PrizesTab({ shop, campaignId }: { shop: Shop; campaignId?: string | null }) {
   const fetchPrizes = useServerFn(listMyPrizes);
   const doUpsert = useServerFn(upsertPrize);
   const doDelete = useServerFn(deletePrize);
@@ -740,9 +741,9 @@ function PrizesTab({ shop }: { shop: Shop }) {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetchPrizes({ data: { shopId: shop.id } });
+    const res = await fetchPrizes({ data: { shopId: shop.id, ...(campaignId ? { campaignId } : {}) } });
     setPrizes(res.prizes as Prize[]);
-  }, [fetchPrizes, shop.id]);
+  }, [fetchPrizes, shop.id, campaignId]);
   useEffect(() => { load(); }, [load]);
 
   const newPrize = (): Prize => ({
@@ -760,11 +761,12 @@ function PrizesTab({ shop }: { shop: Shop }) {
     if (!editing.name || !editing.short || !editing.image_url) return alert("Fill name, short label, and image.");
     setBusy(true);
     try {
-      await doUpsert({ data: { shopId: shop.id, prize: editing } });
+      await doUpsert({ data: { shopId: shop.id, prize: editing, ...(campaignId ? { campaignId } : {}) } });
       setEditing(null);
       load();
     } finally { setBusy(false); }
   };
+
 
   const remove = async (id: string) => {
     if (!confirm("Delete this prize?")) return;
@@ -1753,17 +1755,30 @@ function CampaignHub({
   const fetchPrizes = useServerFn(listMyPrizes);
   const fetchCodes = useServerFn(listAccessCodes);
   const fetchSub = useServerFn(getMySubscription);
+  const fetchCampaigns = useServerFn(listMyCampaigns);
 
   const [section, setSection] = useState<HubSection>("overview");
   const [prizes, setPrizes] = useState<Prize[]>([]);
   const [codes, setCodes] = useState<CodeRow[]>([]);
   const [sub, setSub] = useState<{ trial_ends_at: string | null; current_period_end: string | null; subscription_status: string; created_at?: string } | null>(null);
   const [busyStatus, setBusyStatus] = useState(false);
+  const [campaigns, setCampaigns] = useState<{ id: string; name: string; slug: string; is_default: boolean }[]>([]);
+  const [activeCampaignId, setActiveCampaignId] = useState<string | null>(null);
+
+  // Load campaigns & default selection
+  useEffect(() => {
+    fetchCampaigns({ data: { shopId: shop.id } }).then((r) => {
+      const list = (r.campaigns as { id: string; name: string; slug: string; is_default: boolean }[]) ?? [];
+      setCampaigns(list);
+      setActiveCampaignId((prev) => prev ?? list.find((c) => c.is_default)?.id ?? list[0]?.id ?? null);
+    }).catch(() => {});
+  }, [fetchCampaigns, shop.id]);
 
   const reload = useCallback(() => {
-    fetchPrizes({ data: { shopId: shop.id } }).then((r) => setPrizes(r.prizes as Prize[]));
+    if (!activeCampaignId) return;
+    fetchPrizes({ data: { shopId: shop.id, campaignId: activeCampaignId } }).then((r) => setPrizes(r.prizes as Prize[]));
     fetchCodes({ data: { shopId: shop.id } }).then((r) => setCodes((r.rows as CodeRow[]) ?? []));
-  }, [fetchPrizes, fetchCodes, shop.id]);
+  }, [fetchPrizes, fetchCodes, shop.id, activeCampaignId]);
 
   useEffect(() => { reload(); }, [reload]);
   useEffect(() => {
@@ -1784,6 +1799,23 @@ function CampaignHub({
     } finally { setBusyStatus(false); }
   };
 
+  const CampaignPicker = campaigns.length > 0 ? (
+    <div className="flex items-center gap-2 flex-wrap rounded-xl bg-[#F5F7FA] border border-[#0c2340]/10 px-3 py-2">
+      <Megaphone className="w-4 h-4 text-[#0c2340]" />
+      <label className="text-xs font-bold uppercase tracking-wide text-[#4a5b78]">Campaign</label>
+      <select
+        value={activeCampaignId ?? ""}
+        onChange={(e) => setActiveCampaignId(e.target.value)}
+        className="flex-1 min-w-[140px] bg-white border border-[#0c2340]/15 rounded-lg px-2 py-1.5 text-sm font-semibold text-[#0c2340] outline-none"
+      >
+        {campaigns.map((c) => (
+          <option key={c.id} value={c.id}>{c.name}{c.is_default ? " (default)" : ""}</option>
+        ))}
+      </select>
+      <Link to="/campaigns" className="text-xs font-bold text-[#FF6B00] hover:underline whitespace-nowrap">Manage →</Link>
+    </div>
+  ) : null;
+
   if (section !== "overview") {
     const titles: Record<Exclude<HubSection, "overview">, string> = {
       prizes: "Prizes",
@@ -1800,7 +1832,8 @@ function CampaignHub({
           <ChevronLeft className="w-4 h-4" /> Campaign Hub
         </button>
         <h2 className="text-xl font-black text-[#0c2340]">{titles[section]}</h2>
-        {section === "prizes" && <PrizesTab shop={shop} />}
+        {(section === "prizes" || section === "wheel") && CampaignPicker}
+        {section === "prizes" && <PrizesTab shop={shop} campaignId={activeCampaignId} />}
         {section === "wheel" && <WheelSection shop={shop} prizes={prizes} onEditColors={() => setSection("settings")} onAssign={() => setSection("prizes")} />}
         {section === "qr-codes" && (
           <div className="space-y-6">
@@ -1817,6 +1850,7 @@ function CampaignHub({
       </div>
     );
   }
+
 
   const stats = [
     { label: "Total Prizes", value: prizes.length, icon: Gift },
