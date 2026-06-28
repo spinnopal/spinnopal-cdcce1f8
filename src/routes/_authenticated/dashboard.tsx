@@ -731,7 +731,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignO
 }
 
 // ---------- PRIZES ----------
-function PrizesTab({ shop }: { shop: Shop }) {
+function PrizesTab({ shop, campaignId }: { shop: Shop; campaignId?: string | null }) {
   const fetchPrizes = useServerFn(listMyPrizes);
   const doUpsert = useServerFn(upsertPrize);
   const doDelete = useServerFn(deletePrize);
@@ -741,9 +741,9 @@ function PrizesTab({ shop }: { shop: Shop }) {
   const [busy, setBusy] = useState(false);
 
   const load = useCallback(async () => {
-    const res = await fetchPrizes({ data: { shopId: shop.id } });
+    const res = await fetchPrizes({ data: { shopId: shop.id, ...(campaignId ? { campaignId } : {}) } });
     setPrizes(res.prizes as Prize[]);
-  }, [fetchPrizes, shop.id]);
+  }, [fetchPrizes, shop.id, campaignId]);
   useEffect(() => { load(); }, [load]);
 
   const newPrize = (): Prize => ({
@@ -761,11 +761,12 @@ function PrizesTab({ shop }: { shop: Shop }) {
     if (!editing.name || !editing.short || !editing.image_url) return alert("Fill name, short label, and image.");
     setBusy(true);
     try {
-      await doUpsert({ data: { shopId: shop.id, prize: editing } });
+      await doUpsert({ data: { shopId: shop.id, prize: editing, ...(campaignId ? { campaignId } : {}) } });
       setEditing(null);
       load();
     } finally { setBusy(false); }
   };
+
 
   const remove = async (id: string) => {
     if (!confirm("Delete this prize?")) return;
