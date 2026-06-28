@@ -78,32 +78,37 @@ export const listPrizesBySlug = createServerFn({ method: "GET" })
   });
 
 
-// AUTH: list prizes for a shop I own
+// AUTH: list prizes for a shop I own (optionally scoped to a campaign)
 export const listMyPrizes = createServerFn({ method: "GET" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ shopId: z.string().uuid() }).parse)
+  .inputValidator(z.object({ shopId: z.string().uuid(), campaignId: z.string().uuid().optional() }).parse)
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
-    const { data: prizes, error } = await context.supabase
+    let q = context.supabase
       .from("prizes")
-      .select("id, name, short, image_url, is_win, probability, sort_order")
+      .select("id, name, short, image_url, is_win, probability, sort_order, campaign_id")
       .eq("shop_id", data.shopId)
       .order("sort_order", { ascending: true });
+    if (data.campaignId) q = q.eq("campaign_id", data.campaignId);
+    const { data: prizes, error } = await q;
     if (error) throw new Error(error.message);
     return { prizes: prizes ?? [] };
   });
 
 export const upsertPrize = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
-  .inputValidator(z.object({ shopId: z.string().uuid(), prize: prizeInput }).parse)
+  .inputValidator(z.object({ shopId: z.string().uuid(), campaignId: z.string().uuid().optional(), prize: prizeInput }).parse)
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
+    const row: Record<string, unknown> = { ...data.prize, shop_id: data.shopId };
+    if (data.campaignId) row.campaign_id = data.campaignId;
     const { error } = await context.supabase
       .from("prizes")
-      .upsert({ ...data.prize, shop_id: data.shopId }, { onConflict: "shop_id,id" });
+      .upsert(row, { onConflict: "shop_id,id" });
     if (error) throw new Error(error.message);
     return { ok: true };
   });
+
 
 export const deletePrize = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
