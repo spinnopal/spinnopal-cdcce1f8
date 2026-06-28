@@ -1,9 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useState, useRef, useEffect, useMemo } from "react";
+import { useServerFn } from "@tanstack/react-start";
 import { InstallAppButton } from "@/components/InstallAppButton";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
 import { playClick, playWin, playLose, startSpinTicks } from "@/lib/sounds";
 import { useReducedMotion } from "@/hooks/use-reduced-motion";
+import { listActivePlans } from "@/lib/plans.functions";
 
 function vibrate(pattern: number | number[]) {
   try {
