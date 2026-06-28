@@ -100,11 +100,11 @@ export const upsertPrize = createServerFn({ method: "POST" })
   .inputValidator(z.object({ shopId: z.string().uuid(), campaignId: z.string().uuid().optional(), prize: prizeInput }).parse)
   .handler(async ({ data, context }) => {
     await assertOwner(context, data.shopId);
-    const row: Record<string, unknown> = { ...data.prize, shop_id: data.shopId };
-    if (data.campaignId) row.campaign_id = data.campaignId;
+    const row = { ...data.prize, shop_id: data.shopId, ...(data.campaignId ? { campaign_id: data.campaignId } : {}) };
     const { error } = await context.supabase
       .from("prizes")
       .upsert(row, { onConflict: "shop_id,id" });
+
     if (error) throw new Error(error.message);
     return { ok: true };
   });
