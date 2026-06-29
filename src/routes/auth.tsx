@@ -92,38 +92,50 @@ function AuthPage() {
         if (!/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/.test(desiredSlug))
           throw new Error("Shop URL can only contain lowercase letters, numbers and dashes");
 
-        const { error: signUpErr } = await supabase.auth.signUp({
+        const { data: signUpData, error: signUpErr } = await supabase.auth.signUp({
           email,
           password,
-          options: { emailRedirectTo: `${window.location.origin}/dashboard` },
+          options: { emailRedirectTo: `${window.location.origin}/auth` },
         });
         if (signUpErr) throw signUpErr;
 
-        // Auto-confirm flow may already give a session; otherwise sign in.
+        // If email confirmation is required, Supabase returns a user but no session.
         let sess = (await supabase.auth.getSession()).data.session;
         if (!sess) {
-          const { error: signInErr } = await supabase.auth.signInWithPassword({ email, password });
-          if (signInErr) throw signInErr;
-          sess = (await supabase.auth.getSession()).data.session;
-        }
-        if (!sess) {
-          setError("Account created. Please check your email to confirm, then sign in.");
+          setInfo(
+            `We sent a confirmation link to ${email}. Open it on this device to verify your email, then sign in to finish creating your shop.`,
+          );
+          // Stash the desired shop details so we can create the shop right after sign-in.
+          try {
+            sessionStorage.setItem(
+              "pending_shop",
+              JSON.stringify({ name: shopName.trim(), slug: desiredSlug, email }),
+            );
+          } catch {}
           setMode("signin");
           return;
         }
         await create({ data: { name: shopName.trim(), slug: desiredSlug, email } });
         navigate({ to: "/dashboard" });
+
       } else {
         const { error: e1 } = await supabase.auth.signInWithPassword({ email, password });
         if (e1) throw e1;
-        // If they signed in but have no shop yet (e.g. confirmed later), send them to dashboard which will prompt.
-        const res = await listShops();
-        if (res.shops.length === 0) {
-          navigate({ to: "/dashboard" });
-        } else {
-          navigate({ to: "/dashboard" });
-        }
+        // If we have a pending shop (from a verified signup), create it now.
+        try {
+          const pending = sessionStorage.getItem("pending_shop");
+          if (pending) {
+            const p = JSON.parse(pending);
+            const existing = await listShops();
+            if (existing.shops.length === 0 && p?.name && p?.slug) {
+              await create({ data: { name: p.name, slug: p.slug, email: p.email || email } });
+            }
+            sessionStorage.removeItem("pending_shop");
+          }
+        } catch {}
+        navigate({ to: "/dashboard" });
       }
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
