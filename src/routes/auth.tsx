@@ -121,14 +121,21 @@ function AuthPage() {
       } else {
         const { error: e1 } = await supabase.auth.signInWithPassword({ email, password });
         if (e1) throw e1;
-        // If they signed in but have no shop yet (e.g. confirmed later), send them to dashboard which will prompt.
-        const res = await listShops();
-        if (res.shops.length === 0) {
-          navigate({ to: "/dashboard" });
-        } else {
-          navigate({ to: "/dashboard" });
-        }
+        // If we have a pending shop (from a verified signup), create it now.
+        try {
+          const pending = sessionStorage.getItem("pending_shop");
+          if (pending) {
+            const p = JSON.parse(pending);
+            const existing = await listShops();
+            if (existing.shops.length === 0 && p?.name && p?.slug) {
+              await create({ data: { name: p.name, slug: p.slug, email: p.email || email } });
+            }
+            sessionStorage.removeItem("pending_shop");
+          }
+        } catch {}
+        navigate({ to: "/dashboard" });
       }
+
     } catch (err) {
       setError(err instanceof Error ? err.message : "Something went wrong");
     } finally {
