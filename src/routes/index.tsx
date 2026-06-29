@@ -588,13 +588,14 @@ function Landing() {
     },
   ];
 
-  const { plans: livePlansRaw } = Route.useLoaderData();
+  const { plans: livePlansRaw } = Route.useLoaderData() as { plans: Array<{ name: string; tagline: string | null; price_amount: number; currency: string; period: string; features: string[]; cta_label: string | null; is_highlighted: boolean }> };
   const fmtPrice = (amt: number, cur: string) => {
     if (amt <= 0) return "Free";
     const sym = cur?.toUpperCase() === "NPR" ? "Rs." : (cur || "");
     return `${sym}${Number(amt).toLocaleString()}`;
   };
-  const livePlans = (livePlansRaw && livePlansRaw.length)
+  type PlanCard = { name: string; price: string; period: string; desc: string; features: string[]; cta: string; highlight: boolean };
+  const livePlans: PlanCard[] | null = (livePlansRaw && livePlansRaw.length)
     ? livePlansRaw.map((p) => ({
         name: p.name,
         price: fmtPrice(p.price_amount, p.currency),
@@ -605,7 +606,8 @@ function Landing() {
         highlight: !!p.is_highlighted,
       }))
     : null;
-  const plans = livePlans ?? fallbackPlans;
+  const plans: PlanCard[] = livePlans ?? fallbackPlans;
+
 
 
 
