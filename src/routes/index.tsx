@@ -41,8 +41,19 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  loader: async () => {
+    try {
+      const r = await listActivePlans();
+      return { plans: r.plans ?? [] };
+    } catch {
+      return { plans: [] };
+    }
+  },
+  staleTime: 0,
+  shouldReload: () => true,
   component: Landing,
 });
+
 
 // Brand palette
 const C = {
@@ -577,33 +588,25 @@ function Landing() {
     },
   ];
 
-  const fetchPlans = useServerFn(listActivePlans);
-  const [livePlans, setLivePlans] = useState<typeof fallbackPlans | null>(null);
-  useEffect(() => {
-    fetchPlans()
-      .then((r) => {
-        const rows = r.plans ?? [];
-        if (!rows.length) return;
-        const fmtPrice = (amt: number, cur: string) => {
-          if (amt <= 0) return "Free";
-          const sym = cur?.toUpperCase() === "NPR" ? "Rs." : (cur || "");
-          return `${sym}${Number(amt).toLocaleString()}`;
-        };
-        setLivePlans(
-          rows.map((p) => ({
-            name: p.name,
-            price: fmtPrice(p.price_amount, p.currency),
-            period: p.price_amount > 0 ? `/ ${p.period}` : (p.period || "forever"),
-            desc: p.tagline || "",
-            features: p.features ?? [],
-            cta: p.cta_label || (p.price_amount > 0 ? `Start ${p.name}` : "Start Free"),
-            highlight: !!p.is_highlighted,
-          })),
-        );
-      })
-      .catch(() => {});
-  }, [fetchPlans]);
+  const { plans: livePlansRaw } = Route.useLoaderData();
+  const fmtPrice = (amt: number, cur: string) => {
+    if (amt <= 0) return "Free";
+    const sym = cur?.toUpperCase() === "NPR" ? "Rs." : (cur || "");
+    return `${sym}${Number(amt).toLocaleString()}`;
+  };
+  const livePlans = (livePlansRaw && livePlansRaw.length)
+    ? livePlansRaw.map((p) => ({
+        name: p.name,
+        price: fmtPrice(p.price_amount, p.currency),
+        period: p.price_amount > 0 ? `/ ${p.period}` : (p.period || "forever"),
+        desc: p.tagline || "",
+        features: p.features ?? [],
+        cta: p.cta_label || (p.price_amount > 0 ? `Start ${p.name}` : "Start Free"),
+        highlight: !!p.is_highlighted,
+      }))
+    : null;
   const plans = livePlans ?? fallbackPlans;
+
 
 
   const faqs = [
