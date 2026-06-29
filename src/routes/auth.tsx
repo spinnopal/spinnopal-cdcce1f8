@@ -141,7 +141,7 @@ function AuthPage() {
     try {
       const token = code.replace(/\s+/g, "");
       if (!/^\d{6}$/.test(token)) throw new Error("Enter the 6-digit code from your email");
-      const { error: verr } = await supabase.auth.verifyOtp({ email, token, type: "email" });
+      const { error: verr } = await supabase.auth.verifyOtp({ email, token, type: "signup" });
       if (verr) throw verr;
       // Create shop now that the user is verified + signed in.
       try {
