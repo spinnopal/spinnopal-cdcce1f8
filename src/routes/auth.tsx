@@ -97,7 +97,7 @@ function AuthPage() {
           try {
             const res = await checkStatus({ data: { email } });
             if (res.request) {
-              setRequestStatus(res.request);
+              setRequestStatus(res.request as typeof requestStatus);
               setStep("submitted");
               return;
             }
