@@ -15,6 +15,12 @@ import {
   recordShopPayment,
 } from "@/lib/shops.functions";
 import { listAllPlansAdmin, upsertPlan, deletePlan } from "@/lib/plans.functions";
+import {
+  listSignupRequests,
+  approveSignupRequest,
+  rejectSignupRequest,
+  deleteSignupRequest,
+} from "@/lib/pending-signups.functions";
 
 
 export const Route = createFileRoute("/_authenticated/super-admin")({
