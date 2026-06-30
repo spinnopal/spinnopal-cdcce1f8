@@ -123,6 +123,8 @@ function SuperAdminPage() {
 
       {msg && <div className="mb-3 text-xs px-3 py-2 rounded bg-white/5">{msg}</div>}
 
+      <PendingSignups onMsg={setMsg} />
+
       <PlansManager onMsg={setMsg} />
 
       <div className="space-y-2">
