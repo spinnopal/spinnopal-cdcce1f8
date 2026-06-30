@@ -126,6 +126,48 @@ export type Database = {
           },
         ]
       }
+      pending_signups: {
+        Row: {
+          created_at: string
+          email: string
+          id: string
+          password: string
+          review_notes: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          shop_name: string
+          slug: string
+          status: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          email: string
+          id?: string
+          password: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shop_name: string
+          slug: string
+          status?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          email?: string
+          id?: string
+          password?: string
+          review_notes?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          shop_name?: string
+          slug?: string
+          status?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       prizes: {
         Row: {
           campaign_id: string | null
