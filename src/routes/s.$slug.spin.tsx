@@ -33,6 +33,10 @@ function SpinPage() {
   const campaignsQ = useQuery({
     queryKey: ["public-campaigns", slug],
     queryFn: async () => (await fetchCampaigns({ data: { slug } })).campaigns,
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
+    refetchOnMount: false,
+    refetchOnWindowFocus: false,
   });
   const [accent, setAccent] = useState<string | undefined>(undefined);
 
