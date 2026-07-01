@@ -55,6 +55,11 @@ function onBeforeInstall(event: Event) {
   notifyListeners();
 }
 
+function onAppInstalled() {
+  capturedDeferredPrompt = null;
+  notifyListeners();
+}
+
 function getInitialPrompt() {
   return capturedDeferredPrompt;
 }
@@ -86,10 +91,12 @@ export function usePwaInstall(): PwaInstallState {
     if (!capturedDeferredPrompt) {
       window.addEventListener("beforeinstallprompt", onBeforeInstall);
     }
+    window.addEventListener("appinstalled", onAppInstalled);
 
     return () => {
       listeners.delete(listener);
       window.removeEventListener("beforeinstallprompt", onBeforeInstall);
+      window.removeEventListener("appinstalled", onAppInstalled);
     };
   }, [hidden, deferredPrompt]);
 
