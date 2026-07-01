@@ -43,49 +43,85 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
   const rotationRef = useRef(0);
   const pressTimer = useRef<number | null>(null);
   const onCompleteRef = useRef(onComplete);
-  const startedRef = useRef(false);
+  const phaseRef = useRef<"idle" | "windup" | "final">("idle");
+  const windupStartRef = useRef(0);
   const ticksCancelRef = useRef<(() => void) | null>(null);
+  const doneTimerRef = useRef<number | null>(null);
 
   useEffect(() => { onCompleteRef.current = onComplete; }, [onComplete]);
 
+  const WINDUP_MS = 1400;   // linear ramp-up while server call is in flight
+  const WINDUP_TURNS = 2;   // rotation covered during ramp-up
+  const DECEL_MS = 7000;    // long smooth deceleration once target is known
+
   useEffect(() => {
-    if (spinning && targetIndex !== null && !startedRef.current && prizes.length > 0) {
-      startedRef.current = true;
-      const center = targetIndex * SEG;
+    // Reset when parent stops the spin (e.g. error before target arrived)
+    if (!spinning) {
+      if (phaseRef.current !== "idle") {
+        // freeze wheel at whatever it visually shows now
+        const elapsed = Math.min(performance.now() - windupStartRef.current, WINDUP_MS);
+        const visual = rotationRef.current + (elapsed / WINDUP_MS) * WINDUP_TURNS * 360;
+        setTransitionStyle("none");
+        setRotation(visual);
+        rotationRef.current = visual;
+      }
+      phaseRef.current = "idle";
+      if (doneTimerRef.current) { clearTimeout(doneTimerRef.current); doneTimerRef.current = null; }
+      ticksCancelRef.current?.();
+      ticksCancelRef.current = null;
+      return;
+    }
+
+    // Phase 1: user pressed SPIN — start ramp-up immediately, no target yet
+    if (spinning && phaseRef.current === "idle") {
+      phaseRef.current = "windup";
+      windupStartRef.current = performance.now();
+      const from = rotationRef.current;
+      const to = from + WINDUP_TURNS * 360;
+      setTransitionStyle(`transform ${WINDUP_MS}ms linear`);
+      requestAnimationFrame(() => requestAnimationFrame(() => setRotation(to)));
+      ticksCancelRef.current = startSpinTicks(WINDUP_MS + DECEL_MS);
+    }
+
+    // Phase 2: server responded — smoothly hand off to final decel
+    if (spinning && phaseRef.current === "windup" && targetIndex !== null && prizes.length > 0) {
+      phaseRef.current = "final";
+      const elapsed = Math.min(performance.now() - windupStartRef.current, WINDUP_MS);
+      const visualNow = rotationRef.current + (elapsed / WINDUP_MS) * WINDUP_TURNS * 360;
+
+      const center = targetIndex * SEG_SAFE;
       const base = ((360 - center) % 360 + 360) % 360;
-      const turns = 12; // longer, more exciting spin (~9s)
-      const current = rotationRef.current;
-      const currentMod = ((current % 360) + 360) % 360;
-      const delta = ((base - currentMod) + 360) % 360;
-      const finalRotation = current + turns * 360 + delta;
+      const visualMod = ((visualNow % 360) + 360) % 360;
+      const delta = ((base - visualMod) + 360) % 360;
+      const finalRotation = visualNow + 8 * 360 + delta;
 
-      // Single long smooth deceleration — honest spin, no fake near-miss
-      setTransitionStyle("transform 9s cubic-bezier(0.12, 0.78, 0.22, 1)");
-      requestAnimationFrame(() => {
-        requestAnimationFrame(() => {
-          setRotation(finalRotation);
-          rotationRef.current = finalRotation;
-        });
-      });
+      // Snap state to current visual position without a jump, then decel
+      setTransitionStyle("none");
+      setRotation(visualNow);
+      requestAnimationFrame(() => requestAnimationFrame(() => {
+        setTransitionStyle(`transform ${DECEL_MS}ms cubic-bezier(0.12, 0.78, 0.22, 1)`);
+        setRotation(finalRotation);
+        rotationRef.current = finalRotation;
+      }));
 
-      ticksCancelRef.current = startSpinTicks(9000);
-
-      const tDone = window.setTimeout(() => {
+      doneTimerRef.current = window.setTimeout(() => {
         const prize = prizes[targetIndex];
         if (prize) {
           if (prize.isWin) playWin(); else playLose();
           onCompleteRef.current(prize);
         }
-      }, 9100);
-
-      return () => {
-        clearTimeout(tDone);
-        ticksCancelRef.current?.();
-        ticksCancelRef.current = null;
-      };
+      }, DECEL_MS + 100);
     }
-    if (!spinning) startedRef.current = false;
-  }, [spinning, targetIndex, prizes, SEG, SEG_SAFE]);
+
+    return () => {
+      // per-render cleanup only for the timer we own on unmount
+    };
+  }, [spinning, targetIndex, prizes, SEG_SAFE]);
+
+  useEffect(() => () => {
+    if (doneTimerRef.current) clearTimeout(doneTimerRef.current);
+    ticksCancelRef.current?.();
+  }, []);
 
   const startPress = () => {
     if (!onLogoLongPress) return;
