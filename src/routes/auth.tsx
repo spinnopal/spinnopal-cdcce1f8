@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Eye, EyeOff, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2, Clock, XCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isValidEmail } from "@/lib/validation";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
