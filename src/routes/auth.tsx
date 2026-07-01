@@ -1,7 +1,7 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
-import { Eye, EyeOff, CheckCircle2, Clock, XCircle } from "lucide-react";
+import { Eye, EyeOff, CheckCircle2, Clock, XCircle, Loader2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { isValidEmail } from "@/lib/validation";
 import { DEFAULT_LOGO } from "@/lib/spin-store";
@@ -217,7 +217,8 @@ function AuthPage() {
         {error && <p className="text-destructive text-sm">{error}</p>}
         {info && <p className="text-sm text-emerald-400">{info}</p>}
 
-        <button type="submit" disabled={loading} className="w-full gradient-primary text-[#0F1115] font-bold py-3 rounded-xl glow-orange disabled:opacity-60">
+        <button type="submit" disabled={loading} className="w-full gradient-primary text-[#0F1115] font-bold py-3 rounded-xl glow-orange disabled:opacity-60 flex items-center justify-center gap-2">
+          {loading && <Loader2 className="w-4 h-4 animate-spin" />}
           {loading ? "Please wait..." : mode === "signup" ? "Submit signup request" : "Sign in"}
         </button>
         <button type="button" onClick={() => navigate({ to: "/" })} className="w-full text-xs text-muted-foreground">← Back to home</button>

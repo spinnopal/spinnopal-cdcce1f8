@@ -51,24 +51,31 @@ function SpinPage() {
   const [done, setDone] = useState(false);
   const [error, setError] = useState("");
 
-  const handleSpin = async () => {
+  const handleSpin = () => {
     if (spinning || done || prizes.length === 0) return;
     playClick();
     setError("");
+    // Start the wheel animation IMMEDIATELY (no target yet — SpinWheel ramps up)
     setSpinning(true);
-    try {
-      const res = await spin({ data: { slug, code, ...(campaignSlug ? { campaignSlug } : {}), name: name?.trim() || undefined, contact: contact?.trim() || undefined, email: email?.trim() || undefined } });
-      if (!res.ok) {
+    setTarget(null);
+    // Fire server call in parallel; when it resolves, target locks in mid-spin
+    (async () => {
+      try {
+        const res = await spin({ data: { slug, code, ...(campaignSlug ? { campaignSlug } : {}), name: name?.trim() || undefined, contact: contact?.trim() || undefined, email: email?.trim() || undefined } });
+        if (!res.ok) {
+          setSpinning(false);
+          setTarget(null);
+          setError("This code is invalid or has already been used.");
+          return;
+        }
+        const idx = prizes.findIndex((p) => p.id === res.prize.id);
+        setTarget(idx >= 0 ? idx : 0);
+      } catch {
         setSpinning(false);
-        setError("This code is invalid or has already been used.");
-        return;
+        setTarget(null);
+        setError("Could not complete your spin. Please try again.");
       }
-      const idx = prizes.findIndex((p) => p.id === res.prize.id);
-      setTarget(idx >= 0 ? idx : 0);
-    } catch {
-      setSpinning(false);
-      setError("Could not complete your spin. Please try again.");
-    }
+    })();
   };
 
   const handleComplete = (prize: Prize) => {
