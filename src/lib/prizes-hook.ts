@@ -14,9 +14,13 @@ export function usePrizesBySlug(slug: string, campaignSlug?: string) {
       const res = await fetchPrizes({ data: { slug, ...(campaignSlug ? { campaignSlug } : {}) } });
       return (res.prizes as PrizeRow[]).map(rowToPrize);
     },
-    refetchInterval: 4000,
+    // Prizes rarely change during a customer's session. Skip aggressive polling
+    // (was refetching every 4s per open tab, dominating DB load) and cache for
+    // 5 minutes; window-focus refetch still catches shop-owner edits.
+    staleTime: 5 * 60_000,
+    gcTime: 10 * 60_000,
     refetchOnWindowFocus: true,
-    staleTime: 0,
+    refetchOnMount: false,
     enabled: !!slug,
   });
   return { prizes: (query.data ?? []) as Prize[], isLoading: query.isLoading };
