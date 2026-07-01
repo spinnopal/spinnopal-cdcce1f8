@@ -55,6 +55,11 @@ function onBeforeInstall(event: Event) {
   notifyListeners();
 }
 
+function onAppInstalled() {
+  capturedDeferredPrompt = null;
+  notifyListeners();
+}
+
 function getInitialPrompt() {
   return capturedDeferredPrompt;
 }
