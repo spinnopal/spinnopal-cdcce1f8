@@ -38,7 +38,7 @@ type Sub = {
 };
 
 const WHATSAPP = "9779769402069";
-const EMAIL = "theluckspin@gmail.com";
+const EMAIL = "spinnopal@gmail.com";
 
 function fmtMoney(amount: number, currency: string) {
   if (amount === 0) return "Free";
@@ -101,7 +101,7 @@ function BillingPage() {
 
   function contactFor(action: "Upgrade" | "Downgrade" | "Manage" | "Renew", plan?: PublicPlan) {
     const planText = plan ? ` to ${plan.name}` : "";
-    const msg = `Hi, I want to ${action.toLowerCase()} my TheLuckSpin subscription${planText}.`;
+    const msg = `Hi, I want to ${action.toLowerCase()} my Spinnopal subscription${planText}.`;
     if (plan?.contact_url) { window.open(plan.contact_url, "_blank"); return; }
     window.open(`https://wa.me/${WHATSAPP}?text=${encodeURIComponent(msg)}`, "_blank");
   }
@@ -361,7 +361,7 @@ function BillingPage() {
         </section>
 
         <p className="text-center text-[11px] text-slate-400 pt-2">
-          Prices are managed by TheLuckSpin team. <Link to="/dashboard" className="underline">Back to dashboard</Link>
+          Prices are managed by the Spinnopal team. <Link to="/dashboard" className="underline">Back to dashboard</Link>
         </p>
       </main>
     </div>
