@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { X, Download } from "lucide-react";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 
-const STORAGE_KEY = "the-luck-spin-install-prompt-dismissed";
+const STORAGE_KEY = "spinnopal-install-prompt-dismissed";
 
 export function PwaInstallPrompt() {
   const { deferredPrompt, canInstall, isIOS, hidden } = usePwaInstall();
