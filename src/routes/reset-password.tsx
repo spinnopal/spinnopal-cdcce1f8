@@ -8,8 +8,8 @@ import { DEFAULT_LOGO } from "@/lib/spin-store";
 export const Route = createFileRoute("/reset-password")({
   head: () => ({
     meta: [
-      { title: "Reset password — Spinnopal" },
-      { name: "description", content: "Set a new password for your Spinnopal shop owner account." },
+      { title: "Reset password — Mystery Unlock" },
+      { name: "description", content: "Set a new password for your Mystery Unlock shop owner account." },
     ],
   }),
   component: ResetPasswordPage,
@@ -103,7 +103,7 @@ function ResetPasswordPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10">
       <img src={DEFAULT_LOGO} alt="" className="w-20 h-20 rounded-full object-cover mb-4 opacity-90" />
-      <h1 className="text-2xl font-black tracking-wider mb-1">SPINNOPAL</h1>
+      <h1 className="text-2xl font-black tracking-wider mb-1">MYSTERY UNLOCK</h1>
       <p className="text-xs tracking-[0.3em] text-gold uppercase mb-8">Reset password</p>
 
       <div className="glass rounded-2xl p-5 w-full max-w-sm space-y-3">

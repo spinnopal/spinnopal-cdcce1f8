@@ -38,7 +38,7 @@ import { QRCodeSVG } from "qrcode.react";
 import { MessagingTab } from "@/components/MessagingTab";
 
 export const Route = createFileRoute("/_authenticated/dashboard")({
-  head: () => ({ meta: [{ title: "Dashboard — Spinnopal" }] }),
+  head: () => ({ meta: [{ title: "Dashboard — Mystery Unlock" }] }),
   component: Dashboard,
 });
 
@@ -611,7 +611,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignO
     if (!confirm("Delete your account? This will sign you out and email our team to permanently remove your data within 30 days.")) return;
     const subject = encodeURIComponent(`Account deletion request — ${shop.name}`);
     const body = encodeURIComponent(`Please delete the account for ${email} (shop: ${shop.name}, id: ${shop.id}).`);
-    window.location.href = `mailto:spinnopal@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:mysteryunlocks@gmail.com?subject=${subject}&body=${body}`;
   };
 
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/s/${shop.slug}` : `/s/${shop.slug}`;
@@ -691,7 +691,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignO
       <SettingsSection icon={CreditCard} title="Subscription & Billing" subtitle="Plan, renewal and invoices" accent="#16a34a">
         <SettingsRow icon={Sparkles} label="Current plan" hint={shop.is_active ? "Active" : "Inactive"} right={<span className={`text-[11px] font-bold px-2 py-1 rounded-full ${shop.is_active ? "bg-emerald-50 text-emerald-700" : "bg-amber-50 text-amber-700"}`}>{shop.is_active ? "ACTIVE" : "PAUSED"}</span>} />
         <SettingsRow icon={CreditCard} label="Billing & plans" hint="View plans, renewal & invoices" onClick={() => { window.location.href = "/billing"; }} />
-        <SettingsRow icon={MessageSquare} label="Renew or upgrade" hint="Chat with us on WhatsApp" onClick={() => window.open("https://wa.me/9779769402069?text=I%20want%20to%20renew%20my%20Spinnopal%20subscription", "_blank")} />
+        <SettingsRow icon={MessageSquare} label="Renew or upgrade" hint="Chat with us on WhatsApp" onClick={() => window.open("https://wa.me/9779769402069?text=I%20want%20to%20renew%20my%20Mystery Unlock%20subscription", "_blank")} />
       </SettingsSection>
 
       {/* Integrations */}
@@ -716,7 +716,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignO
       {/* Support */}
       <SettingsSection icon={LifeBuoy} title="Support" subtitle="We're here to help" accent="#0ea5e9">
         <SettingsRow icon={MessageSquare} label="WhatsApp support" hint="+977 9769402069" onClick={() => window.open("https://wa.me/9779769402069", "_blank")} />
-        <SettingsRow icon={Mail} label="Email support" hint="spinnopal@gmail.com" onClick={() => { window.location.href = "mailto:spinnopal@gmail.com"; }} />
+        <SettingsRow icon={Mail} label="Email support" hint="mysteryunlocks@gmail.com" onClick={() => { window.location.href = "mailto:mysteryunlocks@gmail.com"; }} />
       </SettingsSection>
 
       {/* Danger Zone */}
@@ -725,7 +725,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignO
         <SettingsRow icon={Trash2} label="Delete account" hint="Permanently remove your data" onClick={requestDelete} danger />
       </SettingsSection>
 
-      <p className="text-center text-[11px] text-[#6b7a93] pt-2 pb-1">Spinnopal · v1.0</p>
+      <p className="text-center text-[11px] text-[#6b7a93] pt-2 pb-1">Mystery Unlock · v1.0</p>
     </div>
   );
 }

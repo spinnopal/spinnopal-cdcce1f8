@@ -24,7 +24,7 @@ import {
 
 
 export const Route = createFileRoute("/_authenticated/super-admin")({
-  head: () => ({ meta: [{ title: "Super admin — Spinnopal" }] }),
+  head: () => ({ meta: [{ title: "Super admin — Mystery Unlock" }] }),
   component: SuperAdminPage,
 });
 

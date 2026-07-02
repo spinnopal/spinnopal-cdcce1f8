@@ -251,9 +251,9 @@ export function SpinWheel({ prizes, spinning, targetIndex, onComplete, onLogoLon
               onPointerCancel={endPress}
               className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 w-[22%] h-[22%] rounded-full overflow-hidden border-2 bg-[#f5f7fb]"
               style={{ borderColor: theme.dark, boxShadow: `0 0 24px -6px ${theme.dark}88` }}
-              aria-label={centerLabel || "Spinnopal"}
+              aria-label={centerLabel || "Mystery Unlock"}
             >
-              <img src={centerLogo || DEFAULT_LOGO} alt={centerLabel || "Spinnopal"} className="w-full h-full object-cover" />
+              <img src={centerLogo || DEFAULT_LOGO} alt={centerLabel || "Mystery Unlock"} className="w-full h-full object-cover" />
             </button>
           </div>
         </div>
