@@ -27,13 +27,13 @@ function shuffle<T>(arr: T[]): T[] {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "The Luck Spin — Premium spin-to-win campaigns for modern shops" },
+      { title: "Spinnopal — Premium spin-to-win campaigns for modern shops" },
       {
         name: "description",
         content:
           "Run elegant spin-to-win campaigns. Brand your wheel, share a QR, and watch every win in a beautiful dashboard.",
       },
-      { property: "og:title", content: "The Luck Spin — Spin · Win · Enjoy" },
+      { property: "og:title", content: "Spinnopal — Spin · Win · Enjoy" },
       {
         property: "og:description",
         content:
