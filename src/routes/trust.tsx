@@ -3,11 +3,11 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 export const Route = createFileRoute("/trust")({
   head: () => ({
     meta: [
-      { title: "Trust & Privacy — Lucky Spin" },
+      { title: "Trust & Privacy — Spinnopal" },
       {
         name: "description",
         content:
-          "How Lucky Spin handles authentication, customer data, and platform security. Maintained by the Lucky Spin operator.",
+          "How Spinnopal handles authentication, customer data, and platform security. Maintained by the Spinnopal operator.",
       },
     ],
   }),
@@ -22,7 +22,7 @@ function TrustPage() {
           <Link to="/" className="text-sm opacity-70 hover:opacity-100">← Back</Link>
           <h1 className="text-3xl font-black tracking-tight">Trust & Privacy</h1>
           <p className="text-sm opacity-70">
-            This page is maintained by the Lucky Spin operator to answer common security and
+            This page is maintained by the Spinnopal operator to answer common security and
             privacy questions. It describes current practices and is editable project content —
             it is not an independent certification or audit.
           </p>
@@ -59,8 +59,8 @@ function TrustPage() {
         <section className="space-y-2">
           <h2 className="text-xl font-bold">Shared responsibility</h2>
           <p className="text-sm">
-            Lucky Spin runs on the Lovable Cloud platform, which provides hosting, managed
-            authentication, and the database. The Lucky Spin operator is responsible for shop
+            Spinnopal runs on the Lovable Cloud platform, which provides hosting, managed
+            authentication, and the database. The Spinnopal operator is responsible for shop
             content, prize rules, who they grant admin access to, and how they communicate
             with their customers.
           </p>

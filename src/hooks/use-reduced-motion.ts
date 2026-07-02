@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 
-const STORAGE_KEY = "theluckspin-reduced-motion";
+const STORAGE_KEY = "spinnopal-reduced-motion";
 
 export function useReducedMotion() {
   const [reducedMotion, setReducedMotion] = useState(false);

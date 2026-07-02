@@ -1,13 +1,13 @@
-// The Luck Spin — service worker
+// Spinnopal — service worker
 // Strategy:
 //   • Navigations (HTML): network-first, fall back to cached shell.
 //   • Same-origin static assets (js/css/img/font): stale-while-revalidate.
 //   • Supabase / API calls: never cached — always hit network.
 // Bump VERSION to invalidate old caches on deploy.
 
-const VERSION = "v3";
-const STATIC_CACHE = `tls-static-${VERSION}`;
-const RUNTIME_CACHE = `tls-runtime-${VERSION}`;
+const VERSION = "v4";
+const STATIC_CACHE = `spinnopal-static-${VERSION}`;
+const RUNTIME_CACHE = `spinnopal-runtime-${VERSION}`;
 const OFFLINE_URL = "/";
 
 self.addEventListener("install", (event) => {

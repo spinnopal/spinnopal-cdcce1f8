@@ -70,7 +70,7 @@ export function InstallAppButton({
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-w-md">
           <DialogHeader>
-            <DialogTitle>Install The Luck Spin</DialogTitle>
+            <DialogTitle>Install Spinnopal</DialogTitle>
             <DialogDescription>
               Add the app to your home screen for a full-screen, app-like experience.
             </DialogDescription>

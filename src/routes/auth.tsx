@@ -10,8 +10,8 @@ import { submitSignupRequest, getSignupRequestStatus } from "@/lib/pending-signu
 export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
-      { title: "Sign in — Lucky Spin" },
-      { name: "description", content: "Create a shop or sign in to manage your Lucky Spin campaign." },
+      { title: "Sign in — Spinnopal" },
+      { name: "description", content: "Create a shop or sign in to manage your Spinnopal campaign." },
     ],
   }),
   component: AuthPage,
@@ -123,9 +123,9 @@ function AuthPage() {
 
     return (
       <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10">
-        <img src={DEFAULT_LOGO} alt="" className="w-20 h-20 rounded-full object-cover mb-4 opacity-90" />
-        <h1 className="text-2xl font-black tracking-wider mb-1">LUCKY SPIN</h1>
-        <p className="text-xs tracking-[0.3em] text-gold uppercase mb-8">Shop Owner Portal</p>
+      <img src={DEFAULT_LOGO} alt="" className="w-20 h-20 rounded-full object-cover mb-4 opacity-90" />
+      <h1 className="text-2xl font-black tracking-wider mb-1">SPINNOPAL</h1>
+      <p className="text-xs tracking-[0.3em] text-gold uppercase mb-8">Shop Owner Portal</p>
 
         <div className="glass rounded-2xl p-6 w-full max-w-sm text-center space-y-4">
           <div className="flex justify-center">{icon}</div>
@@ -158,7 +158,7 @@ function AuthPage() {
                 Unfortunately your signup request was declined.
                 {requestStatus?.review_notes ? <><br /><span className="block mt-2 italic">"{requestStatus.review_notes}"</span></> : null}
               </p>
-              <p className="text-xs text-[#0c2340]/60">Questions? Contact us at theluckspin@gmail.com</p>
+              <p className="text-xs text-[#0c2340]/60">Questions? Contact us at spinnopal@gmail.com</p>
             </>
           )}
 
@@ -174,7 +174,7 @@ function AuthPage() {
   return (
     <div className="min-h-screen flex flex-col items-center justify-center px-6 py-10">
       <img src={DEFAULT_LOGO} alt="" className="w-20 h-20 rounded-full object-cover mb-4 opacity-90" />
-      <h1 className="text-2xl font-black tracking-wider mb-1">LUCKY SPIN</h1>
+      <h1 className="text-2xl font-black tracking-wider mb-1">SPINNOPAL</h1>
       <p className="text-xs tracking-[0.3em] text-gold uppercase mb-8">Shop Owner Portal</p>
 
       <form onSubmit={onSubmit} onInput={() => { interactedRef.current = true; }} className="glass rounded-2xl p-5 w-full max-w-sm space-y-3">

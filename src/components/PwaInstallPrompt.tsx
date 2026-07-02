@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { X, Download } from "lucide-react";
 import { usePwaInstall } from "@/hooks/use-pwa-install";
 
-const STORAGE_KEY = "the-luck-spin-install-prompt-dismissed";
+const STORAGE_KEY = "spinnopal-install-prompt-dismissed";
 
 export function PwaInstallPrompt() {
   const { deferredPrompt, canInstall, isIOS, hidden } = usePwaInstall();
@@ -52,7 +52,7 @@ export function PwaInstallPrompt() {
           <Download className="h-5 w-5 text-primary-foreground" />
         </div>
         <div className="flex-1">
-          <p className="font-semibold text-foreground">Install The Luck Spin</p>
+          <p className="font-semibold text-foreground">Install Spinnopal</p>
           <p className="text-sm text-muted-foreground">
             {deferredPrompt
               ? "Add this app to your home screen for the best experience."

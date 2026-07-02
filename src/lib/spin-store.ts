@@ -1,8 +1,8 @@
-import logoAsset from "@/assets/theluckspin-logo.png.asset.json";
+import logoUrl from "@/assets/spinnopal-logo.png";
 
 // Default platform logo used on marketing/landing pages and as a fallback
 // when a shop hasn't uploaded its own logo yet.
-export const DEFAULT_LOGO = logoAsset.url;
+export const DEFAULT_LOGO = logoUrl;
 
 export interface Prize {
   id: string;

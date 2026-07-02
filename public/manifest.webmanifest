@@ -1,7 +1,7 @@
 {
-  "name": "The Luck Spin",
-  "short_name": "The Luck Spin",
-  "description": "Spin the wheel and win prizes with The Luck Spin — premium prize campaigns for retail shops.",
+  "name": "Spinnopal",
+  "short_name": "Spinnopal",
+  "description": "Spin the wheel and win prizes with Spinnopal — premium prize campaigns for retail shops.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
@@ -9,9 +9,9 @@
   "background_color": "#ffffff",
   "theme_color": "#1f3460",
   "icons": [
-    { "src": "/__l5e/assets-v1/b228694b-cd74-4bdc-baef-0a7f590a0812/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
-    { "src": "/__l5e/assets-v1/e93b1066-5147-43e2-a453-afd361ab4a78/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
-    { "src": "/__l5e/assets-v1/b228694b-cd74-4bdc-baef-0a7f590a0812/app-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
-    { "src": "/__l5e/assets-v1/e93b1066-5147-43e2-a453-afd361ab4a78/app-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
+    { "src": "/spinnopal-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "any" },
+    { "src": "/spinnopal-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "any" },
+    { "src": "/spinnopal-icon-192.png", "sizes": "192x192", "type": "image/png", "purpose": "maskable" },
+    { "src": "/spinnopal-icon-512.png", "sizes": "512x512", "type": "image/png", "purpose": "maskable" }
   ]
 }

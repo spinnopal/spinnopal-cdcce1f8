@@ -46,8 +46,8 @@ export function MessagingTab({ shop }: { shop: { id: string; name: string } }) {
   const doEmail = useServerFn(sendBulkEmail);
   const doWa = useServerFn(sendBulkWhatsApp);
 
-  const tplKey = `tls-tpl-${shop.id}`;
-  const histKey = `tls-msg-history-${shop.id}`;
+  const tplKey = `spinnopal-tpl-${shop.id}`;
+  const histKey = `spinnopal-msg-history-${shop.id}`;
 
   const [rows, setRows] = useState<RecordRow[]>([]);
   const [channel, setChannel] = useState<Channel>("whatsapp");

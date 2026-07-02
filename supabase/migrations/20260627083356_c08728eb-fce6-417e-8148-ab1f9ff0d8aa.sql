@@ -45,7 +45,7 @@ FOR EACH ROW EXECUTE FUNCTION public.update_updated_at_column();
 
 INSERT INTO public.subscription_plans (code, name, tagline, price_amount, currency, period, features, is_highlighted, sort_order, cta_label)
 VALUES
-  ('free', 'Free', 'Try The Luck Spin risk-free', 0, 'NPR', 'month',
+  ('free', 'Free', 'Try Spinnopal risk-free', 0, 'NPR', 'month',
    '["1 active campaign","Up to 100 spins / month","Basic analytics","Email support"]'::jsonb,
    false, 1, 'Start free'),
   ('pro', 'Pro', 'For growing boutiques', 999, 'NPR', 'month',

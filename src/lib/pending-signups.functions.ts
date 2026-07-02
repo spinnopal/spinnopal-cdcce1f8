@@ -8,7 +8,7 @@ const slugSchema = z
   .regex(/^[a-z0-9](?:[a-z0-9-]*[a-z0-9])?$/, "Use lowercase letters, numbers and dashes only");
 const nameSchema = z.string().trim().min(1).max(80);
 
-const ADMIN_NOTIFY_EMAIL = "theluckspin@gmail.com";
+const ADMIN_NOTIFY_EMAIL = "spinnopal@gmail.com";
 
 async function isSuperAdmin(ctx: { supabase: any; userId: string }) {
   const { data } = await ctx.supabase
@@ -21,7 +21,7 @@ async function notifyAdmin(args: { email: string; shop_name: string; slug: strin
   // Best-effort notification. If Lovable Emails isn't wired up yet, swallow the error
   // so the signup request still saves and shows in the admin dashboard.
   try {
-    const origin = process.env.PUBLIC_SITE_URL || "https://theluckspin.lovable.app";
+    const origin = process.env.PUBLIC_SITE_URL || "https://spinnopal.lovable.app";
     await fetch(`${origin}/lovable/email/transactional/send`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
