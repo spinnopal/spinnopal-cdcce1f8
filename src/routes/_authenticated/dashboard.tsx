@@ -611,7 +611,7 @@ function SettingsTab({ shop, onSaved, doUpdate, superAdmin, doBootstrap, onSignO
     if (!confirm("Delete your account? This will sign you out and email our team to permanently remove your data within 30 days.")) return;
     const subject = encodeURIComponent(`Account deletion request — ${shop.name}`);
     const body = encodeURIComponent(`Please delete the account for ${email} (shop: ${shop.name}, id: ${shop.id}).`);
-    window.location.href = `mailto:theluckspin@gmail.com?subject=${subject}&body=${body}`;
+    window.location.href = `mailto:spinnopal@gmail.com?subject=${subject}&body=${body}`;
   };
 
   const publicUrl = typeof window !== "undefined" ? `${window.location.origin}/s/${shop.slug}` : `/s/${shop.slug}`;
