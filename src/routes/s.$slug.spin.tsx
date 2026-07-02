@@ -104,7 +104,7 @@ function SpinPage() {
     <div className="min-h-screen flex flex-col items-center px-4 py-6">
       <div className="w-full flex items-center justify-between mb-2">
         <button onClick={() => { playClick(); navigate({ to: "/s/$slug", params: { slug }, search: campaignSlug ? { c: campaignSlug } : {} }); }} className="text-sm text-muted-foreground">← Back</button>
-        <p className="text-xs uppercase tracking-widest text-gold">Spinnopal Spin</p>
+        <p className="text-xs uppercase tracking-widest text-gold">Mystery Unlock Spin</p>
         <span className="w-10" />
       </div>
 

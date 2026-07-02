@@ -21,7 +21,7 @@ export const Route = createFileRoute("/s/$slug/")({
   validateSearch: entrySearch,
   head: ({ params }) => ({
     meta: [
-      { title: `${params.slug} — Spinnopal` },
+      { title: `${params.slug} — Mystery Unlock` },
       { name: "description", content: `Enter your access code to spin and win.` },
     ],
   }),
@@ -188,7 +188,7 @@ function ShopEntry() {
       </div>
       <h1 className="text-3xl font-black tracking-[0.18em] text-center uppercase">{shop.name}</h1>
       <p className="mt-2 text-sm tracking-[0.32em] text-gold uppercase">
-        {selectedCampaign?.name ?? "Spinnopal Campaign"}
+        {selectedCampaign?.name ?? "Mystery Unlock Campaign"}
       </p>
       {campaigns.length > 1 && (
         <button

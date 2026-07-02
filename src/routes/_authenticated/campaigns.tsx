@@ -13,7 +13,7 @@ import {
 } from "@/lib/campaigns.functions";
 
 export const Route = createFileRoute("/_authenticated/campaigns")({
-  head: () => ({ meta: [{ title: "Campaigns — Spinnopal" }] }),
+  head: () => ({ meta: [{ title: "Campaigns — Mystery Unlock" }] }),
   component: CampaignsPage,
 });
 

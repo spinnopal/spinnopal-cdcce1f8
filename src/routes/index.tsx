@@ -27,13 +27,13 @@ function shuffle<T>(arr: T[]): T[] {
 export const Route = createFileRoute("/")({
   head: () => ({
     meta: [
-      { title: "Spinnopal — Premium spin-to-win campaigns for modern shops" },
+      { title: "Mystery Unlock — Premium spin-to-win campaigns for modern shops" },
       {
         name: "description",
         content:
           "Run elegant spin-to-win campaigns. Brand your wheel, share a QR, and watch every win in a beautiful dashboard.",
       },
-      { property: "og:title", content: "Spinnopal — Spin · Win · Enjoy" },
+      { property: "og:title", content: "Mystery Unlock — Spin · Win · Enjoy" },
       {
         property: "og:description",
         content:
@@ -70,7 +70,7 @@ function BrandMark({ size = 36 }: { size?: number }) {
       className="rounded-2xl bg-white overflow-hidden flex items-center justify-center ring-1 ring-[#2A3E4B]/10 shadow-sm"
       style={{ width: size, height: size }}
     >
-      <img src={DEFAULT_LOGO} alt="Spinnopal" className="w-full h-full object-contain" />
+      <img src={DEFAULT_LOGO} alt="Mystery Unlock" className="w-full h-full object-contain" />
     </div>
   );
 }
@@ -373,7 +373,7 @@ function Navbar() {
         <Link to="/" className="flex items-center gap-2.5">
           <BrandMark size={38} />
           <span className="font-display font-bold tracking-tight text-lg" style={{ color: C.dark }}>
-            Spinnopal
+            Mystery Unlock
           </span>
         </Link>
 
@@ -651,7 +651,7 @@ function Landing() {
               className="mt-5 text-base md:text-lg max-w-lg leading-relaxed"
               style={{ color: `${C.dark}b3` }}
             >
-              Spinnopal is the elegant, modern way to run spin-to-win campaigns. Brand your wheel,
+              Mystery Unlock is the elegant, modern way to run spin-to-win campaigns. Brand your wheel,
               share a QR, and track every winner from one beautiful dashboard.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -880,7 +880,7 @@ function Landing() {
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ff5f57" }} />
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#febc2e" }} />
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#28c840" }} />
-              <span className="ml-3 text-xs font-semibold" style={{ color: `${C.dark}80` }}>spinnopal / dashboard</span>
+              <span className="ml-3 text-xs font-semibold" style={{ color: `${C.dark}80` }}>mystery-unlock / dashboard</span>
             </div>
             <div className="p-5 md:p-8">
               <div className="grid sm:grid-cols-3 gap-4 mb-6">
@@ -1140,7 +1140,7 @@ function Landing() {
             <div>
               <div className="flex items-center gap-2.5">
                 <BrandMark size={36} />
-                <span className="font-display font-bold text-lg" style={{ color: C.dark }}>Spinnopal</span>
+                <span className="font-display font-bold text-lg" style={{ color: C.dark }}>Mystery Unlock</span>
               </div>
               <p className="mt-4 text-sm max-w-xs" style={{ color: `${C.dark}99` }}>
                 Premium spin-to-win SaaS for boutique shops, salons, and cafes.
@@ -1183,7 +1183,7 @@ function Landing() {
                   9769402069
                 </a>
                 <a
-                  href="mailto:spinnopal@gmail.com"
+                  href="mailto:mysteryunlocks@gmail.com"
                   className="inline-flex items-center gap-2.5 text-sm font-semibold transition-colors hover:opacity-80"
                   style={{ color: C.dark }}
                 >
@@ -1195,7 +1195,7 @@ function Landing() {
                       <path d="M12 12.713L.015 3h23.97L12 12.713zM12 14.713L0 5v15h24V5l-12 9.713z" />
                     </svg>
                   </span>
-                  spinnopal@gmail.com
+                  mysteryunlocks@gmail.com
                 </a>
               </div>
             </div>
@@ -1203,7 +1203,7 @@ function Landing() {
 
           <div className="mt-12 pt-6 border-t flex flex-wrap items-center justify-between gap-3" style={{ borderColor: `${C.dark}14` }}>
             <p className="text-xs" style={{ color: `${C.dark}80` }}>
-              © {new Date().getFullYear()} Spinnopal. All rights reserved.
+              © {new Date().getFullYear()} Mystery Unlock. All rights reserved.
             </p>
             <p className="text-xs" style={{ color: `${C.dark}80` }}>
               <Link to="/trust" className="hover:underline">Trust & Privacy</Link>
