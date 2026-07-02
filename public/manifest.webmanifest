@@ -1,7 +1,7 @@
 {
-  "name": "Spinnopal",
-  "short_name": "Spinnopal",
-  "description": "Spin the wheel and win prizes with Spinnopal — premium prize campaigns for retail shops.",
+  "name": "Mystery Unlock",
+  "short_name": "Mystery Unlock",
+  "description": "Spin the wheel and win prizes with Mystery Unlock — premium prize campaigns for retail shops.",
   "start_url": "/dashboard",
   "scope": "/",
   "display": "standalone",
