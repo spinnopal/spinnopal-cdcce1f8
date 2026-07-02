@@ -1183,7 +1183,7 @@ function Landing() {
                   9769402069
                 </a>
                 <a
-                  href="mailto:theluckspin@gmail.com"
+                  href="mailto:spinnopal@gmail.com"
                   className="inline-flex items-center gap-2.5 text-sm font-semibold transition-colors hover:opacity-80"
                   style={{ color: C.dark }}
                 >
@@ -1195,7 +1195,7 @@ function Landing() {
                       <path d="M12 12.713L.015 3h23.97L12 12.713zM12 14.713L0 5v15h24V5l-12 9.713z" />
                     </svg>
                   </span>
-                  theluckspin@gmail.com
+                  spinnopal@gmail.com
                 </a>
               </div>
             </div>
@@ -1203,10 +1203,10 @@ function Landing() {
 
           <div className="mt-12 pt-6 border-t flex flex-wrap items-center justify-between gap-3" style={{ borderColor: `${C.dark}14` }}>
             <p className="text-xs" style={{ color: `${C.dark}80` }}>
-              © {new Date().getFullYear()} theluckspin. All rights reserved.
+              © {new Date().getFullYear()} Spinnopal. All rights reserved.
             </p>
             <p className="text-xs" style={{ color: `${C.dark}80` }}>
-              Crafted with care for modern shops.
+              <Link to="/trust" className="hover:underline">Trust & Privacy</Link>
             </p>
           </div>
         </Section>
