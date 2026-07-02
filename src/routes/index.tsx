@@ -70,7 +70,7 @@ function BrandMark({ size = 36 }: { size?: number }) {
       className="rounded-2xl bg-white overflow-hidden flex items-center justify-center ring-1 ring-[#2A3E4B]/10 shadow-sm"
       style={{ width: size, height: size }}
     >
-      <img src={DEFAULT_LOGO} alt="The Luck Spin" className="w-full h-full object-contain" />
+      <img src={DEFAULT_LOGO} alt="Spinnopal" className="w-full h-full object-contain" />
     </div>
   );
 }
@@ -373,7 +373,7 @@ function Navbar() {
         <Link to="/" className="flex items-center gap-2.5">
           <BrandMark size={38} />
           <span className="font-display font-bold tracking-tight text-lg" style={{ color: C.dark }}>
-            theluckspin
+            Spinnopal
           </span>
         </Link>
 
@@ -651,7 +651,7 @@ function Landing() {
               className="mt-5 text-base md:text-lg max-w-lg leading-relaxed"
               style={{ color: `${C.dark}b3` }}
             >
-              theluckspin is the elegant, modern way to run spin-to-win campaigns. Brand your wheel,
+              Spinnopal is the elegant, modern way to run spin-to-win campaigns. Brand your wheel,
               share a QR, and track every winner from one beautiful dashboard.
             </p>
             <div className="mt-8 flex flex-wrap items-center gap-3">
@@ -880,7 +880,7 @@ function Landing() {
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#ff5f57" }} />
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#febc2e" }} />
               <span className="w-2.5 h-2.5 rounded-full" style={{ background: "#28c840" }} />
-              <span className="ml-3 text-xs font-semibold" style={{ color: `${C.dark}80` }}>theluckspin / dashboard</span>
+              <span className="ml-3 text-xs font-semibold" style={{ color: `${C.dark}80` }}>spinnopal / dashboard</span>
             </div>
             <div className="p-5 md:p-8">
               <div className="grid sm:grid-cols-3 gap-4 mb-6">
@@ -1140,7 +1140,7 @@ function Landing() {
             <div>
               <div className="flex items-center gap-2.5">
                 <BrandMark size={36} />
-                <span className="font-display font-bold text-lg" style={{ color: C.dark }}>theluckspin</span>
+                <span className="font-display font-bold text-lg" style={{ color: C.dark }}>Spinnopal</span>
               </div>
               <p className="mt-4 text-sm max-w-xs" style={{ color: `${C.dark}99` }}>
                 Premium spin-to-win SaaS for boutique shops, salons, and cafes.
