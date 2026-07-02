@@ -33,7 +33,7 @@ export const sendBulkEmail = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
-    await assertOwner(context, data.shopId);
+    const shop = await assertOwner(context, data.shopId);
 
     // Use the Lovable transactional email send route (scaffolded by setup).
     // If not scaffolded, the route returns 404 and we surface a clear message.
@@ -46,14 +46,20 @@ export const sendBulkEmail = createServerFn({ method: "POST" })
       };
     }
 
+    const substitute = (text: string, r: { name?: string | null; prize?: string | null }) =>
+      text
+        .replaceAll("{customer_name}", r.name || "")
+        .replaceAll("{prize_name}", r.prize || "")
+        .replaceAll("{shop_name}", shop.name)
+        .replaceAll("{{name}}", r.name || "")
+        .replaceAll("{{prize}}", r.prize || "")
+        .replaceAll("{{shop}}", shop.name);
+
     const results: { email: string; ok: boolean; error?: string }[] = [];
     for (const r of data.recipients) {
-      const personalizedBody = data.body
-        .replaceAll("{{name}}", r.name || "")
-        .replaceAll("{{prize}}", r.prize || "");
-      const personalizedSubject = data.subject
-        .replaceAll("{{name}}", r.name || "")
-        .replaceAll("{{prize}}", r.prize || "");
+      const personalizedBody = substitute(data.body, r);
+      const personalizedSubject = substitute(data.subject, r);
+
       try {
         const resp = await fetch(`${origin}/lovable/email/transactional/send`, {
           method: "POST",
@@ -94,7 +100,7 @@ export const sendBulkWhatsApp = createServerFn({ method: "POST" })
     }).parse,
   )
   .handler(async ({ data, context }) => {
-    await assertOwner(context, data.shopId);
+    const shop = await assertOwner(context, data.shopId);
 
     const token = process.env.WHATSAPP_ACCESS_TOKEN;
     const phoneId = process.env.WHATSAPP_PHONE_NUMBER_ID;
@@ -107,6 +113,15 @@ export const sendBulkWhatsApp = createServerFn({ method: "POST" })
       };
     }
 
+    const substitute = (text: string, r: { name?: string | null; prize?: string | null }) =>
+      text
+        .replaceAll("{customer_name}", r.name || "")
+        .replaceAll("{prize_name}", r.prize || "")
+        .replaceAll("{shop_name}", shop.name)
+        .replaceAll("{{name}}", r.name || "")
+        .replaceAll("{{prize}}", r.prize || "")
+        .replaceAll("{{shop}}", shop.name);
+
     const url = `https://graph.facebook.com/v20.0/${phoneId}/messages`;
     const results: { to: string; ok: boolean; error?: string }[] = [];
     for (const r of data.recipients) {
@@ -115,9 +130,8 @@ export const sendBulkWhatsApp = createServerFn({ method: "POST" })
         results.push({ to: r.contact, ok: false, error: "invalid phone number" });
         continue;
       }
-      const body = data.body
-        .replaceAll("{{name}}", r.name || "")
-        .replaceAll("{{prize}}", r.prize || "");
+      const body = substitute(data.body, r);
+
       try {
         const resp = await fetch(url, {
           method: "POST",
